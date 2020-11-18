@@ -9,7 +9,11 @@
 
 extern OboeAudioEngine OboeAudioEngine;
 
-aaudio_data_callback_result_t OboeAudioEngine::onAudioReady(
+bool OboeAudioEngine::hasData() {
+    return audioData != nullptr && audioDataSize != -1;
+}
+
+aaudio_data_callback_result_t OboeAudioEngine::onAudioReady (
         AAudioStream *stream, void *userData, void *audioData, int32_t numFrames
 ) {
     OboeAudioEngine * AE = static_cast<OboeAudioEngine *>(userData);
@@ -19,10 +23,7 @@ aaudio_data_callback_result_t OboeAudioEngine::onAudioReady(
         static_cast<int16_t *>(audioData)[j] = 0;
     }
 
-//    LOGW("AUDIO REQUESTED");
-
     if (AE->hasData()) AE->renderAudio(static_cast<int16_t *>(audioData), numFrames);
-
 
     // Are we getting underruns?
     int32_t tmpuc = AAudioStream_getXRunCount(stream);
@@ -36,88 +37,175 @@ aaudio_data_callback_result_t OboeAudioEngine::onAudioReady(
     return AAUDIO_CALLBACK_RESULT_CONTINUE;
 }
 
-void OboeAudioEngine::onError(
-        AAudioStream *stream, void *userData, aaudio_result_t error
-){
-    if (error == AAUDIO_ERROR_DISCONNECTED){
-        std::function<void(void)> restartFunction = std::bind(&OboeAudioEngine::RestartStream,
+void OboeAudioEngine::renderAudio(int16_t *targetData, int32_t totalFrames) {
+    if (mIsPlaying && hasData()) {
+        int16_t * AUDIO_DATA = reinterpret_cast<int16_t *>(audioData);
+
+        // Check whether we're about to reach the end of the recording
+        if (!mIsLooping && mReadFrameIndex + totalFrames >= mTotalFrames) {
+            totalFrames = mTotalFrames - mReadFrameIndex;
+            mIsPlaying = false;
+        }
+
+        if (mReadFrameIndex == 0) {
+//            GlobalTime.StartOfFile = true;
+//            GlobalTime.update(mReadFrameIndex, AudioData);
+        }
+        for (int i = 0; i < totalFrames; ++i) {
+            for (int j = 0; j < channelCount; ++j) {
+                targetData[(i * channelCount) + j] = AUDIO_DATA[(mReadFrameIndex * channelCount) + j];
+            }
+
+            // Increment and handle wrap-around
+            if (++mReadFrameIndex >= mTotalFrames) {
+//                GlobalTime.EndOfFile = true;
+//                GlobalTime.update(mReadFrameIndex, AudioData);
+                mReadFrameIndex = 0;
+            } else {
+//                GlobalTime.update(mReadFrameIndex, AudioData);
+            }
+        }
+    } else {
+        // fill with zeros to output silence
+        for (int i = 0; i < totalFrames * channelCount; ++i) {
+            targetData[i] = 0;
+        }
+    }
+}
+
+void OboeAudioEngine::onError(AAudioStream *stream, void *userData, aaudio_result_t error) {
+    if (error == AAUDIO_ERROR_DISCONNECTED) {
+        std::function<void(void)> restartFunction = std::bind(&OboeAudioEngine::RestartStreamNonBlocking,
                                                               static_cast<OboeAudioEngine *>(userData));
         new std::thread(restartFunction);
     }
 }
 
-void OboeAudioEngine::RestartStream(){
-    StopStream();
-    FlushStream();
-    CreateStream();
-}
-
-aaudio_result_t OboeAudioEngine::StartStream() {
-    aaudio_result_t result =  AAudioStream_requestStart(stream);
-    return result;
-}
-
-aaudio_result_t OboeAudioEngine::PauseStream() {
-    aaudio_result_t result = AAudioStream_requestPause(stream);
-    return result;
-}
-
-aaudio_result_t OboeAudioEngine::StopStream() {
-    aaudio_result_t result = AAudioStream_requestStop(stream);
-    return result;
-}
-
-aaudio_result_t OboeAudioEngine::FlushStream() {
-    aaudio_result_t result = AAudioStream_requestFlush(stream);
-    AAudioStreamBuilder_delete(builder);
-    return result;
-}
-
-aaudio_result_t
-OboeAudioEngine::ChangeState(aaudio_stream_state_t inputState, aaudio_stream_state_t nextState) {
-    int64_t timeoutNanos = 100;
-    aaudio_result_t result = AAudioStream_waitForStateChange(stream, inputState, &nextState, timeoutNanos);
+aaudio_result_t OboeAudioEngine::waitForState(aaudio_stream_state_t streamState) {
+    aaudio_result_t result = AAUDIO_OK;
+    aaudio_stream_state_t currentState = AAudioStream_getState(stream);
+    aaudio_stream_state_t inputState = currentState;
+    while (result == AAUDIO_OK && currentState != streamState) {
+        result = AAudioStream_waitForStateChange( stream, inputState, &currentState, kDefaultTimeoutNanos);
+        inputState = currentState;
+    }
     return result;
 }
 
 OboeAudioEngine::OboeAudioEngine() {
     CreateStream();
+    StartStreamNonBlocking();
 }
 
 OboeAudioEngine::~OboeAudioEngine() {
-    Oboe_Stream_Stop();
-    audioDataLock.lock();
+    StopStreamBlocking();
     if (audioData != nullptr) {
         free(audioData);
         audioData = nullptr;
     }
-    audioDataLock.unlock();
 }
 
-/*
- * IMPORTANT: avoid starting and stopping the `oboe::AudioStream *stream` rapidly
- * exact reason appears to due to a bug in the AAudio Legacy path for Android P (9),
-*/
+aaudio_result_t OboeAudioEngine::CreateStream() {
+    aaudio_result_t result = AAudio_createStreamBuilder(&builder);
+    if (result != AAUDIO_OK) {
+        LOGE("FAILED TO CREATE STREAM BUILDER");
+        return result;
+    }
 
-bool OboeAudioEngine::Oboe_Stream_Start() {
-    LOGW("Oboe_Init: requesting Start");
-    StartStream();
-    LOGW("Oboe_Init: requested Start");
-    STREAM_STARTED = true;
-    return true;
+    AAudioStreamBuilder_setBufferCapacityInFrames(builder, BufferCapacityInFrames*2);
+    AAudioStreamBuilder_setDataCallback(builder, onAudioReady, this);
+    AAudioStreamBuilder_setErrorCallback(builder, onError, this);
+    AAudioStreamBuilder_setPerformanceMode(builder, AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
+    AAudioStreamBuilder_setFormat(builder, AAUDIO_FORMAT_PCM_I16);
+    result = AAudioStreamBuilder_openStream(builder, &stream);
+    if (result != AAUDIO_OK) {
+        LOGE("FAILED TO OPEN THE STREAM");
+        return result;
+    }
+    underrunCount = 0;
+    previousUnderrunCount = 0;
+    framesPerBurst = AAudioStream_getFramesPerBurst(stream);
+    bufferSize = AAudioStream_getBufferSizeInFrames(stream);
+    bufferCapacity = AAudioStream_getBufferCapacityInFrames(stream);
+    return AAUDIO_OK;
 }
 
-/*
- * IMPORTANT: avoid starting and stopping the `oboe::AudioStream *stream` rapidly
- * exact reason appears to due to a bug in the AAudio Legacy path for Android P (9),
-*/
+void OboeAudioEngine::RestartStreamNonBlocking() {
+    StopStreamNonBlocking();
+    FlushStreamNonBlocking();
+    CreateStream();
+    StartStreamNonBlocking();
+}
 
-bool OboeAudioEngine::Oboe_Stream_Stop() {
-    LOGW("Oboe_Init: requesting Stop");
-    StopStream();
-    LOGW("Oboe_Init: requested Stop");
-    STREAM_STARTED = false;
-    return true;
+void OboeAudioEngine::RestartStreamBlocking() {
+    StopStreamBlocking();
+    FlushStreamBlocking();
+    CreateStream();
+    StartStreamBlocking();
+}
+
+aaudio_result_t OboeAudioEngine::StartStreamNonBlocking() {
+    aaudio_result_t result =  AAudioStream_requestStart(stream);
+    if (result != AAUDIO_OK) LOGE("FAILED TO START THE STREAM");
+    return result;
+}
+
+aaudio_result_t OboeAudioEngine::StartStreamBlocking() {
+    aaudio_result_t result =  AAudioStream_requestStart(stream);
+    if (result != AAUDIO_OK) LOGE("FAILED TO START THE STREAM");
+    else {
+        result = waitForState(AAUDIO_STREAM_STATE_STARTED);
+        if (result != AAUDIO_OK) LOGE("FAILED TO WAIT FOR STATE CHANGE");
+    }
+    return result;
+}
+
+aaudio_result_t OboeAudioEngine::PauseStreamNonBlocking() {
+    aaudio_result_t result = AAudioStream_requestPause(stream);
+    if (result != AAUDIO_OK) LOGE("FAILED TO PAUSE THE STREAM");
+    return result;
+}
+
+aaudio_result_t OboeAudioEngine::PauseStreamBlocking() {
+    aaudio_result_t result = AAudioStream_requestPause(stream);
+    if (result != AAUDIO_OK) LOGE("FAILED TO PAUSE THE STREAM");
+    else {
+        result = waitForState(AAUDIO_STREAM_STATE_PAUSED);
+        if (result != AAUDIO_OK) LOGE("FAILED TO WAIT FOR STATE CHANGE");
+    }
+    return result;
+}
+
+aaudio_result_t OboeAudioEngine::StopStreamNonBlocking() {
+    aaudio_result_t result = AAudioStream_requestStop(stream);
+    if (result != AAUDIO_OK) LOGE("FAILED TO STOP THE STREAM");
+    return result;
+}
+
+aaudio_result_t OboeAudioEngine::StopStreamBlocking() {
+    aaudio_result_t result = AAudioStream_requestStop(stream);
+    if (result != AAUDIO_OK) LOGE("FAILED TO STOP THE STREAM");
+    else {
+        result = waitForState(AAUDIO_STREAM_STATE_STOPPED);
+        if (result != AAUDIO_OK) LOGE("FAILED TO WAIT FOR STATE CHANGE");
+    }
+    return result;
+}
+
+aaudio_result_t OboeAudioEngine::FlushStreamNonBlocking() {
+    aaudio_result_t result = AAudioStream_requestFlush(stream);
+    if (result != AAUDIO_OK) LOGE("FAILED TO FLUSH THE STREAM");
+    return result;
+}
+
+aaudio_result_t OboeAudioEngine::FlushStreamBlocking() {
+    aaudio_result_t result = AAudioStream_requestFlush(stream);
+    if (result != AAUDIO_OK) LOGE("FAILED TO FLUSH THE STREAM");
+    else {
+        result = waitForState(AAUDIO_STREAM_STATE_FLUSHED);
+        if (result != AAUDIO_OK) LOGE("FAILED TO WAIT FOR STATE CHANGE");
+    }
+    return result;
 }
 
 void OboeAudioEngine::load(const char *filename) {
@@ -154,7 +242,17 @@ void OboeAudioEngine::load(const char *filename) {
     }
 
     // file has been read into memory
-    audioDataLock.lock();
+    aaudio_stream_state_t currentState = AAudioStream_getState(stream);
+    bool wasPaused = false;
+    if (currentState == AAUDIO_STREAM_STATE_STARTING) {
+        wasPaused = true;
+        if (waitForState(AAUDIO_STREAM_STATE_STARTED) != AAUDIO_OK)
+            LOGE("FAILED TO WAIT FOR STATE CHANGE");
+        PauseStreamBlocking();
+    } else if (currentState == AAUDIO_STREAM_STATE_STARTED) {
+        wasPaused = true;
+        PauseStreamBlocking();
+    }
     if (audioData != nullptr) {
         free(audioData);
         audioData = nullptr;
@@ -162,73 +260,7 @@ void OboeAudioEngine::load(const char *filename) {
     audioData = o;
     audioDataSize = len;
     mTotalFrames = audioDataSize / (2 * channelCount);
-    audioDataLock.unlock();
-}
-
-void OboeAudioEngine::renderAudio(int16_t *targetData, int32_t totalFrames) {
-    audioDataLock.lock();
-    if (mIsPlaying && hasData()) {
-        int16_t * AUDIO_DATA = reinterpret_cast<int16_t *>(audioData);
-
-        // Check whether we're about to reach the end of the recording
-        if (!mIsLooping && mReadFrameIndex + totalFrames >= mTotalFrames) {
-            totalFrames = mTotalFrames - mReadFrameIndex;
-            mIsPlaying = false;
-        }
-
-        if (mReadFrameIndex == 0) {
-//            GlobalTime.StartOfFile = true;
-//            GlobalTime.update(mReadFrameIndex, AudioData);
-        }
-        for (int i = 0; i < totalFrames; ++i) {
-            for (int j = 0; j < channelCount; ++j) {
-                targetData[(i * channelCount) + j] = AUDIO_DATA[(mReadFrameIndex * channelCount) + j];
-            }
-
-            // Increment and handle wrap-around
-            if (++mReadFrameIndex >= mTotalFrames) {
-//                GlobalTime.EndOfFile = true;
-//                GlobalTime.update(mReadFrameIndex, AudioData);
-                mReadFrameIndex = 0;
-            } else {
-//                GlobalTime.update(mReadFrameIndex, AudioData);
-            }
-        }
-        audioDataLock.unlock();
-    } else {
-        audioDataLock.unlock();
-        // fill with zeros to output silence
-        for (int i = 0; i < totalFrames * channelCount; ++i) {
-            targetData[i] = 0;
-        }
+    if (wasPaused) {
+        StartStreamNonBlocking();
     }
-}
-
-bool OboeAudioEngine::hasData() {
-    return audioData != nullptr && audioDataSize != -1;
-}
-
-void OboeAudioEngine::CreateStream() {
-    aaudio_result_t result = AAudio_createStreamBuilder(&builder);
-    if (result != AAUDIO_OK) {
-        LOGF("FAILED TO CREATE STREAM BUILDER");
-        return;
-    }
-
-    AAudioStreamBuilder_setBufferCapacityInFrames(builder, BufferCapacityInFrames*2);
-    AAudioStreamBuilder_setDataCallback(builder, onAudioReady, this);
-    AAudioStreamBuilder_setErrorCallback(builder, onError, this);
-    AAudioStreamBuilder_setPerformanceMode(builder, AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
-    AAudioStreamBuilder_setFormat(builder, AAUDIO_FORMAT_PCM_I16);
-    result = AAudioStreamBuilder_openStream(builder, &stream);
-    if (result != AAUDIO_OK) {
-        LOGF("FAILED TO CREATE OPEN THE STREAM");
-        return;
-    }
-    underrunCount = 0;
-    previousUnderrunCount = 0;
-    framesPerBurst = AAudioStream_getFramesPerBurst(stream);
-    bufferSize = AAudioStream_getBufferSizeInFrames(stream);
-    bufferCapacity = AAudioStream_getBufferCapacityInFrames(stream);
-    Oboe_Stream_Start();
 }

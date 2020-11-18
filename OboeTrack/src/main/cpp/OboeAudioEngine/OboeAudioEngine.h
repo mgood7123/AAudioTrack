@@ -27,7 +27,6 @@ public:
 
     void * audioData = nullptr;
     size_t audioDataSize = -1;
-    std::mutex audioDataLock;
 
     uint64_t mReadFrameIndex = 0;
     uint64_t mTotalFrames = 0;
@@ -36,17 +35,10 @@ public:
 
     void renderAudio(int16_t *audioData, int32_t numFrames);
 
-
     bool hasData();
-
-    bool STREAM_STARTED = false; // we only use a single stream for now
 
     OboeAudioEngine();
     ~OboeAudioEngine();
-
-    bool Oboe_Stream_Start();
-
-    bool Oboe_Stream_Stop();
 
     static aaudio_data_callback_result_t onAudioReady(
             AAudioStream *stream, void *userData, void *audioData, int32_t numFrames
@@ -56,21 +48,26 @@ public:
             AAudioStream *stream, void *userData, aaudio_result_t error
     );
 
-    void RestartStream();
+    aaudio_result_t waitForState(aaudio_stream_state_t streamState);
 
-    aaudio_result_t StartStream();
+    aaudio_result_t CreateStream();
 
-    aaudio_result_t PauseStream();
+    void RestartStreamNonBlocking();
+    void RestartStreamBlocking();
 
-    aaudio_result_t StopStream();
+    aaudio_result_t StartStreamNonBlocking();
+    aaudio_result_t StartStreamBlocking();
 
-    aaudio_result_t FlushStream();
+    aaudio_result_t PauseStreamNonBlocking();
+    aaudio_result_t PauseStreamBlocking();
 
-    aaudio_result_t ChangeState(aaudio_stream_state_t inputState, aaudio_stream_state_t nextState);
+    aaudio_result_t StopStreamNonBlocking();
+    aaudio_result_t StopStreamBlocking();
+
+    aaudio_result_t FlushStreamNonBlocking();
+    aaudio_result_t FlushStreamBlocking();
 
     void load(const char *string);
-
-    void CreateStream();
 };
 
 #endif //OBOETRACK_OBOEAUDIOENGINE_H
