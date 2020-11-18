@@ -1,0 +1,3 @@
+include ':OboeTrack'
+include ':app'
+rootProject.name = "OboeTrack"
