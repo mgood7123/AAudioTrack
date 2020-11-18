@@ -72,9 +72,11 @@ void AAudioEngine::renderAudio(int16_t *targetData, int32_t totalFrames) {
             }
         }
     } else {
-        // fill with zeros to output silence
-        // memset is a lot faster
-        memset(static_cast<int16_t *>(targetData), 0, totalFrames * channelCount);
+        for (int i = 0; i < totalFrames; ++i) {
+            for (int j = 0; j < channelCount; ++j) {
+                targetData[(i * channelCount) + j] = 0;
+            }
+        }
     }
 }
 

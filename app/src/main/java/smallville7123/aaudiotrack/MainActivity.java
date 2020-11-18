@@ -65,12 +65,23 @@ public class MainActivity extends AppCompatActivity {
         addRow(sequencer, sequencerID);
     }
 
+    void u(UpdatingTextView updatingTextView) {
+        updatingTextView.setText(
+                "Underruns:     " + audioTrack.getUnderrunCount() + "\n" +
+                        "Current frame: " + audioTrack.getCurrentFrame() + "\n" +
+                        "Total frames:  " + audioTrack.getTotalFrames() + "\n"
+        );
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.sequencer);
         initLayout();
         initSequencer();
+        UpdatingTextView updatingTextView = findViewById(R.id.INFO);
+        updatingTextView.addOnFirstDrawAction(() -> u(updatingTextView));
+        updatingTextView.addOnDrawAction(() -> u(updatingTextView));
     }
 
     Sequencer sequencer;
