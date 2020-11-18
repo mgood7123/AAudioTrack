@@ -18,12 +18,8 @@ aaudio_data_callback_result_t OboeAudioEngine::onAudioReady (
 ) {
     OboeAudioEngine * AE = static_cast<OboeAudioEngine *>(userData);
 
-    // Zero out the incoming container array
-    for (int j = 0; j < numFrames * AE->channelCount; ++j) {
-        static_cast<int16_t *>(audioData)[j] = 0;
-    }
-
-    if (AE->hasData()) AE->renderAudio(static_cast<int16_t *>(audioData), numFrames);
+    // AE->renderAudio will internally memset if there is no data
+    AE->renderAudio(static_cast<int16_t *>(audioData), numFrames);
 
     // Are we getting underruns?
     int32_t tmpuc = AAudioStream_getXRunCount(stream);
@@ -67,9 +63,8 @@ void OboeAudioEngine::renderAudio(int16_t *targetData, int32_t totalFrames) {
         }
     } else {
         // fill with zeros to output silence
-        for (int i = 0; i < totalFrames * channelCount; ++i) {
-            targetData[i] = 0;
-        }
+        // memset is a lot faster
+        memset(static_cast<int16_t *>(targetData), 0, totalFrames * channelCount);
     }
 }
 
