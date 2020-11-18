@@ -30,43 +30,64 @@ public class AAudioTrack {
         System.loadLibrary("AAudioTrack");
     }
 
-    private long native_AAudioTrack_pointer = 0;
+    private long native_aaudio_track_pointer = 0;
     private native long createNativeInstance();
-    private native int getSampleRate(long native_AAudioTrack_pointer);
-    private native int getChannelCount(long native_AAudioTrack_pointer);
-    private native int getUnderrunCount(long native_AAudioTrack_pointer);
-    private native int getCurrentFrame(long native_AAudioTrack_pointer);
-    private native int getTotalFramesFrame(long native_AAudioTrack_pointer);
-    private native void setTrack(long native_AAudioTrack_pointer, String track);
+    private native int getSampleRate(long native_aaudio_track_pointer);
+    private native int getChannelCount(long native_aaudio_track_pointer);
+    private native int getUnderrunCount(long native_aaudio_track_pointer);
+    private native int getCurrentFrame(long native_aaudio_track_pointer);
+    private native int getTotalFramesFrame(long native_aaudio_track_pointer);
+    private native void setTrack(long native_aaudio_track_pointer, String track);
+    private native void resetPlayHead(long native_aaudio_track_pointer);
+    private native void pause(long native_aaudio_track_pointer);
+    private native void resume(long native_aaudio_track_pointer);
+    private native void loop(long native_aaudio_track_pointer, boolean value);
+
     private String converted;
 
     public int getSampleRate() {
-        return getSampleRate(native_AAudioTrack_pointer);
+        return getSampleRate(native_aaudio_track_pointer);
     }
 
     public int getChannelCount() {
-        return getChannelCount(native_AAudioTrack_pointer);
+        return getChannelCount(native_aaudio_track_pointer);
     }
 
     public int getUnderrunCount() {
-        return getUnderrunCount(native_AAudioTrack_pointer);
+        return getUnderrunCount(native_aaudio_track_pointer);
     }
 
     public int getCurrentFrame() {
-        return getCurrentFrame(native_AAudioTrack_pointer);
+        return getCurrentFrame(native_aaudio_track_pointer);
     }
 
     public int getTotalFrames() {
-        return getTotalFramesFrame(native_AAudioTrack_pointer);
+        return getTotalFramesFrame(native_aaudio_track_pointer);
+    }
+
+    public void resetPlayHead() {
+        resetPlayHead(native_aaudio_track_pointer);
+    }
+
+    public void pause() {
+        pause(native_aaudio_track_pointer);
+    }
+
+    public void resume() {
+        resume(native_aaudio_track_pointer);
+    }
+
+    public void loop(boolean value) {
+        loop(native_aaudio_track_pointer, value);
     }
 
     public AAudioTrack() {
-        native_AAudioTrack_pointer = createNativeInstance();
+        native_aaudio_track_pointer = createNativeInstance();
     }
 
     private void _load(Path tmp) {
-        int sampleRate = getSampleRate(native_AAudioTrack_pointer);
-        int channelCount = getChannelCount(native_AAudioTrack_pointer);
+        int sampleRate = getSampleRate(native_aaudio_track_pointer);
+        int channelCount = getChannelCount(native_aaudio_track_pointer);
         converted = tmp + ".converted.f_s16le.ar_" + sampleRate + ".ac_" + channelCount;
         int returnCode = FFmpeg.execute("-y" + " " +
                 // input
@@ -79,7 +100,7 @@ public class AAudioTrack {
         );
         if (returnCode == RETURN_CODE_SUCCESS) {
             Log.i(Config.TAG, "Command execution completed successfully.");
-            setTrack(native_AAudioTrack_pointer, converted);
+            setTrack(native_aaudio_track_pointer, converted);
         } else {
             throw new RuntimeException(Config.TAG + ": Command execution failed (returned " + returnCode + ")");
         }

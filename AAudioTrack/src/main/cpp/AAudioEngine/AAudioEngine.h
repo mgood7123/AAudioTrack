@@ -27,7 +27,7 @@ public:
 
     uint64_t mReadFrameIndex = 0;
     uint64_t mTotalFrames = 0;
-    std::atomic<bool> mIsPlaying { true };
+    std::atomic<bool> mIsPlaying { false };
     std::atomic<bool> mIsLooping { true };
 
     void renderAudio(int16_t *audioData, int32_t numFrames);
