@@ -12,6 +12,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/AAudioTrack" />
+            <option value="$PROJECT_DIR$/AAudioTrack2" />
             <option value="$PROJECT_DIR$/app" />
           </set>
         </option>

@@ -27,7 +27,7 @@
         android:layout_weight="1"
         android:fontFamily="monospace"
         android:textColor="@color/cardview_light_background"
-        android:textSize="24dp"
+        android:textSize="20dp"
         />
 
     <FrameLayout

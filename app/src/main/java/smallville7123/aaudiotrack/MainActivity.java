@@ -11,10 +11,12 @@ import android.widget.ToggleButton;
 
 import java.util.ArrayList;
 
+import smallville7123.aaudiotrack2.AAudioTrack2;
+
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
 public class MainActivity extends AppCompatActivity {
-    AAudioTrack audioTrack = new AAudioTrack();
+    AAudioTrack2 audioTrack = new AAudioTrack2();
 
     static ViewGroup.LayoutParams matchParent = new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT);
 
@@ -69,7 +71,9 @@ public class MainActivity extends AppCompatActivity {
         updatingTextView.setText(
                 "Underruns:     " + audioTrack.getUnderrunCount() + "\n" +
                         "Current frame: " + audioTrack.getCurrentFrame() + "\n" +
-                        "Total frames:  " + audioTrack.getTotalFrames() + "\n"
+                        "Total frames:  " + audioTrack.getTotalFrames() + "\n" +
+                        "Sample rate:   " + audioTrack.getSampleRate() + "\n" +
+                        "Channel count: " + audioTrack.getChannelCount() + "\n"
         );
     }
 

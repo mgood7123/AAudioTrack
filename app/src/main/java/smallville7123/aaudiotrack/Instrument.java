@@ -6,18 +6,20 @@ import android.widget.ToggleButton;
 
 import java.util.ArrayList;
 
+import smallville7123.aaudiotrack2.AAudioTrack2;
+
 public class Instrument {
 
     public Pair<Pair<LinearLayout, ArrayList<ToggleButton>>, Pair<LinearLayout, ArrayList<ToggleButton>>> buttons;
     public String instrumentName;
-    public AAudioTrack sound;
+    public AAudioTrack2 sound;
 
     public Instrument(Pair<Pair<LinearLayout, ArrayList<ToggleButton>>, Pair<LinearLayout, ArrayList<ToggleButton>>> buttons, String instrumentName) {
         this.buttons = buttons;
         this.instrumentName = instrumentName;
     }
 
-    public Instrument(Pair<Pair<LinearLayout, ArrayList<ToggleButton>>, Pair<LinearLayout, ArrayList<ToggleButton>>> buttons, String instrumentName, AAudioTrack sound) {
+    public Instrument(Pair<Pair<LinearLayout, ArrayList<ToggleButton>>, Pair<LinearLayout, ArrayList<ToggleButton>>> buttons, String instrumentName, AAudioTrack2 sound) {
         this.buttons = buttons;
         this.instrumentName = instrumentName;
         this.sound = sound;
@@ -32,7 +34,7 @@ public class Instrument {
         this.buttons = buttons;
     }
 
-    public void setSound(AAudioTrack sound) {
+    public void setSound(AAudioTrack2 sound) {
         this.sound = sound;
     }
 
@@ -44,7 +46,7 @@ public class Instrument {
         return this.buttons;
     }
 
-    public AAudioTrack getSound(){
+    public AAudioTrack2 getSound(){
         return this.sound;
     }
 
