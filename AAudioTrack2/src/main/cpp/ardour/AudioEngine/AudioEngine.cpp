@@ -569,4 +569,8 @@ namespace ARDOUR {
         }
         return _backend->sample_time();
     }
+
+    shared_ptr<AudioBackend> AudioEngine::current_backend() {
+        return _backend;
+    }
 }

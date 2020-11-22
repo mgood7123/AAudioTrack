@@ -6,6 +6,7 @@
 #define AAUDIOTRACK_LOG_H
 
 #include <android/log.h> // output
+#include <cstdlib> // abort
 
 #define LOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, "AudioEngine", __VA_ARGS__)
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, "AudioEngine", __VA_ARGS__)

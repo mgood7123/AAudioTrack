@@ -8,6 +8,9 @@ add_library(engine SHARED
         ardour/AudioEngine/AudioBackend.cpp
         ardour/AudioEngine/AudioEngine.cpp
         ardour/Backends/AAudio.cpp
+        zrythm/audio/port_identifier.cpp
+        zrythm/audio/port.cpp
+        zrythm/audio/track_processor.cpp
 )
 
 target_link_libraries(engine log aaudio)
