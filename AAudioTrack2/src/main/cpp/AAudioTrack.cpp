@@ -69,35 +69,26 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_createNativeInstance(JNIEnv* env, 
     if (!(_backend = engine->set_backend ("AAudio", "Unit-Test", ""))) {
         LOGF("Cannot set Audio/MIDI engine backend.\n");
     }
-
-    // start the engine
-    if (engine->start () != 0) {
-        LOGF("Cannot start Audio/MIDI engine.\n");
-    }
-
-    // TODO: port Session
-    // refer to Zrythm to details of its session implementation
-    // Ardour's Session is vastly complex and involves a whole bunch of extra classes
-    //     and does a lot of work
-
-    // TODO: actually get audio playing
-
-//    Session* session = new Session (*engine, dir, state, bus_profile_ptr, template_path);
-//    engine->set_session (session);
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_startEngine(JNIEnv *env, jobject thiz) {
     if (!engine_exists()) return;
-//    AudioEngine::_instance->start();
+    // start the engine
+    if (engine->start () != 0) {
+        LOGF("Cannot start Audio/MIDI engine.\n");
+    }
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_stopEngine(JNIEnv *env, jobject thiz) {
     if (!engine_exists()) return;
-//    AudioEngine::_instance->stop();
+    // start the engine
+    if (engine->stop() != 0) {
+        LOGF("Cannot stop Audio/MIDI engine.\n");
+    }
 }
 
 extern "C"

@@ -16,12 +16,6 @@ public:
         if (mIsPlaying && audioData != nullptr) {
             int16_t * AUDIO_DATA = reinterpret_cast<int16_t *>(audioData);
 
-            // Check whether we're about to reach the end of the recording
-            if (!mIsLooping && mReadFrameIndex + number_of_frames_to_render >= mTotalFrames) {
-                number_of_frames_to_render = mTotalFrames - mReadFrameIndex;
-                mIsPlaying = false;
-            }
-
             if (mReadFrameIndex == 0) {
                 //            GlobalTime.StartOfFile = true;
                 //            GlobalTime.update(mReadFrameIndex, AudioData);
@@ -48,10 +42,11 @@ public:
                 // return from the audio loop
             } else {
                 // if we are not looping then silence should be emmited when the end of the file is reached
-                bool EOF_reached = mReadFrameIndex == mTotalFrames;
+                bool EOF_reached = mReadFrameIndex >= mTotalFrames;
                 if (EOF_reached) {
                     // we know that the EOF has been reached before we even start playing
                     // so just output silence with no additional checking
+                    LOGE("writing %d frames of silence", number_of_frames_to_render);
                     for (int32_t i = 0; i < number_of_frames_to_render; ++i) {
                         for (int j = 0; j < channelCount; ++j) {
                             targetData[(i * channelCount) + j] = 0;
@@ -62,6 +57,7 @@ public:
                 } else {
                     // we know that the EOF has been not reached before we even start playing
                     // so we need to do checking to output silence when EOF has been reached
+                    LOGE("writing %d frames of audio", number_of_frames_to_render);
                     for (int32_t i = 0; i < number_of_frames_to_render; ++i) {
                         for (int j = 0; j < channelCount; ++j) {
                             targetData[(i * channelCount) + j] = EOF_reached ? 0 : AUDIO_DATA[
@@ -70,6 +66,7 @@ public:
 
                         // Increment and handle wrap-around
                         if (++mReadFrameIndex >= mTotalFrames) {
+                            LOGE("wrote %d frames of audio", mReadFrameIndex);
                             //                GlobalTime.EndOfFile = true;
                             //                GlobalTime.update(mReadFrameIndex, AudioData);
 
@@ -90,21 +87,24 @@ public:
                             i++;
 
                             // output the remaining frames as silence
+                            LOGE("writing %d frames of silence", number_of_frames_to_render-i);
                             for (; i < number_of_frames_to_render; ++i) {
                                 for (int j = 0; j < channelCount; ++j) {
                                     targetData[(i * channelCount) + j] = 0;
                                 }
                             }
                             // and return from the audio loop
+                            mIsPlaying = false;
                             return false;
                         } else {
-                            //                        GlobalTime.update(mReadFrameIndex, AudioData);
+//                        GlobalTime.update(mReadFrameIndex, AudioData);
                         }
                     }
                     return true;
                 }
             }
         } else {
+            LOGE("writing %d frames of silence", number_of_frames_to_render);
             for (int32_t i = 0; i < number_of_frames_to_render; ++i) {
                 for (int j = 0; j < channelCount; ++j) {
                     targetData[(i * channelCount) + j] = 0;

@@ -409,8 +409,10 @@ namespace ARDOUR {
             LOGE("no backend");
             return;
         }
+//        LOGW("writing %G milliseconds (%d samples) of data", 1000 / (_backend->sample_rate() / number_of_frames_to_render), number_of_frames_to_render);
         if (hasData()) {
             if (sampler_is_writing) {
+                LOGE("telling the sampler to write %d frames of audio", number_of_frames_to_render);
                 sampler_is_writing = sampler.write(
                         audioData,
                         mTotalFrames,
@@ -427,18 +429,20 @@ namespace ARDOUR {
                     sampler.mReadFrameIndex = 0;
                     sampler.mIsPlaying = true;
                     sampler.mIsLooping = false;
+                    LOGE("telling the sampler to write %d frames of audio", number_of_frames_to_render-i);
                     sampler_is_writing = sampler.write(
                             audioData,
                             mTotalFrames,
                             2,
                             targetData,
-                            number_of_frames_to_render
+                            number_of_frames_to_render-i
                     );
                 }
                 engineFrame++;
                 // return from the audio loop
             }
         } else {
+            LOGE("AudioEngine writing %d frames of silence", number_of_frames_to_render);
             for (int32_t i = 0; i < number_of_frames_to_render; ++i) {
                 for (int j = 0; j < _backend->output_channels(); ++j) {
                     targetData[(i * _backend->output_channels()) + j] = 0;
