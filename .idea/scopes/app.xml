@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="app" pattern="src:smallville7123.aaudiotrack.Instrument||src:smallville7123.aaudiotrack.MainActivity||src:smallville7123.aaudiotrack.Sequencer||src:smallville7123.aaudiotrack.UpdatingTextView" />
+</component>

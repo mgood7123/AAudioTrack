@@ -11,6 +11,7 @@ add_library(engine SHARED
         zrythm/audio/port_identifier.cpp
         zrythm/audio/port.cpp
         zrythm/audio/track_processor.cpp
+        smallville7123/TempoGrid.cpp
 )
 
 target_link_libraries(engine log aaudio)

@@ -12,6 +12,8 @@
 #include <thread>
 #include <fcntl.h>
 #include <unistd.h>
+#include "../../smallville7123/TempoGrid.h"
+#include "../../smallville7123/Sampler.h"
 
 using namespace std;
 
@@ -376,124 +378,74 @@ namespace ARDOUR {
         return audioData != nullptr && audioDataSize != -1;
     }
 
+    TempoGrid tempoGrid;
+    uint64_t engineFrame = 0;
+
+    Sampler sampler;
+    bool sampler_is_writing = false;
+
     void AudioEngine::renderAudio(void *output_buffer, frames_t number_of_frames_to_render) {
 
+        // the sample counter is used to synchronise events with frames
+        // A timebase that allows sequencing in relation to musical events like beats or bars
+        // it may look something like this:
+        // data[4] = {MIDI_ON, MIDI_OFF, MIDI_ON, MIDI_OFF};
+        // with the data being mapped to a grid of 1/4 notes
+        //
+        // see TempoGrid for info on tempo mapping
+        //
+        // data[0] is frame 0, data[1] is frame 24000, data[2] is frame 48000, data[3] is frame 72000
+        // bar[0] is frame 0, bar[1] is frame 96000, and so on
+        // tempo_grid[4] = {0, 24000, 48000, 72000}; in 1/4 notes, assuming 48k sample rate, 120 bpm
+        // when each note is aligned to 1/4 notes
+        // eg note quantisation, (snap to resolution, eg snap to 1/4)
 
-        /// 1. calculate next processed frames.
+        int16_t * targetData = reinterpret_cast<int16_t *>(output_buffer);
 
-        /// The number of samples that will have been processed when we've finished
-        frames_t next_processed_samples;
+        // DONT FORGET TO MAP!
+        if (!tempoGrid.mapped) TempoGrid::map_tempo_to_frame(tempoGrid);
 
-        if (_processed_samples < 0) {
-            _processed_samples = sample_time();
+        if (!_backend) {
+            LOGE("no backend");
+            return;
         }
-
-        /* handle wrap around of total samples counter */
-
-        if (max_sample_position - _processed_samples < number_of_frames_to_render) {
-            next_processed_samples =
-                    number_of_frames_to_render - (max_sample_position - _processed_samples);
+        if (hasData()) {
+            if (sampler_is_writing) {
+                sampler_is_writing = sampler.write(
+                        audioData,
+                        mTotalFrames,
+                        2,
+                        targetData,
+                        number_of_frames_to_render
+                );
+            }
+            for (int32_t i = 0; i < number_of_frames_to_render; ++i) {
+                // write sample every beat, 120 bpm, 4 beats per bar
+                if (engineFrame == 0 || tempoGrid.sample_matches_samples_per_note(engineFrame)) {
+                    LOGE("writing audio on frame %lld for %lld frames, write every %d frames",
+                         engineFrame, mTotalFrames, tempoGrid.samples_per_note);
+                    sampler.mReadFrameIndex = 0;
+                    sampler.mIsPlaying = true;
+                    sampler.mIsLooping = false;
+                    sampler_is_writing = sampler.write(
+                            audioData,
+                            mTotalFrames,
+                            2,
+                            targetData,
+                            number_of_frames_to_render
+                    );
+                }
+                engineFrame++;
+                // return from the audio loop
+            }
         } else {
-            next_processed_samples = _processed_samples + number_of_frames_to_render;
+            for (int32_t i = 0; i < number_of_frames_to_render; ++i) {
+                for (int j = 0; j < _backend->output_channels(); ++j) {
+                    targetData[(i * _backend->output_channels()) + j] = 0;
+                }
+                engineFrame++;
+            }
         }
-
-
-
-//    if (mIsPlaying && hasData()) {
-//        int16_t * AUDIO_DATA = reinterpret_cast<int16_t *>(audioData);
-//
-//        // Check whether we're about to reach the end of the recording
-//        if (!mIsLooping && mReadFrameIndex + totalFrames >= mTotalFrames) {
-//            totalFrames = mTotalFrames - mReadFrameIndex;
-//            mIsPlaying = false;
-//        }
-//
-//        if (mReadFrameIndex == 0) {
-////            GlobalTime.StartOfFile = true;
-////            GlobalTime.update(mReadFrameIndex, AudioData);
-//        }
-//
-//        if (mIsLooping) {
-//            // we may transition from not looping to looping, upon the EOF being reached
-//            // if this happens, reset the frame index
-//            if (mReadFrameIndex == mTotalFrames) mReadFrameIndex = 0;
-//            for (int32_t i = 0; i < totalFrames; ++i) {
-//                for (int j = 0; j < channelCount; ++j) {
-//                    targetData[(i * channelCount) + j] = AUDIO_DATA[(mReadFrameIndex * channelCount) + j];
-//                }
-//
-//                // Increment and handle wrap-around
-//                if (++mReadFrameIndex >= mTotalFrames) {
-////                GlobalTime.EndOfFile = true;
-////                GlobalTime.update(mReadFrameIndex, AudioData);
-//                    mReadFrameIndex = 0;
-//                } else {
-////                GlobalTime.update(mReadFrameIndex, AudioData);
-//                }
-//            }
-//            // return from the audio loop
-//        } else {
-//            // if we are not looping then silence should be emmited when the end of the file is reached
-//            bool EOF_reached = mReadFrameIndex == mTotalFrames;
-//            if (EOF_reached) {
-//                // we know that the EOF has been reached before we even start playing
-//                // so just output silence with no additional checking
-//                for (int32_t i = 0; i < totalFrames; ++i) {
-//                    for (int j = 0; j < channelCount; ++j) {
-//                        targetData[(i * channelCount) + j] = 0;
-//                    }
-//                }
-//                // and return from the audio loop
-//            } else {
-//                // we know that the EOF has been not reached before we even start playing
-//                // so we need to do checking to output silence when EOF has been reached
-//                for (int32_t i = 0; i < totalFrames; ++i) {
-//                    for (int j = 0; j < channelCount; ++j) {
-//                        targetData[(i * channelCount) + j] = EOF_reached ? 0 : AUDIO_DATA[
-//                                (mReadFrameIndex * channelCount) + j];
-//                    }
-//
-//                    // Increment and handle wrap-around
-//                    if (++mReadFrameIndex >= mTotalFrames) {
-////                GlobalTime.EndOfFile = true;
-////                GlobalTime.update(mReadFrameIndex, AudioData);
-//
-//                        // do not reset the frame index here
-//                        EOF_reached = true;
-//                        // output the rest as silence
-//
-//                        // verification
-//                        //
-//                        // if i is 5, and totalFrames is 6
-//                        // then we need to write 1 frame
-//                        //
-//                        // however at this point, a frame has already been written
-//                        // but the loop is not done, so we need to increment i by 1
-//                        // so we can correctly check if we still need to write a frame
-//                        //
-//
-//                        i++;
-//
-//                        // output the remaining frames as silence
-//                        for (; i < totalFrames; ++i) {
-//                            for (int j = 0; j < channelCount; ++j) {
-//                                targetData[(i * channelCount) + j] = 0;
-//                            }
-//                        }
-//                        // and return from the audio loop
-//                    } else {
-////                        GlobalTime.update(mReadFrameIndex, AudioData);
-//                    }
-//                }
-//            }
-//        }
-//    } else {
-//        for (int32_t i = 0; i < totalFrames; ++i) {
-//            for (int j = 0; j < channelCount; ++j) {
-//                targetData[(i * channelCount) + j] = 0;
-//            }
-//        }
-//    }
     }
 
 //void metronome(AudioEngine * audioEngine) {
@@ -570,7 +522,7 @@ namespace ARDOUR {
         return _backend->sample_time();
     }
 
-    shared_ptr<AudioBackend> AudioEngine::current_backend() {
+    shared_ptr<AudioBackend> AudioEngine::current_backend() const {
         return _backend;
     }
 }

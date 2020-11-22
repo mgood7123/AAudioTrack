@@ -5,7 +5,13 @@
 #ifndef AAUDIOTRACK_LOG_H
 #define AAUDIOTRACK_LOG_H
 
+#ifdef __ANDROID__
 #include <android/log.h> // output
+#else
+#include <stdio.h>
+#define __android_log_print(priority, tag, ...) printf("[%s] %s: ", #priority, tag); printf(__VA_ARGS__); printf("\n")
+#endif
+
 #include <cstdlib> // abort
 
 #define LOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, "AudioEngine", __VA_ARGS__)

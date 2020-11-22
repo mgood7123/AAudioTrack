@@ -85,7 +85,7 @@ namespace ARDOUR {
         std::vector<const AudioBackendInfo*> available_backends() const;
         std::string current_backend_name () const;
         std::shared_ptr<AudioBackend> set_backend (const std::string&, const std::string& arg1, const std::string& arg2);
-        std::shared_ptr<AudioBackend> current_backend();
+        std::shared_ptr<AudioBackend> current_backend() const;
         bool setup_required () const;
 
         /* START BACKEND PROXY API
