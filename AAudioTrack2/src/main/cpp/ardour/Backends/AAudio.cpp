@@ -3,6 +3,7 @@
 //
 
 #include "AAudio.h"
+#include "../../zrythm/audio/port.h"
 #include <memory>
 
 namespace ARDOUR {
@@ -99,13 +100,28 @@ namespace ARDOUR {
 
     AAudio::~AAudio() {}
 
+    PortUtils &AAudio::getPortUtils() {
+        return portUtils;
+    }
+
     aaudio_data_callback_result_t AAudio::onAudioReady(
             AAudioStream *stream, void *userData, void *audioData,
             frames_t number_of_frames_to_render
     ) {
         AAudio *aaudio = static_cast<AAudio *>(userData);
 
-        aaudio->engine.renderAudio(audioData, number_of_frames_to_render);
+        LOGE("audioData = %p, &audioData = %p", audioData, &audioData);
+
+        // how AAudio's data callback buffer works: (example)
+        // TYPE * buffer;
+        // frameBurstSize = 2;
+        // callback 0: onAudioReady(stream, userData, buffer[0], 2);
+        // callback 1: onAudioReady(stream, userData, buffer[2], 2);
+        // callback 2: onAudioReady(stream, userData, buffer[4], 2);
+        // callback 3: onAudioReady(stream, userData, buffer[6], 2);
+        aaudio->portUtils.deinterleaveToPortBuffers<int16_t>(audioData, number_of_frames_to_render);
+        aaudio->engine.renderAudio(number_of_frames_to_render);
+        aaudio->portUtils.interleaveFromPortBuffers<int16_t>(audioData, number_of_frames_to_render);
 
         aaudio->_processed_samples += number_of_frames_to_render;
 
@@ -162,6 +178,11 @@ namespace ARDOUR {
             LOGE("FAILED TO OPEN THE STREAM: %s", AAudio_convertResultToText(result));
             return result;
         }
+
+        if (currentOutputChannelCount > 0) portUtils.deallocatePorts<int16_t>(currentOutputChannelCount);
+        currentOutputChannelCount = AAudioStream_getChannelCount(stream);
+        portUtils.allocatePorts(currentOutputChannelCount);
+
         underrunCount = 0;
         previousUnderrunCount = 0;
         return AAUDIO_OK;

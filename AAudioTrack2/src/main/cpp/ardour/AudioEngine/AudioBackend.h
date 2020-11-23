@@ -6,6 +6,8 @@
 #define AAUDIOTRACK_AUDIOBACKEND_H
 
 #include "typedefs.h"
+#include "../../zrythm/audio/port.h"
+#include "PortUtils.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -101,6 +103,8 @@ namespace ARDOUR {
             PortReconnectError,
             OutOfMemoryError,
         };
+
+        virtual PortUtils & getPortUtils() = 0;
 
         static std::string get_error_string (ErrorCode);
 
@@ -470,7 +474,11 @@ namespace ARDOUR {
          */
         virtual int set_buffer_size (uint32_t) = 0;
 
-        /** Set the preferred underlying hardware data layout.
+        /** Depreciated API.
+         * It is recommend to manually interleave/de-interleave
+         * according to the driver's performance for mono/multi-channel data.
+         *
+         * Set the preferred underlying hardware data layout.
          * If \p yn is true, then the hardware will interleave
          * samples for successive channels; otherwise, the hardware will store
          * samples for a single channel contiguously.

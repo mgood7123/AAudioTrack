@@ -67,22 +67,22 @@ track_processor_process (
                     LOGF("buffer size mismatch: l: %d, buffer size: %d", l, buffer_size);
                 }
 
-                self->stereo_out->l->buf[l] +=
-                        self->stereo_in->l->buf[l] *
+                reinterpret_cast<float*>(self->stereo_out->l->buf)[l] +=
+                        reinterpret_cast<float*>(self->stereo_in->l->buf)[l] *
                         (self->input_gain ?
                          self->input_gain->control : 1.f);
                 if (
                         self->mono //&& control_port_is_toggled (self->mono)
                 ) {
-                    self->stereo_out->r->buf[l] +=
-                            self->stereo_in->l->buf[l] *
+                    reinterpret_cast<float*>(self->stereo_out->r->buf)[l] +=
+                            reinterpret_cast<float*>(self->stereo_in->l->buf)[l] *
                             (self->input_gain ?
                              self->input_gain->control : 1.f);
                 }
                 else
                 {
-                    self->stereo_out->r->buf[l] +=
-                            self->stereo_in->r->buf[l] *
+                    reinterpret_cast<float*>(self->stereo_out->r->buf)[l] +=
+                            reinterpret_cast<float*>(self->stereo_in->r->buf)[l] *
                             (self->input_gain ?
                              self->input_gain->control : 1.f);
                 }

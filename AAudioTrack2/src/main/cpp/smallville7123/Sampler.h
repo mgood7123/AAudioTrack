@@ -12,10 +12,16 @@ public:
     uint64_t mReadFrameIndex = 0;
     bool mIsPlaying = true;
     bool mIsLooping = true;
-    bool write(void *audioData, uint64_t mTotalFrames, int channelCount, int16_t * targetData, int32_t number_of_frames_to_render) {
+    ARDOUR::PortUtils portUtils;
+    bool write(
+            void *audioData,
+            uint64_t mTotalFrames,
+            ARDOUR::PortUtils & output,
+            int32_t number_of_frames_to_render) {
+        auto channelCount = portUtils.getChannelCount();
+        this->portUtils.allocatePorts(channelCount);
+        this->portUtils.deinterleaveToPortBuffers<int16_t>(audioData, channelCount);
         if (mIsPlaying && audioData != nullptr) {
-            int16_t * AUDIO_DATA = reinterpret_cast<int16_t *>(audioData);
-
             if (mReadFrameIndex == 0) {
                 //            GlobalTime.StartOfFile = true;
                 //            GlobalTime.update(mReadFrameIndex, AudioData);
@@ -26,9 +32,7 @@ public:
                 // if this happens, reset the frame index
                 if (mReadFrameIndex == mTotalFrames) mReadFrameIndex = 0;
                 for (int32_t i = 0; i < number_of_frames_to_render; ++i) {
-                    for (int j = 0; j < channelCount; ++j) {
-                        targetData[(i * channelCount) + j] = AUDIO_DATA[(mReadFrameIndex * channelCount) + j];
-                    }
+                    output.setPortBufferIndex(i, this->portUtils.ports);
 
                     // Increment and handle wrap-around
                     if (++mReadFrameIndex >= mTotalFrames) {
@@ -47,11 +51,7 @@ public:
                     // we know that the EOF has been reached before we even start playing
                     // so just output silence with no additional checking
                     LOGE("writing %d frames of silence", number_of_frames_to_render);
-                    for (int32_t i = 0; i < number_of_frames_to_render; ++i) {
-                        for (int j = 0; j < channelCount; ++j) {
-                            targetData[(i * channelCount) + j] = 0;
-                        }
-                    }
+                    output.fillPortBuffer(0, number_of_frames_to_render);
                     // and return from the audio loop
                     return false;
                 } else {
@@ -59,10 +59,9 @@ public:
                     // so we need to do checking to output silence when EOF has been reached
                     LOGE("writing %d frames of audio", number_of_frames_to_render);
                     for (int32_t i = 0; i < number_of_frames_to_render; ++i) {
-                        for (int j = 0; j < channelCount; ++j) {
-                            targetData[(i * channelCount) + j] = EOF_reached ? 0 : AUDIO_DATA[
-                                    (mReadFrameIndex * channelCount) + j];
-                        }
+                        EOF_reached
+                            ? output.setPortBufferIndex(i, 0)
+                            : output.setPortBufferIndex(i, portUtils.ports);
 
                         // Increment and handle wrap-around
                         if (++mReadFrameIndex >= mTotalFrames) {
@@ -89,9 +88,7 @@ public:
                             // output the remaining frames as silence
                             LOGE("writing %d frames of silence", number_of_frames_to_render-i);
                             for (; i < number_of_frames_to_render; ++i) {
-                                for (int j = 0; j < channelCount; ++j) {
-                                    targetData[(i * channelCount) + j] = 0;
-                                }
+                                output.setPortBufferIndex(i, 0);
                             }
                             // and return from the audio loop
                             mIsPlaying = false;
@@ -105,11 +102,7 @@ public:
             }
         } else {
             LOGE("writing %d frames of silence", number_of_frames_to_render);
-            for (int32_t i = 0; i < number_of_frames_to_render; ++i) {
-                for (int j = 0; j < channelCount; ++j) {
-                    targetData[(i * channelCount) + j] = 0;
-                }
-            }
+            output.fillPortBuffer(0, number_of_frames_to_render);
             return false;
         }
     }

@@ -384,7 +384,7 @@ namespace ARDOUR {
     Sampler sampler;
     bool sampler_is_writing = false;
 
-    void AudioEngine::renderAudio(void *output_buffer, frames_t number_of_frames_to_render) {
+    void AudioEngine::renderAudio(frames_t number_of_frames_to_render) {
 
         // the sample counter is used to synchronise events with frames
         // A timebase that allows sequencing in relation to musical events like beats or bars
@@ -400,8 +400,6 @@ namespace ARDOUR {
         // when each note is aligned to 1/4 notes
         // eg note quantisation, (snap to resolution, eg snap to 1/4)
 
-        int16_t * targetData = reinterpret_cast<int16_t *>(output_buffer);
-
         // DONT FORGET TO MAP!
         if (!tempoGrid.mapped) TempoGrid::map_tempo_to_frame(tempoGrid);
 
@@ -416,8 +414,7 @@ namespace ARDOUR {
                 sampler_is_writing = sampler.write(
                         audioData,
                         mTotalFrames,
-                        2,
-                        targetData,
+                        _backend->getPortUtils(),
                         number_of_frames_to_render
                 );
             }
@@ -434,16 +431,13 @@ namespace ARDOUR {
                     sampler_is_writing = sampler.write(
                             audioData,
                             mTotalFrames,
-                            2,
-                            targetData,
+                            _backend->getPortUtils(),
                             number_of_frames_to_render-i
                     );
                 } else {
                     if (!sampler_is_writing) {
                         // if there are no events for the current sample then output silence
-                        for (int j = 0; j < _backend->output_channels(); ++j) {
-                            targetData[(i * _backend->output_channels()) + j] = 0;
-                        }
+                        _backend->getPortUtils().setPortBufferIndex(i, 0);
                     }
                 }
                 engineFrame++;
@@ -451,12 +445,8 @@ namespace ARDOUR {
             }
         } else {
             LOGE("AudioEngine writing %d frames of silence", number_of_frames_to_render);
-            for (int32_t i = 0; i < number_of_frames_to_render; ++i) {
-                for (int j = 0; j < _backend->output_channels(); ++j) {
-                    targetData[(i * _backend->output_channels()) + j] = 0;
-                }
-                engineFrame++;
-            }
+            _backend->getPortUtils().fillPortBuffer(0);
+            engineFrame += number_of_frames_to_render;
         }
     }
 

@@ -22,6 +22,7 @@ namespace ARDOUR {
         static ARDOUR::AudioBackendInfo* descriptor();
 
         // configuration
+        PortUtils portUtils;
 
         DeviceStatus currentDeviceStatus;
         float currentSampleRate;
@@ -175,6 +176,8 @@ namespace ARDOUR {
         void update_latencies() override;
 
         int drop_device() override;
+
+        PortUtils &getPortUtils() override;
 
     protected:
         int _start(bool for_latency_measurement) override;

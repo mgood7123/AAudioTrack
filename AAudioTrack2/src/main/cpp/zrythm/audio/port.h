@@ -139,9 +139,10 @@ typedef struct Port
      * Buffer to be reallocated every time the buffer
      * size changes.
      *
-     * The buffer size is AUDIO_ENGINE->block_length.
+     * The buffer size is buf_size.
      */
-    float *             buf;
+    void *             buf = nullptr;
+    uint32_t buf_size = 0;
 
 #ifdef MIDI_SUPPORT
     /**
@@ -1043,7 +1044,7 @@ port_update_track_pos (
  *   0 in this cycle.
  * @param nframes The number of frames to process.
  */
-static inline void
+template<typename type> void
 port_apply_fader (
         Port *    port,
         float     amp,
@@ -1053,7 +1054,7 @@ port_apply_fader (
     ARDOUR::frames_t end = start_frame + nframes;
     while (start_frame < end)
     {
-        port->buf[start_frame++] *= amp;
+        reinterpret_cast<type*>(port->buf)[start_frame++] *= amp;
     }
 }
 
