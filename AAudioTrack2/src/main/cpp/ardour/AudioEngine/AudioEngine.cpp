@@ -424,6 +424,7 @@ namespace ARDOUR {
             for (int32_t i = 0; i < number_of_frames_to_render; ++i) {
                 // write sample every beat, 120 bpm, 4 beats per bar
                 if (engineFrame == 0 || tempoGrid.sample_matches_samples_per_note(engineFrame)) {
+                    // if there are events for the current sample
                     LOGE("writing audio on frame %lld for %lld frames, write every %d frames",
                          engineFrame, mTotalFrames, tempoGrid.samples_per_note);
                     sampler.mReadFrameIndex = 0;
@@ -437,6 +438,13 @@ namespace ARDOUR {
                             targetData,
                             number_of_frames_to_render-i
                     );
+                } else {
+                    if (!sampler_is_writing) {
+                        // if there are no events for the current sample then output silence
+                        for (int j = 0; j < _backend->output_channels(); ++j) {
+                            targetData[(i * _backend->output_channels()) + j] = 0;
+                        }
+                    }
                 }
                 engineFrame++;
                 // return from the audio loop
