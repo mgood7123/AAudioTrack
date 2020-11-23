@@ -115,11 +115,14 @@ namespace ARDOUR {
             aaudio->previousUnderrunCount = aaudio->underrunCount;
             aaudio->underrunCount = tmpuc;
             // Try increasing the buffer size by one burst
-            frames_t bufferSize = aaudio->bufferSize;
-            aaudio->bufferSize += aaudio->framesPerBurst;
-            aaudio->bufferSize = AAudioStream_setBufferSizeInFrames(stream, aaudio->bufferSize);
-            LOGW("onAudioReady: aaudio->bufferSize increased from %d to %d", bufferSize,
-                 aaudio->bufferSize);
+            frames_t bufferSize = AAudioStream_getBufferSizeInFrames(stream);
+            frames_t newBufferSize = AAudioStream_setBufferSizeInFrames(stream, bufferSize + AAudioStream_getFramesPerBurst(stream));
+            if (bufferSize == newBufferSize) {
+                LOGW("onAudioReady: bufferSize could not be increased from %d to %d", bufferSize,
+                     newBufferSize);
+            } else {
+                LOGW("onAudioReady: bufferSize increased from %d to %d", bufferSize, newBufferSize);
+            }
         }
         return AAUDIO_CALLBACK_RESULT_CONTINUE;
     }
@@ -165,6 +168,7 @@ namespace ARDOUR {
     }
 
     aaudio_result_t AAudio::DestroyStream() {
+        LOGW("DESTROYING STREAM");
         aaudio_result_t result = AAudioStream_close(stream);
         if (result != AAUDIO_OK) {
             LOGE("FAILED TO CLOSE STREAM BUILDER: %s", AAudio_convertResultToText(result));
@@ -183,6 +187,7 @@ namespace ARDOUR {
     void AAudio::RestartStreamNonBlocking() {
         StopStreamNonBlocking();
         FlushStreamNonBlocking();
+        DestroyStream();
         CreateStream();
         StartStreamNonBlocking();
     }
@@ -190,6 +195,7 @@ namespace ARDOUR {
     void AAudio::RestartStreamBlocking() {
         StopStreamBlocking();
         FlushStreamBlocking();
+        DestroyStream();
         CreateStream();
         StartStreamBlocking();
     }

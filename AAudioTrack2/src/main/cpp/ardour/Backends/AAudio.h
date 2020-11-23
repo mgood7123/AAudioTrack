@@ -33,9 +33,6 @@ namespace ARDOUR {
         AAudioStream *stream = nullptr;
         int32_t underrunCount = 0;
         int32_t previousUnderrunCount = 0;
-        int32_t framesPerBurst = 0;
-        int32_t bufferSize = 0;
-        int32_t bufferCapacity = 0;
         sample_count_t _processed_samples = 0;
 
         AAudio(AudioEngine &audioEngine, AudioBackendInfo &i);
