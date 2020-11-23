@@ -22,23 +22,32 @@ namespace ARDOUR {
             bool multiChannel = false;
             uint32_t channelCount = 0;
             uint32_t samples = 0;
+            void * buffer;
         } ports;
 
         template<typename type>
         void setPortBufferIndex(Port *port, int index, type value) {
-            if (ports.samples >= index) {
-                LOGF("index %d must be less than ports.samples %d", index,
-                     ports.samples);
-            }
             if (port == nullptr) {
                 LOGF("port is nullptr");
+            }
+            LOGE("index = %d, port->buf_size = %d", index, port->buf_size);
+            if (index > port->buf_size) {
+                LOGF("index %d must be less than port->buf_size %d", index, port->buf_size);
             }
             reinterpret_cast<type *>(port->buf)[index] = value;
         }
 
         template<typename type>
         void setPortBufferIndex(Port *port, int index, Port * value) {
-            setPortBufferIndex(port, index, reinterpret_cast<type *>(value->buf)[index]);
+            reinterpret_cast<type *>(port->buf)[index] = reinterpret_cast<int16_t *>(port->buf)[index];
+//            if (value == nullptr) {
+//                LOGF("port is nullptr");
+//            }
+//            LOGE("index = %d, port->buf_size = %d", index, value->buf_size);
+//            if (index >= value->buf_size) {
+//                LOGF("index %d must be less value->buf_size %d", index, value->buf_size);
+//            }
+//            setPortBufferIndex(port, index, reinterpret_cast<type *>(value->buf)[index]);
         }
 
         template<typename type>
@@ -48,8 +57,6 @@ namespace ARDOUR {
                     !(ports.stereo && value.stereo) ||
                     !(ports.multiChannel && value.multiChannel)
                     ) LOGF("port mismatch");
-            if (value.samples >= index) LOGF("index %d must be less than ports.samples %d", index,
-                                             value.samples);
             if (ports.mono) {
                 setPortBufferIndex<type>(ports.outputMono, index, value.outputMono);
             } else if (ports.stereo) {
@@ -95,9 +102,6 @@ namespace ARDOUR {
                     !(ports.stereo && value.stereo) ||
                     !(ports.multiChannel && value.multiChannel)
                     ) LOGF("port mismatch");
-            if (value.samples >= ports.samples)
-                LOGF("value.samples %d must be less than ports.samples %d", value.samples,
-                        ports.samples);
             if (ports.mono) {
                 fillPortBuffer<type>(ports.outputMono, ports.samples, value.outputMono);
             } else if (ports.stereo) {
@@ -134,8 +138,9 @@ namespace ARDOUR {
             ports.samples = 0;
             if (ports.channelCount == 0) LOGF("invalid channel count: 0");
             ports.mono = channelCount == 1;
-            if (ports.mono) ports.outputMono = new Port();
-            else {
+            if (ports.mono) {
+                ports.outputMono = new Port();
+            } else {
                 ports.stereo = channelCount == 2;
                 if (ports.stereo) {
                     ports.outputStereo = new StereoPorts();
@@ -205,43 +210,49 @@ namespace ARDOUR {
         void interleaveFromPortBuffers(
                 void *buffer, uint32_t sample_count
         ) {
-            if (ports.mono) {
-                buffer = ports.outputMono->buf;
-                ports.outputMono->buf = nullptr;
-            } else if (ports.stereo) {
-                uint32_t samples = sample_count / 2;
-                interleave_audio_data<type>(
-                        reinterpret_cast<type*>(ports.outputStereo->l->buf),
-                        reinterpret_cast<type*>(buffer),
-                        samples,
-                        0,
-                        ports.channelCount
-                );
-                delete[] reinterpret_cast<type *>(ports.outputStereo->l->buf);
-                ports.outputStereo->l->buf = nullptr;
-                interleave_audio_data<type>(
-                        reinterpret_cast<type*>(ports.outputStereo->r->buf),
-                        reinterpret_cast<type*>(buffer),
-                        samples,
-                        1,
-                        ports.channelCount
-                );
-                delete[] reinterpret_cast<type *>(ports.outputStereo->r->buf);
-                ports.outputStereo->l->buf = nullptr;
-            } else if (ports.multiChannel) {
-                uint32_t samples = sample_count / ports.channelCount;
-                for (int i = 0; i < ports.channelCount; ++i) {
-                    interleave_audio_data<type>(
-                            reinterpret_cast<type*>(ports.outputMultiChannel[i]->buf),
-                            reinterpret_cast<type*>(buffer),
-                            samples,
-                            i,
-                            ports.channelCount
-                    );
-                    delete[] reinterpret_cast<type *>(ports.outputMultiChannel[i]->buf);
-                    ports.outputMultiChannel[i]->buf = nullptr;
-                }
-            }
+            buffer = ports.buffer;
+            ports.buffer = nullptr;
+//            if (ports.mono) {
+//                buffer = ports.outputMono->buf;
+//                ports.outputMono->buf = nullptr;
+//                ports.outputMono->buf_size = 0;
+//            } else if (ports.stereo) {
+//                uint32_t samples = sample_count / 2;
+//                interleave_audio_data<type>(
+//                        reinterpret_cast<type*>(ports.outputStereo->l->buf),
+//                        reinterpret_cast<type*>(buffer),
+//                        samples,
+//                        0,
+//                        ports.channelCount
+//                );
+//                delete[] reinterpret_cast<type *>(ports.outputStereo->l->buf);
+//                ports.outputStereo->l->buf = nullptr;
+//                ports.outputStereo->l->buf_size = 0;
+//                interleave_audio_data<type>(
+//                        reinterpret_cast<type*>(ports.outputStereo->r->buf),
+//                        reinterpret_cast<type*>(buffer),
+//                        samples,
+//                        1,
+//                        ports.channelCount
+//                );
+//                delete[] reinterpret_cast<type *>(ports.outputStereo->r->buf);
+//                ports.outputStereo->r->buf = nullptr;
+//                ports.outputStereo->r->buf_size = 0;
+//            } else if (ports.multiChannel) {
+//                uint32_t samples = sample_count / ports.channelCount;
+//                for (int i = 0; i < ports.channelCount; ++i) {
+//                    interleave_audio_data<type>(
+//                            reinterpret_cast<type*>(ports.outputMultiChannel[i]->buf),
+//                            reinterpret_cast<type*>(buffer),
+//                            samples,
+//                            i,
+//                            ports.channelCount
+//                    );
+//                    delete[] reinterpret_cast<type *>(ports.outputMultiChannel[i]->buf);
+//                    ports.outputMultiChannel[i]->buf = nullptr;
+//                    ports.outputMultiChannel[0]->buf_size = 0;
+//                }
+//            }
             ports.samples = 0;
         }
 
@@ -249,51 +260,60 @@ namespace ARDOUR {
         void deinterleaveToPortBuffers(
                 void *buffer, uint32_t sample_count
         ) {
-            if (ports.mono) {
-                ports.outputMono->buf = buffer;
-                ports.samples = sample_count;
-            } else if (ports.stereo) {
-                uint32_t samples = sample_count / 2;
-                ports.samples = samples;
-                // no use setting this to nullptr since it is immediately reallocated
-                if (ports.outputStereo->l->buf != nullptr)
-                    delete[] reinterpret_cast<type *>(ports.outputStereo->l->buf);
-                ports.outputStereo->l->buf = new type[samples];
-                deinterleave_audio_data<type>(
-                        reinterpret_cast<type*>(buffer),
-                        reinterpret_cast<type*>(ports.outputStereo->l->buf),
-                        samples,
-                        0,
-                        ports.channelCount
-                );
-                // no use setting this to nullptr since it is immediately reallocated
-                if (ports.outputStereo->r->buf != nullptr)
-                    delete[] reinterpret_cast<type *>(ports.outputStereo->r->buf);
-                ports.outputStereo->r->buf = new type[samples];
-                deinterleave_audio_data<type>(
-                        reinterpret_cast<type*>(buffer),
-                        reinterpret_cast<type*>(ports.outputStereo->r->buf),
-                        samples,
-                        1,
-                        ports.channelCount
-                );
-            } else if (ports.multiChannel) {
-                uint32_t samples = sample_count / ports.channelCount;
-                ports.samples = samples;
-                for (int i = 0; i < ports.channelCount; ++i) {
-                    // no use setting this to nullptr since it is immediately reallocated
-                    if (ports.outputMultiChannel[i]->buf != nullptr)
-                        delete[] reinterpret_cast<type *>(ports.outputMultiChannel[i]->buf);
-                    ports.outputMultiChannel[i]->buf = new type[samples];
-                    deinterleave_audio_data<type>(
-                            reinterpret_cast<type*>(buffer),
-                            reinterpret_cast<type*>(ports.outputMultiChannel[i]->buf),
-                            samples,
-                            i,
-                            ports.channelCount
-                    );
-                }
-            }
+            ports.buffer = buffer;
+//            if (ports.mono) {
+//                ports.outputMono->buf = buffer;
+//                ports.outputMono->buf_size = sample_count;
+//                ports.samples = sample_count;
+//                LOGE("ports.outputMono->buf_size = %d", ports.outputMono->buf_size);
+//            } else if (ports.stereo) {
+//                uint32_t samples = sample_count / 2;
+//                ports.samples = samples;
+//                // no use setting this to nullptr since it is immediately reallocated
+//                if (ports.outputStereo->l->buf != nullptr)
+//                    delete[] reinterpret_cast<type *>(ports.outputStereo->l->buf);
+//                ports.outputStereo->l->buf = new type[samples];
+//                ports.outputStereo->l->buf_size = samples;
+//                deinterleave_audio_data<type>(
+//                        reinterpret_cast<type*>(buffer),
+//                        reinterpret_cast<type*>(ports.outputStereo->l->buf),
+//                        samples,
+//                        0,
+//                        ports.channelCount
+//                );
+//                // no use setting this to nullptr since it is immediately reallocated
+//                if (ports.outputStereo->r->buf != nullptr)
+//                    delete[] reinterpret_cast<type *>(ports.outputStereo->r->buf);
+//                ports.outputStereo->r->buf = new type[samples];
+//                ports.outputStereo->r->buf_size = samples;
+//                deinterleave_audio_data<type>(
+//                        reinterpret_cast<type*>(buffer),
+//                        reinterpret_cast<type*>(ports.outputStereo->r->buf),
+//                        samples,
+//                        1,
+//                        ports.channelCount
+//                );
+//                LOGE("ports.outputStereo->l->buf_size = %d", ports.outputStereo->l->buf_size);
+//                LOGE("ports.outputStereo->r->buf_size = %d", ports.outputStereo->r->buf_size);
+//            } else if (ports.multiChannel) {
+//                uint32_t samples = sample_count / ports.channelCount;
+//                ports.samples = samples;
+//                for (int i = 0; i < ports.channelCount; ++i) {
+//                    // no use setting this to nullptr since it is immediately reallocated
+//                    if (ports.outputMultiChannel[i]->buf != nullptr)
+//                        delete[] reinterpret_cast<type *>(ports.outputMultiChannel[i]->buf);
+//                    ports.outputMultiChannel[i]->buf = new type[samples];
+//                    ports.outputMultiChannel[i]->buf_size = samples;
+//                    deinterleave_audio_data<type>(
+//                            reinterpret_cast<type*>(buffer),
+//                            reinterpret_cast<type*>(ports.outputMultiChannel[i]->buf),
+//                            samples,
+//                            i,
+//                            ports.channelCount
+//                    );
+//                    LOGE("ports.outputMultiChannel[%d}->buf_size = %d", i, ports.outputMultiChannel[i]->buf_size);
+//                }
+//            }
         }
 
         template<typename type>

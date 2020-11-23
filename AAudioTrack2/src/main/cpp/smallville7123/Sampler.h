@@ -105,6 +105,8 @@ public:
             output.fillPortBuffer(0, number_of_frames_to_render);
             return false;
         }
+//        this->portUtils.interleaveFromPortBuffers<int16_t>(, channelCount);
+        this->portUtils.deallocatePorts<int16_t>(channelCount);
     }
 };
 

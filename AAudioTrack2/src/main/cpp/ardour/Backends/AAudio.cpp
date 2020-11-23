@@ -119,9 +119,29 @@ namespace ARDOUR {
         // callback 1: onAudioReady(stream, userData, buffer[2], 2);
         // callback 2: onAudioReady(stream, userData, buffer[4], 2);
         // callback 3: onAudioReady(stream, userData, buffer[6], 2);
-        aaudio->portUtils.deinterleaveToPortBuffers<int16_t>(audioData, number_of_frames_to_render);
-        aaudio->engine.renderAudio(number_of_frames_to_render);
-        aaudio->portUtils.interleaveFromPortBuffers<int16_t>(audioData, number_of_frames_to_render);
+
+//        aaudio->portUtils.deinterleaveToPortBuffers<int16_t>(audioData, number_of_frames_to_render);
+
+        bool INTERLEAVE = false;
+        if (INTERLEAVE) {
+            aaudio->portUtils.ports.outputStereo->l->buf = new int16_t[number_of_frames_to_render/2];
+            aaudio->portUtils.ports.outputStereo->r->buf = new int16_t[number_of_frames_to_render/2];
+                aaudio->engine.renderAudio(number_of_frames_to_render);
+            for (int i = 0; i < number_of_frames_to_render/2; ++i) {
+                reinterpret_cast<int16_t *>(audioData)[(i * 2) + 0] =
+                        reinterpret_cast<int16_t*>(aaudio->portUtils.ports.outputStereo->l->buf)[i];
+                reinterpret_cast<int16_t *>(audioData)[(i * 2) + 1] =
+                        reinterpret_cast<int16_t*>(aaudio->portUtils.ports.outputStereo->r->buf)[i];
+            }
+
+            delete[] aaudio->portUtils.ports.outputStereo->l->buf;
+            delete[] aaudio->portUtils.ports.outputStereo->r->buf;
+        } else {
+            aaudio->portUtils.ports.buffer = audioData;
+            aaudio->engine.renderAudio(number_of_frames_to_render);
+        }
+
+//        aaudio->portUtils.interleaveFromPortBuffers<int16_t>(audioData, number_of_frames_to_render);
 
         aaudio->_processed_samples += number_of_frames_to_render;
 
