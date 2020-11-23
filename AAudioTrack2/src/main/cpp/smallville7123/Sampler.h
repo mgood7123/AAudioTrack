@@ -26,7 +26,7 @@ public:
                 // if this happens, reset the frame index
                 if (mReadFrameIndex == mTotalFrames) mReadFrameIndex = 0;
                 for (int32_t i = 0; i < number_of_frames_to_render; ++i) {
-                    for (int j = 0; j < number_of_frames_to_render; ++j) {
+                    for (int j = 0; j < channelCount; ++j) {
                         targetData[(i * channelCount) + j] = AUDIO_DATA[(mReadFrameIndex * channelCount) + j];
                     }
 
