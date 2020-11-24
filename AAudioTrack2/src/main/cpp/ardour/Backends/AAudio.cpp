@@ -104,6 +104,8 @@ namespace ARDOUR {
         return portUtils;
     }
 
+    frames_t frameIndex;
+
     aaudio_data_callback_result_t AAudio::onAudioReady(
             AAudioStream *stream, void *userData, void *audioData,
             frames_t number_of_frames_to_render
@@ -121,12 +123,79 @@ namespace ARDOUR {
         // callback 3: onAudioReady(stream, userData, buffer[6], 2);
 
 //        aaudio->portUtils.deinterleaveToPortBuffers<int16_t>(audioData, number_of_frames_to_render);
+        if (aaudio->engine.hasData()) {
+            bool split_channels = true;
+
+            int16_t *outputData = reinterpret_cast<int16_t *>(audioData);
+            int16_t *inputData = reinterpret_cast<int16_t *>(aaudio->engine.audioData);
+            int channelCount = aaudio->currentOutputChannelCount;
+            frames_t frames = aaudio->engine.mTotalFrames;
+
+            if (split_channels) {
+                // TODO: assert that number_of_frames_to_render is divisible by channelCount
+                frames_t samples = number_of_frames_to_render;
+                int16_t * inBuffer = new int16_t[samples*2];
+                int16_t * inLeft = inBuffer;
+                int16_t * inRight = inBuffer + samples;
+                aaudio->portUtils.deinterleaveToPortBuffers<int16_t>(audioData, number_of_frames_to_render);
+                for (int i = 0; i < number_of_frames_to_render; i+=2) {
+                    // copy input to input buffers
+                    inLeft[i] = inputData[(frameIndex * channelCount) + 0];
+                    inRight[i] = inputData[(frameIndex * channelCount) + 1];
+                    frameIndex+=2;
+                    if (frameIndex >= frames) frameIndex = 0;
+                    // copy input buffers to output buffers
+                    reinterpret_cast<int16_t*>(aaudio->portUtils.ports.outputStereo->l->buf)[i] = inLeft[i];
+                    reinterpret_cast<int16_t*>(aaudio->portUtils.ports.outputStereo->r->buf)[i] = inRight[i];
+                    // copy output buffers to output
+                    outputData[(i * channelCount) + 0] = reinterpret_cast<int16_t*>(aaudio->portUtils.ports.outputStereo->l->buf)[i];
+                    outputData[(i * channelCount) + 1] = reinterpret_cast<int16_t*>(aaudio->portUtils.ports.outputStereo->r->buf)[i];
+                }
+                delete[] inBuffer;
+                aaudio->portUtils.interleaveFromPortBuffers<int16_t>(audioData, number_of_frames_to_render);
+//            }
+//
+//            if (split_channels) {
+//                // TODO: assert that number_of_frames_to_render is divisible by channelCount
+//                frames_t samples = number_of_frames_to_render;
+//                int16_t * inBuffer = new int16_t[samples*2];
+//                int16_t * inLeft = inBuffer;
+//                int16_t * inRight = inBuffer + samples;
+//                int16_t * outBuffer = new int16_t[samples*2];
+//                int16_t * outLeft = inBuffer;
+//                int16_t * outRight = inBuffer + samples;
+//                for (int i = 0; i < number_of_frames_to_render; i+=2) {
+//                    // copy input to input buffers
+//                    inLeft[i] = inputData[(frameIndex * channelCount) + 0];
+//                    inRight[i] = inputData[(frameIndex * channelCount) + 1];
+//                    frameIndex+=2;
+//                    if (frameIndex >= frames) frameIndex = 0;
+//                    // copy input buffers to output buffers
+//                    outLeft[i] = inLeft[i];
+//                    outRight[i] = inRight[i];
+//                    // copy output buffers to output
+//                    outputData[(i * channelCount) + 0] = outLeft[i];
+//                    outputData[(i * channelCount) + 1] = outRight[i];
+//                }
+//                delete[] inBuffer;
+//                delete[] outBuffer;
+            } else {
+                // renders crystal clear audio
+                for (int i = 0; i < number_of_frames_to_render; ++i) {
+                    for (int j = 0; j < channelCount; ++j) {
+                        outputData[(i * channelCount) + j] =
+                                inputData[(frameIndex * channelCount) + j];
+                    }
+                    if (++frameIndex >= frames) frameIndex = 0;
+                }
+            }
+        }
 
         bool INTERLEAVE = false;
         if (INTERLEAVE) {
             aaudio->portUtils.ports.outputStereo->l->buf = new int16_t[number_of_frames_to_render/2];
             aaudio->portUtils.ports.outputStereo->r->buf = new int16_t[number_of_frames_to_render/2];
-                aaudio->engine.renderAudio(number_of_frames_to_render);
+            aaudio->engine.renderAudio(number_of_frames_to_render);
             for (int i = 0; i < number_of_frames_to_render/2; ++i) {
                 reinterpret_cast<int16_t *>(audioData)[(i * 2) + 0] =
                         reinterpret_cast<int16_t*>(aaudio->portUtils.ports.outputStereo->l->buf)[i];
