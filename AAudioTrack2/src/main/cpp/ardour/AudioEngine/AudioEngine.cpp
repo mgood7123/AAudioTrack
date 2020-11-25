@@ -384,7 +384,7 @@ namespace ARDOUR {
     Sampler sampler;
     bool sampler_is_writing = false;
 
-    void AudioEngine::renderAudio(frames_t number_of_frames_to_render) {
+    void AudioEngine::renderAudio(PortUtils2 in, PortUtils2 out, frames_t number_of_frames_to_render) {
 
         // the sample counter is used to synchronise events with frames
         // A timebase that allows sequencing in relation to musical events like beats or bars
@@ -407,14 +407,26 @@ namespace ARDOUR {
             LOGE("no backend");
             return;
         }
-//        LOGW("writing %G milliseconds (%d samples) of data", 1000 / (_backend->sample_rate() / number_of_frames_to_render), number_of_frames_to_render);
+        LOGW("writing %G milliseconds (%d samples) of data", 1000 / (_backend->sample_rate() / number_of_frames_to_render), number_of_frames_to_render);
+
+        LOGE("telling the sampler to write %d frames of audio", number_of_frames_to_render);
+        in.copyFromDataToPort<int16_t>(audioData, mReadFrameIndex, mTotalFrames);
+//        out.copyFromPortToPort<int16_t>(in);
+//        sampler_is_writing = sampler.write(
+//                audioData,
+//                mTotalFrames,
+//                in, out,
+//                number_of_frames_to_render
+//        );
+
+// OLD
 //        if (hasData()) {
 //            if (sampler_is_writing) {
 //                LOGE("telling the sampler to write %d frames of audio", number_of_frames_to_render);
 //                sampler_is_writing = sampler.write(
 //                        audioData,
 //                        mTotalFrames,
-//                        _backend->getPortUtils(),
+//                        in, out,
 //                        number_of_frames_to_render
 //                );
 //            }
@@ -431,13 +443,13 @@ namespace ARDOUR {
 //                    sampler_is_writing = sampler.write(
 //                            audioData,
 //                            mTotalFrames,
-//                            _backend->getPortUtils(),
+//                            in, out,
 //                            number_of_frames_to_render-i
 //                    );
 //                } else {
 //                    if (!sampler_is_writing) {
 //                        // if there are no events for the current sample then output silence
-//                        _backend->getPortUtils().setPortBufferIndex(i, 0);
+//                        out.setPortBufferIndex<int16_t>(i, 0);
 //                    }
 //                }
 //                engineFrame++;
@@ -445,71 +457,71 @@ namespace ARDOUR {
 //            }
 //        } else {
 //            LOGE("AudioEngine writing %d frames of silence", number_of_frames_to_render);
-//            _backend->getPortUtils().fillPortBuffer(0);
+//            out.fillPortBuffer<int16_t>(0);
 //            engineFrame += number_of_frames_to_render;
 //        }
 
 // OLD
 
-        PortUtils & backendPortUtils = _backend->getPortUtils();
-        if (hasData()) {
-//            PortUtils portUtils;
-            auto channelCount = backendPortUtils.getChannelCount();
-//            portUtils.allocatePorts(channelCount);
-//            portUtils.deinterleaveToPortBuffers<int16_t>(audioData, channelCount);
-
-            // Check whether we're about to reach the end of the recording
-            if (!mIsLooping && mReadFrameIndex + number_of_frames_to_render >= mTotalFrames) {
-                number_of_frames_to_render = mTotalFrames - mReadFrameIndex;
-                mIsPlaying = false;
-            }
-
-            if (mReadFrameIndex == 0) {
-//            GlobalTime.StartOfFile = true;
-//            GlobalTime.update(mReadFrameIndex, AudioData);
-            }
-
-//            for (int i = 0; i < backendPortUtils.ports.outputStereo->l->buf_size; ++i) {
-//                backendPortUtils.setPortBufferIndex<int16_t>(backendPortUtils.ports.outputStereo->l, i, portUtils.ports.outputStereo->l);
-//                if (++mReadFrameIndex >= mTotalFrames) {
-//                    mReadFrameIndex = 0;
+//        PortUtils & backendPortUtils = _backend->getPortUtils();
+//        if (hasData()) {
+////            PortUtils portUtils;
+//            auto channelCount = backendPortUtils.getChannelCount();
+////            portUtils.allocatePorts(channelCount);
+////            portUtils.deinterleaveToPortBuffers<int16_t>(audioData, channelCount);
+//
+//            // Check whether we're about to reach the end of the recording
+//            if (!mIsLooping && mReadFrameIndex + number_of_frames_to_render >= mTotalFrames) {
+//                number_of_frames_to_render = mTotalFrames - mReadFrameIndex;
+//                mIsPlaying = false;
+//            }
+//
+//            if (mReadFrameIndex == 0) {
+////            GlobalTime.StartOfFile = true;
+////            GlobalTime.update(mReadFrameIndex, AudioData);
+//            }
+//
+////            for (int i = 0; i < backendPortUtils.ports.outputStereo->l->buf_size; ++i) {
+////                backendPortUtils.setPortBufferIndex<int16_t>(backendPortUtils.ports.outputStereo->l, i, portUtils.ports.outputStereo->l);
+////                if (++mReadFrameIndex >= mTotalFrames) {
+////                    mReadFrameIndex = 0;
+////                }
+////            }
+////            for (int i = 0; i < backendPortUtils.ports.outputStereo->r->buf_size; ++i) {
+////                backendPortUtils.setPortBufferIndex<int16_t>(backendPortUtils.ports.outputStereo->r, i, portUtils.ports.outputStereo->r);
+////                if (++mReadFrameIndex >= mTotalFrames) {
+////                    mReadFrameIndex = 0;
+////                }
+////            }
+//
+//            bool INTERLEAVE = false;
+//            if (INTERLEAVE) {
+//                for (int i = 0; i < number_of_frames_to_render/2; ++i) {
+//                    reinterpret_cast<int16_t*>(backendPortUtils.ports.outputStereo->l->buf)[i] =
+//                            reinterpret_cast<int16_t *>(audioData)[(mReadFrameIndex * channelCount) +
+//                                                                   0];
+//                    reinterpret_cast<int16_t*>(backendPortUtils.ports.outputStereo->r->buf)[i] =
+//                            reinterpret_cast<int16_t *>(audioData)[(mReadFrameIndex * channelCount) +
+//                                                                   1];
+//                    mReadFrameIndex++;
+//                }
+//            } else {
+//                for (int i = 0; i < number_of_frames_to_render; ++i) {
+//                    int16_t * targetData = reinterpret_cast<int16_t*>(backendPortUtils.ports.buffer);
+//                    int16_t * AUDIO_DATA = reinterpret_cast<int16_t*>(audioData);
+//                    for (int j = 0; j < channelCount; ++j) {
+//                        targetData[(i * channelCount) + j] = AUDIO_DATA[(mReadFrameIndex * channelCount) + j];
+//                    }
+//
+//                    if (++mReadFrameIndex >= mTotalFrames) {
+//                        mReadFrameIndex = 0;
+//                    }
 //                }
 //            }
-//            for (int i = 0; i < backendPortUtils.ports.outputStereo->r->buf_size; ++i) {
-//                backendPortUtils.setPortBufferIndex<int16_t>(backendPortUtils.ports.outputStereo->r, i, portUtils.ports.outputStereo->r);
-//                if (++mReadFrameIndex >= mTotalFrames) {
-//                    mReadFrameIndex = 0;
-//                }
-//            }
-
-            bool INTERLEAVE = false;
-            if (INTERLEAVE) {
-                for (int i = 0; i < number_of_frames_to_render/2; ++i) {
-                    reinterpret_cast<int16_t*>(backendPortUtils.ports.outputStereo->l->buf)[i] =
-                            reinterpret_cast<int16_t *>(audioData)[(mReadFrameIndex * channelCount) +
-                                                                   0];
-                    reinterpret_cast<int16_t*>(backendPortUtils.ports.outputStereo->r->buf)[i] =
-                            reinterpret_cast<int16_t *>(audioData)[(mReadFrameIndex * channelCount) +
-                                                                   1];
-                    mReadFrameIndex++;
-                }
-            } else {
-                for (int i = 0; i < number_of_frames_to_render; ++i) {
-                    int16_t * targetData = reinterpret_cast<int16_t*>(backendPortUtils.ports.buffer);
-                    int16_t * AUDIO_DATA = reinterpret_cast<int16_t*>(audioData);
-                    for (int j = 0; j < channelCount; ++j) {
-                        targetData[(i * channelCount) + j] = AUDIO_DATA[(mReadFrameIndex * channelCount) + j];
-                    }
-
-                    if (++mReadFrameIndex >= mTotalFrames) {
-                        mReadFrameIndex = 0;
-                    }
-                }
-            }
-//            portUtils.deallocatePorts<int16_t>(channelCount);
-        } else {
-            backendPortUtils.fillPortBuffer(0);
-        }
+////            portUtils.deallocatePorts<int16_t>(channelCount);
+//        } else {
+//            backendPortUtils.fillPortBuffer(0);
+//        }
     }
 
 //void metronome(AudioEngine * audioEngine) {

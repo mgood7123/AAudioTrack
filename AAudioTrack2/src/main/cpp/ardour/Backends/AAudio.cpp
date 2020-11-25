@@ -133,25 +133,14 @@ namespace ARDOUR {
             frames_t frames = aaudio->engine.mTotalFrames;
 
             if (split_channels) {
-                // TODO: assert that number_of_frames_to_render is divisible by channelCount
                 frames_t samples = number_of_frames_to_render;
                 PortUtils2 inPort = PortUtils2();
                 PortUtils2 outPort = PortUtils2();
                 inPort.allocatePorts<int16_t>(samples, channelCount);
                 outPort.allocatePorts<int16_t>(samples, channelCount);
-                for (int i = 0; i < number_of_frames_to_render; i+=2) {
-                    // copy input to input buffers
-                    reinterpret_cast<int16_t*>(inPort.ports.outputStereo->l->buf)[i] = inputData[(frameIndex * channelCount) + 0];
-                    reinterpret_cast<int16_t*>(inPort.ports.outputStereo->r->buf)[i] = inputData[(frameIndex * channelCount) + 1];
-                    frameIndex+=2;
-                    if (frameIndex >= frames) frameIndex = 0;
-                    // copy input buffers to output buffers
-                    reinterpret_cast<int16_t*>(outPort.ports.outputStereo->l->buf)[i] = reinterpret_cast<int16_t*>(inPort.ports.outputStereo->l->buf)[i];
-                    reinterpret_cast<int16_t*>(outPort.ports.outputStereo->r->buf)[i] = reinterpret_cast<int16_t*>(inPort.ports.outputStereo->r->buf)[i];
-                    // copy output buffers to output
-                    outputData[(i * channelCount) + 0] = reinterpret_cast<int16_t*>(outPort.ports.outputStereo->l->buf)[i];
-                    outputData[(i * channelCount) + 1] = reinterpret_cast<int16_t*>(outPort.ports.outputStereo->r->buf)[i];
-                }
+                inPort.copyFromDataToPort<int16_t>(inputData, frameIndex, frames);
+                outPort.copyFromPortToPort<int16_t>(inPort);
+                outPort.copyFromPortToData<int16_t>(outputData);
                 outPort.deallocatePorts<int16_t>(channelCount);
                 inPort.deallocatePorts<int16_t>(channelCount);
             } else {
@@ -164,7 +153,6 @@ namespace ARDOUR {
                     if (++frameIndex >= frames) frameIndex = 0;
                 }
 //            aaudio->portUtils.ports.buffer = audioData;
-//            aaudio->engine.renderAudio(number_of_frames_to_render);
             }
         }
 

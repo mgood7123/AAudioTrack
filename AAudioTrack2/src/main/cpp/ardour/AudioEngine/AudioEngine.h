@@ -12,6 +12,7 @@
 #include <map>
 #include "typedefs.h"
 #include "PortEngine/port_engine.h"
+#include "../Backends/PortUtils2.h"
 
 namespace ARDOUR {
     class Session;
@@ -100,8 +101,8 @@ namespace ARDOUR {
 
         void *audioData = nullptr;
         size_t audioDataSize = -1;
-        uint64_t mReadFrameIndex = 0;
-        uint64_t mTotalFrames = 0;
+        int mReadFrameIndex = 0;
+        int mTotalFrames = 0;
         bool mIsPlaying = false;
         bool mIsLooping = true;
         std::mutex _process_lock;
@@ -122,7 +123,7 @@ namespace ARDOUR {
 
         bool hasData();
 
-        void renderAudio(frames_t number_of_frames_to_render);
+        void renderAudio(PortUtils2 in, PortUtils2 out, frames_t number_of_frames_to_render);
 
         void load(const char *string);
 
