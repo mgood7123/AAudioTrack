@@ -4,6 +4,7 @@
 
 #include "AAudio.h"
 #include "../../zrythm/audio/port.h"
+#include "PortUtils2.h"
 #include <memory>
 
 namespace ARDOUR {
@@ -101,7 +102,7 @@ namespace ARDOUR {
     AAudio::~AAudio() {}
 
     PortUtils &AAudio::getPortUtils() {
-        return portUtils;
+//        return portUtils;
     }
 
     frames_t frameIndex;
@@ -112,7 +113,7 @@ namespace ARDOUR {
     ) {
         AAudio *aaudio = static_cast<AAudio *>(userData);
 
-        LOGE("audioData = %p, &audioData = %p", audioData, &audioData);
+//        LOGE("audioData = %p, &audioData = %p", audioData, &audioData);
 
         // how AAudio's data callback buffer works: (example)
         // TYPE * buffer;
@@ -137,15 +138,12 @@ namespace ARDOUR {
 //                int16_t * inBuffer = new int16_t[samples*2];
 //                int16_t * inLeft = inBuffer;
 //                int16_t * inRight = inBuffer + samples;
-                PortUtils & outPort = aaudio->portUtils;
-                outPort.deinterleaveToPortBuffers<int16_t>(audioData, number_of_frames_to_render);
-                PortUtils inPort = PortUtils();
-                inPort.ports.buffer = new int16_t[samples*2];
-                inPort.ports.outputStereo = new StereoPorts();
-                inPort.ports.outputStereo->l = new Port();
-                inPort.ports.outputStereo->r = new Port();
-                inPort.ports.outputStereo->l->buf = inPort.ports.buffer;
-                inPort.ports.outputStereo->r->buf = reinterpret_cast<int16_t*>(inPort.ports.buffer) + samples;
+//                PortUtils & outPort = aaudio->portUtils;
+//                outPort.deinterleaveToPortBuffers<int16_t>(audioData, number_of_frames_to_render);
+                PortUtils2 inPort = PortUtils2();
+                PortUtils2 outPort = PortUtils2();
+                inPort.allocatePorts<int16_t>(samples, channelCount);
+                outPort.allocatePorts<int16_t>(samples, channelCount);
                 for (int i = 0; i < number_of_frames_to_render; i+=2) {
                     // copy input to input buffers
 //                    inLeft[i] = inputData[(frameIndex * channelCount) + 0];
@@ -166,11 +164,9 @@ namespace ARDOUR {
 //                    outputData[(i * channelCount) + 1] = reinterpret_cast<int16_t*>(outPort.ports.outputStereo->r->buf)[i];
                 }
 //                delete[] inBuffer;
-                delete inPort.ports.outputStereo->l;
-                delete inPort.ports.outputStereo->r;
-                delete inPort.ports.outputStereo;
-                delete[] reinterpret_cast<int16_t*>(inPort.ports.buffer);
-                outPort.interleaveFromPortBuffers<int16_t>(audioData, number_of_frames_to_render);
+                outPort.deallocatePorts<int16_t>(channelCount);
+                inPort.deallocatePorts<int16_t>(channelCount);
+//                outPort.interleaveFromPortBuffers<int16_t>(audioData, number_of_frames_to_render);
 //            }
 //
 //            if (split_channels) {
@@ -286,9 +282,7 @@ namespace ARDOUR {
             return result;
         }
 
-        if (currentOutputChannelCount > 0) portUtils.deallocatePorts<int16_t>(currentOutputChannelCount);
         currentOutputChannelCount = AAudioStream_getChannelCount(stream);
-        portUtils.allocatePorts(currentOutputChannelCount);
 
         underrunCount = 0;
         previousUnderrunCount = 0;

@@ -22,7 +22,6 @@ namespace ARDOUR {
         static ARDOUR::AudioBackendInfo* descriptor();
 
         // configuration
-        PortUtils portUtils;
 
         DeviceStatus currentDeviceStatus;
         float currentSampleRate;
