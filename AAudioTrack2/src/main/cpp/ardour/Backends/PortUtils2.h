@@ -115,14 +115,22 @@ public:
     template <typename type> void fillPortBuffer(type value) {
         for (int i = 0; i < ports.samples; i += 2) {
             // copy input buffers to output buffers
-            reinterpret_cast<type*>(ports.outputStereo->l->buf)[i] = 0;
-            reinterpret_cast<type*>(ports.outputStereo->r->buf)[i] = 0;
+            reinterpret_cast<type*>(ports.outputStereo->l->buf)[i] = value;
+            reinterpret_cast<type*>(ports.outputStereo->r->buf)[i] = value;
+        }
+    }
+
+    template <typename type> void fillPortBuffer(type value, int samples) {
+        for (int i = 0; i < samples; i += 2) {
+            // copy input buffers to output buffers
+            reinterpret_cast<type*>(ports.outputStereo->l->buf)[i] = value;
+            reinterpret_cast<type*>(ports.outputStereo->r->buf)[i] = value;
         }
     }
 
     template <typename type> void setPortBufferIndex(int index, type value) {
-        reinterpret_cast<type *>(ports.outputStereo->l->buf)[index] = 0;
-        reinterpret_cast<type *>(ports.outputStereo->r->buf)[index] = 0;
+        reinterpret_cast<type *>(ports.outputStereo->l->buf)[index] = value;
+        reinterpret_cast<type *>(ports.outputStereo->r->buf)[index] = value;
     }
     template <typename type> void setPortBufferIndex(int index, PortUtils2 & port) {
         reinterpret_cast<type *>(ports.outputStereo->l->buf)[index] = reinterpret_cast<type*>(ports.outputStereo->l->buf)[index];;
