@@ -123,7 +123,7 @@ namespace ARDOUR {
 
         bool hasData();
 
-        void renderAudio(PortUtils2 in, PortUtils2 out, frames_t number_of_frames_to_render);
+        void renderAudio(PortUtils2 in, PortUtils2 out);
 
         void load(const char *string);
 

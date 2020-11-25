@@ -9,17 +9,15 @@
 
 class Sampler {
 public:
-    uint64_t mReadFrameIndex = 0;
+    int mReadFrameIndex = 0;
     bool mIsPlaying = true;
     bool mIsLooping = true;
     bool write(
             void *audioData,
-            uint64_t mTotalFrames,
-            PortUtils2 & in, PortUtils2 & out,
-            int32_t number_of_frames_to_render) {
+            int mTotalFrames,
+            PortUtils2 & in, PortUtils2 & out) {
         if (mIsPlaying && audioData != nullptr) {
-            out.copyFromPortToPort<int16_t>(in);
-            out.copyFromPortToData<int16_t>(audioData);
+            in.copyFromDataToPort<int16_t>(audioData, mReadFrameIndex, mTotalFrames);
             return true;
         }
         return false;

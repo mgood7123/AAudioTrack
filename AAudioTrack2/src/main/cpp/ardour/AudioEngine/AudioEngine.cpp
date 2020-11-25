@@ -384,7 +384,7 @@ namespace ARDOUR {
     Sampler sampler;
     bool sampler_is_writing = false;
 
-    void AudioEngine::renderAudio(PortUtils2 in, PortUtils2 out, frames_t number_of_frames_to_render) {
+    void AudioEngine::renderAudio(PortUtils2 in, PortUtils2 out) {
 
         // the sample counter is used to synchronise events with frames
         // A timebase that allows sequencing in relation to musical events like beats or bars
@@ -407,18 +407,14 @@ namespace ARDOUR {
             LOGE("no backend");
             return;
         }
-        LOGW("writing %G milliseconds (%d samples) of data", 1000 / (_backend->sample_rate() / number_of_frames_to_render), number_of_frames_to_render);
+        LOGW("writing %G milliseconds (%d samples) of data", 1000 / (_backend->sample_rate() / in.ports.samples), in.ports.samples);
 
-        LOGE("telling the sampler to write %d frames of audio", number_of_frames_to_render);
-//        inPort.copyFromDataToPort<int16_t>(inputData, frameIndex, frames);
-        in.copyFromDataToPort<int16_t>(audioData, mReadFrameIndex, mTotalFrames);
-//        out.copyFromPortToPort<int16_t>(in);
-//        sampler_is_writing = sampler.write(
-//                audioData,
-//                mTotalFrames,
-//                in, out,
-//                number_of_frames_to_render
-//        );
+        LOGE("telling the sampler to write %d frames of audio", in.ports.samples);
+        sampler_is_writing = sampler.write(
+                audioData,
+                mTotalFrames,
+                in, out
+        );
 
 // OLD
 //        if (hasData()) {

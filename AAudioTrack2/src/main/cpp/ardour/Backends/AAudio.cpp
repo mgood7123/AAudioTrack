@@ -132,7 +132,7 @@ namespace ARDOUR {
             PortUtils2 outPort = PortUtils2();
             inPort.allocatePorts<int16_t>(samples, channelCount);
             outPort.allocatePorts<int16_t>(samples, channelCount);
-            aaudio->engine.renderAudio(inPort, outPort, samples);
+            aaudio->engine.renderAudio(inPort, outPort);
             outPort.copyFromPortToPort<int16_t>(inPort);
             outPort.copyFromPortToData<int16_t>(outputData);
             outPort.deallocatePorts<int16_t>(channelCount);
