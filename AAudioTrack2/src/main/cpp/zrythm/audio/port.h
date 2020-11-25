@@ -563,8 +563,7 @@ static const cyaml_schema_value_t
  *
  * Must ONLY be created via stereo_ports_new()
  */
-typedef struct StereoPorts
-{
+typedef struct StereoPorts {
     Port       * l;
     Port       * r;
 } StereoPorts;
