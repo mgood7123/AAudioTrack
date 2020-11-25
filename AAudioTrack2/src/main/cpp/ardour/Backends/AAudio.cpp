@@ -125,35 +125,18 @@ namespace ARDOUR {
 
 //        aaudio->portUtils.deinterleaveToPortBuffers<int16_t>(audioData, number_of_frames_to_render);
         if (aaudio->engine.hasData()) {
-            bool split_channels = true;
-
             int16_t *outputData = reinterpret_cast<int16_t *>(audioData);
-            int16_t *inputData = reinterpret_cast<int16_t *>(aaudio->engine.audioData);
             int channelCount = aaudio->currentOutputChannelCount;
-            frames_t frames = aaudio->engine.mTotalFrames;
-
-            if (split_channels) {
-                frames_t samples = number_of_frames_to_render;
-                PortUtils2 inPort = PortUtils2();
-                PortUtils2 outPort = PortUtils2();
-                inPort.allocatePorts<int16_t>(samples, channelCount);
-                outPort.allocatePorts<int16_t>(samples, channelCount);
-                inPort.copyFromDataToPort<int16_t>(inputData, frameIndex, frames);
-                outPort.copyFromPortToPort<int16_t>(inPort);
-                outPort.copyFromPortToData<int16_t>(outputData);
-                outPort.deallocatePorts<int16_t>(channelCount);
-                inPort.deallocatePorts<int16_t>(channelCount);
-            } else {
-                // renders crystal clear audio
-                for (int i = 0; i < number_of_frames_to_render; ++i) {
-                    for (int j = 0; j < channelCount; ++j) {
-                        outputData[(i * channelCount) + j] =
-                                inputData[(frameIndex * channelCount) + j];
-                    }
-                    if (++frameIndex >= frames) frameIndex = 0;
-                }
-//            aaudio->portUtils.ports.buffer = audioData;
-            }
+            frames_t samples = number_of_frames_to_render;
+            PortUtils2 inPort = PortUtils2();
+            PortUtils2 outPort = PortUtils2();
+            inPort.allocatePorts<int16_t>(samples, channelCount);
+            outPort.allocatePorts<int16_t>(samples, channelCount);
+            aaudio->engine.renderAudio(inPort, outPort, samples);
+            outPort.copyFromPortToPort<int16_t>(inPort);
+            outPort.copyFromPortToData<int16_t>(outputData);
+            outPort.deallocatePorts<int16_t>(channelCount);
+            inPort.deallocatePorts<int16_t>(channelCount);
         }
 
         aaudio->_processed_samples += number_of_frames_to_render;

@@ -410,6 +410,7 @@ namespace ARDOUR {
         LOGW("writing %G milliseconds (%d samples) of data", 1000 / (_backend->sample_rate() / number_of_frames_to_render), number_of_frames_to_render);
 
         LOGE("telling the sampler to write %d frames of audio", number_of_frames_to_render);
+//        inPort.copyFromDataToPort<int16_t>(inputData, frameIndex, frames);
         in.copyFromDataToPort<int16_t>(audioData, mReadFrameIndex, mTotalFrames);
 //        out.copyFromPortToPort<int16_t>(in);
 //        sampler_is_writing = sampler.write(
