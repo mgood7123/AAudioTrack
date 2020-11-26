@@ -6,6 +6,7 @@
 #define AAUDIOTRACK_SAMPLER_H
 
 #include <cstdint>
+#include "../../ardour/Backends/PortUtils2.h"
 
 class Sampler {
 public:

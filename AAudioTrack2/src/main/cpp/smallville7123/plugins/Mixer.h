@@ -16,7 +16,7 @@
 
 #include <cstdint>
 #include <vector>
-#include "../ardour/Backends/PortUtils2.h"
+#include "../../ardour/Backends/PortUtils2.h"
 
 class Mixer {
 public:

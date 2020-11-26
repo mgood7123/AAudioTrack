@@ -120,8 +120,8 @@ public:
         }
     }
 
-    template <typename type> void fillPortBuffer(type value, int samples) {
-        for (int i = 0; i < samples; i += 2) {
+    template <typename type> void fillPortBuffer(type value, unsigned int samples) {
+        for (unsigned int i = 0; i < samples; i += 2) {
             // copy input buffers to output buffers
             reinterpret_cast<type*>(ports.outputStereo->l->buf)[i] = value;
             reinterpret_cast<type*>(ports.outputStereo->r->buf)[i] = value;

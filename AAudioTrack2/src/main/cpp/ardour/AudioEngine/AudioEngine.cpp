@@ -19,9 +19,11 @@
 //
 
 // mixer plugin
-#include "../../smallville7123/Mixer.h"
+#include "../../smallville7123/plugins/Mixer.h"
 // sampler plugin
-#include "../../smallville7123/Sampler.h"
+#include "../../smallville7123/plugins/Sampler.h"
+// delay plugin
+#include "../../smallville7123/plugins/Delay.h"
 
 using namespace std;
 
@@ -386,13 +388,16 @@ namespace ARDOUR {
         return audioData != nullptr && audioDataSize != -1;
     }
 
-    TempoGrid tempoGrid;
+    TempoGrid tempoGrid = TempoGrid(60);
     uint64_t engineFrame = 0;
+
+    Mixer mixer;
 
     Sampler sampler;
     bool sampler_is_writing = false;
-    Mixer mixer;
-    bool mixer_is_writing = false;
+
+    Delay delay;
+    bool delay_is_writing = false;
 
     void AudioEngine::renderAudio(PortUtils2 * in, PortUtils2 * out) {
 
@@ -410,7 +415,16 @@ namespace ARDOUR {
         // when each note is aligned to 1/4 notes
         // eg note quantisation, (snap to resolution, eg snap to 1/4)
 
-        // DONT FORGET TO MAP!
+        // If the tempo grid is set up to 120 bpm with 4 notes per bar,
+        // on each note, if there is an event associated with that note,
+        // the associated generators will trigger for that event.
+        // For example, a Sampler and a Synth are assigned to play every
+        // 1st note of every bar, when the engine reaches this note,
+        // it should call the processing callbacks of the Sampler,
+        // and the Synth, with their output each in a seperate mixer
+        // input port
+
+        // DON'T FORGET TO MAP!
         if (!tempoGrid.mapped) TempoGrid::map_tempo_to_frame(tempoGrid);
 
         if (!_backend) {
@@ -419,15 +433,27 @@ namespace ARDOUR {
         }
 //        LOGW("writing %G milliseconds (%d samples) of data", 1000 / (_backend->sample_rate() / out->ports.samples), out->ports.samples);
 
-        PortUtils2 p = PortUtils2();
-        PortUtils2 * mixerPort = &p;
-        mixerPort->allocatePorts<int16_t>(out->ports.samples, out->ports.channelCount);
+        PortUtils2 * mixerPortA = new PortUtils2();
+        mixerPortA->allocatePorts<int16_t>(out->ports.samples, out->ports.channelCount);
+        mixerPortA->fillPortBuffer<int16_t>(0);
+        PortUtils2 * mixerPortB = new PortUtils2();
+        mixerPortB->allocatePorts<int16_t>(out->ports.samples, out->ports.channelCount);
+        mixerPortB->fillPortBuffer<int16_t>(0);
         if (hasData()) {
             if (sampler_is_writing) {
-                sampler_is_writing = sampler.write(
-                        audioData,
-                        mTotalFrames,
-                        in, mixerPort, mixerPort->ports.samples);
+                sampler_is_writing = sampler.write(audioData, mTotalFrames, in, mixerPortA, mixerPortA->ports.samples);
+            }
+//            if (synth_is_writing) {
+//                synth_is_writing = synth.write(in, mixerPortB, mixerPortB->ports.samples);
+//            }
+            if (delay_is_writing) {
+                PortUtils2 * tmpPort = new PortUtils2();
+                tmpPort->allocatePorts<int16_t>(out->ports.samples, out->ports.channelCount);
+                tmpPort->fillPortBuffer<int16_t>(0);
+                delay_is_writing = delay.write(mixerPortA, tmpPort, mixerPortA->ports.samples);
+                mixerPortA->copyFromPortToPort<int16_t>(*tmpPort);
+                tmpPort->deallocatePorts<int16_t>(out->ports.channelCount);
+                delete tmpPort;
             }
             for (int32_t i = 0; i < out->ports.samples; i += 2) {
                 // write sample every beat, 120 bpm, 4 beats per bar
@@ -438,29 +464,44 @@ namespace ARDOUR {
                     sampler.mReadFrameIndex = 0;
                     sampler.mIsPlaying = true;
                     sampler.mIsLooping = false;
-                    sampler_is_writing = sampler.write(
-                            audioData,
-                            mTotalFrames,
-                            in, mixerPort,mixerPort->ports.samples - i
-                    );
+                    sampler_is_writing = sampler.write(audioData, mTotalFrames, in, mixerPortA, mixerPortA->ports.samples - i);
+                    {
+                        PortUtils2 * tmpPort = new PortUtils2();
+                        tmpPort->allocatePorts<int16_t>(out->ports.samples - 1, out->ports.channelCount);
+                        tmpPort->fillPortBuffer<int16_t>(0);
+//                        delay.init(mixerPortA, tmpPort);
+                        delay_is_writing = delay.write(mixerPortA, tmpPort, mixerPortA->ports.samples - i);
+                        mixerPortA->copyFromPortToPort<int16_t>(*tmpPort);
+                        tmpPort->deallocatePorts<int16_t>(out->ports.channelCount);
+                        delete tmpPort;
+                    }
+//                    delay_is_writing = delay.write(mixerPortA, mixerPortA, mixerPortA->ports.samples - i);
+//                    synth_is_writing = synth.write(in, mixerPortB, mixerPortB->ports.samples - i);
                 } else {
-                    if (!sampler_is_writing) {
+                    if (!sampler_is_writing && !delay_is_writing) {// && !synth_is_writing && !delay_is_writing) {
                         // if there are no events for the current sample then output silence
-                        mixerPort->setPortBufferIndex<int16_t>(i, 0);
+                        mixerPortA->setPortBufferIndex<int16_t>(i, 0);
+                        mixerPortB->setPortBufferIndex<int16_t>(i, 0);
                     }
                 }
                 engineFrame += 2;
                 // return from the audio loop
             }
         } else {
-            mixerPort->fillPortBuffer<int16_t>(0);
-            engineFrame += mixerPort->ports.samples;
+            mixerPortA->fillPortBuffer<int16_t>(0);
+            mixerPortB->fillPortBuffer<int16_t>(0);
+            // all ports have the same amount of samples as the out port
+            engineFrame += mixerPortA->ports.samples;
         }
-//        out->copyFromPortToPort<int16_t>(*mixerPort);
-        mixer.in.push_back(mixerPort);
+        mixer.in.push_back(mixerPortA);
+        mixer.in.push_back(mixerPortB);
         mixer.write(in, out);
         mixer.in.pop_back();
-        mixerPort->deallocatePorts<int16_t>(out->ports.channelCount);
+        mixer.in.pop_back();
+        mixerPortA->deallocatePorts<int16_t>(out->ports.channelCount);
+        mixerPortB->deallocatePorts<int16_t>(out->ports.channelCount);
+        delete mixerPortA;
+        delete mixerPortB;
     }
 
 //void metronome(AudioEngine * audioEngine) {
