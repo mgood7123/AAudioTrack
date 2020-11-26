@@ -13,6 +13,14 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include "../../smallville7123/TempoGrid.h"
+
+//
+// plugins
+//
+
+// mixer plugin
+#include "../../smallville7123/Mixer.h"
+// sampler plugin
 #include "../../smallville7123/Sampler.h"
 
 using namespace std;
@@ -383,8 +391,10 @@ namespace ARDOUR {
 
     Sampler sampler;
     bool sampler_is_writing = false;
+    Mixer mixer;
+    bool mixer_is_writing = false;
 
-    void AudioEngine::renderAudio(PortUtils2 in, PortUtils2 out) {
+    void AudioEngine::renderAudio(PortUtils2 * in, PortUtils2 * out) {
 
         // the sample counter is used to synchronise events with frames
         // A timebase that allows sequencing in relation to musical events like beats or bars
@@ -407,16 +417,19 @@ namespace ARDOUR {
             LOGE("no backend");
             return;
         }
-        LOGW("writing %G milliseconds (%d samples) of data", 1000 / (_backend->sample_rate() / in.ports.samples), in.ports.samples);
+//        LOGW("writing %G milliseconds (%d samples) of data", 1000 / (_backend->sample_rate() / out->ports.samples), out->ports.samples);
 
+        PortUtils2 p = PortUtils2();
+        PortUtils2 * mixerPort = &p;
+        mixerPort->allocatePorts<int16_t>(out->ports.samples, out->ports.channelCount);
         if (hasData()) {
             if (sampler_is_writing) {
                 sampler_is_writing = sampler.write(
                         audioData,
                         mTotalFrames,
-                        in, out, in.ports.samples);
+                        in, mixerPort, mixerPort->ports.samples);
             }
-            for (int32_t i = 0; i < in.ports.samples; i += 2) {
+            for (int32_t i = 0; i < out->ports.samples; i += 2) {
                 // write sample every beat, 120 bpm, 4 beats per bar
                 if (engineFrame == 0 || tempoGrid.sample_matches_samples_per_note(engineFrame)) {
                     // if there are events for the current sample
@@ -428,22 +441,26 @@ namespace ARDOUR {
                     sampler_is_writing = sampler.write(
                             audioData,
                             mTotalFrames,
-                            in, out,
-                            in.ports.samples - i
+                            in, mixerPort,mixerPort->ports.samples - i
                     );
                 } else {
                     if (!sampler_is_writing) {
                         // if there are no events for the current sample then output silence
-                        in.setPortBufferIndex<int16_t>(i, 0);
+                        mixerPort->setPortBufferIndex<int16_t>(i, 0);
                     }
                 }
                 engineFrame += 2;
                 // return from the audio loop
             }
         } else {
-            in.fillPortBuffer<int16_t>(0);
-            engineFrame += in.ports.samples;
+            mixerPort->fillPortBuffer<int16_t>(0);
+            engineFrame += mixerPort->ports.samples;
         }
+//        out->copyFromPortToPort<int16_t>(*mixerPort);
+        mixer.in.push_back(mixerPort);
+        mixer.write(in, out);
+        mixer.in.pop_back();
+        mixerPort->deallocatePorts<int16_t>(out->ports.channelCount);
     }
 
 //void metronome(AudioEngine * audioEngine) {
