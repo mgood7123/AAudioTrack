@@ -706,12 +706,12 @@ namespace ARDOUR {
 //        }
 
         /** Attempt to locate the transport to \p pos */
-        virtual void transport_locate (sample_position_t pos) {}
+        virtual void transport_locate (ARDOUR_TYPEDEFS::sample_position_t pos) {}
 
         /** Return the current transport location, in samples measured
          * from the origin (defined by the transport time master)
          */
-        virtual sample_position_t transport_sample () const
+        virtual ARDOUR_TYPEDEFS::sample_position_t transport_sample () const
         {
             return 0;
         }
@@ -749,12 +749,12 @@ namespace ARDOUR {
          *
          * Can be called from any thread.
          */
-        virtual sample_position_t sample_time () = 0;
+        virtual ARDOUR_TYPEDEFS::sample_position_t sample_time () = 0;
 
         /** Return the time according to the sample clock in use when the most
          * recent buffer process cycle began. Can be called from any thread.
          */
-        virtual sample_position_t sample_time_at_cycle_start () = 0;
+        virtual ARDOUR_TYPEDEFS::sample_position_t sample_time_at_cycle_start () = 0;
 
         /** Return the time since the current buffer process cycle started,
          * in samples, according to the sample clock in use.
@@ -762,7 +762,7 @@ namespace ARDOUR {
          * Can ONLY be called from within a process() callback tree (which
          * implies that it can only be called by a process thread)
          */
-        virtual frames_t samples_since_cycle_start () = 0;
+        virtual ARDOUR_TYPEDEFS::frames_t samples_since_cycle_start () = 0;
 
         /** Return true if it possible to determine the offset in samples of the
          * first video frame that starts within the current buffer process cycle,
@@ -779,7 +779,7 @@ namespace ARDOUR {
          * Can ONLY be called from within a process() callback tree (which implies
          * that it can only be called by a process thread)
          */
-        virtual bool get_sync_offset (frames_t& offset) const
+        virtual bool get_sync_offset (ARDOUR_TYPEDEFS::frames_t& offset) const
         {
             return false;
         }
@@ -823,7 +823,7 @@ namespace ARDOUR {
          * handled by Ardour itself (LTC and MTC are both handled by Ardour).
          * The canonical example is JACK Transport.
          */
-        virtual bool speed_and_position (double& speed, sample_position_t& position)
+        virtual bool speed_and_position (double& speed, ARDOUR_TYPEDEFS::sample_position_t& position)
         {
             speed    = 0.0;
             position = 0;

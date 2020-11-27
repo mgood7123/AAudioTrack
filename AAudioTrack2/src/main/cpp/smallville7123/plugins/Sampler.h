@@ -8,6 +8,8 @@
 #include <cstdint>
 #include "../../ardour/Backends/PortUtils2.h"
 
+using namespace ARDOUR_TYPEDEFS;
+
 class Sampler {
 public:
     bool mIsPlaying = true;
@@ -28,7 +30,7 @@ public:
                 // if this happens, reset the frame index
                 if (mReadFrameIndex == mTotalFrames) mReadFrameIndex = 0;
                 for (int32_t i = 0; i < samples; i += 2) {
-                    out->setPortBufferIndex<int16_t>(i, reinterpret_cast<int16_t*>(audioData)[mReadFrameIndex]);
+                    out->setPortBufferIndex<ENGINE_FORMAT>(i, reinterpret_cast<ENGINE_FORMAT*>(audioData)[mReadFrameIndex]);
 
                     // Increment and handle wrap-around
                     mReadFrameIndex += 2;
@@ -41,14 +43,14 @@ public:
                 if (EOF_reached) {
                     // we know that the EOF has been reached before we even start playing
                     // so just output silence with no additional checking
-                    out->fillPortBuffer<int16_t>(0, samples);
+                    out->fillPortBuffer<ENGINE_FORMAT>(0, samples);
                     // and return from the audio loop
                     return false;
                 } else {
                     // we know that the EOF has been not reached before we even start playing
                     // so we need to do checking to output silence when EOF has been reached
                     for (int32_t i = 0; i < samples; i += 2) {
-                        out->setPortBufferIndex<int16_t>(i, reinterpret_cast<int16_t*>(audioData)[mReadFrameIndex]);
+                        out->setPortBufferIndex<ENGINE_FORMAT>(i, reinterpret_cast<ENGINE_FORMAT*>(audioData)[mReadFrameIndex]);
 
                         // Increment and handle wrap-around
                         mReadFrameIndex += 2;
@@ -90,7 +92,7 @@ public:
     void load(const char *filename, int channelCount) {
         int fd;
         size_t len = 0;
-        char *o = NULL;
+        void *o = NULL;
         fd = open(filename, O_RDONLY);
         if (!fd) {
             LOGF("open() failure");
@@ -98,7 +100,7 @@ public:
         }
         len = (size_t) lseek(fd, 0, SEEK_END);
         lseek(fd, 0, 0);
-        if (!(o = (char *) malloc(len))) {
+        if (!(o = malloc(len))) {
             int cl = close(fd);
             if (cl < 0) {
                 LOGE("cannot close \"%s\", returned %d\n", filename, cl);
@@ -125,9 +127,17 @@ public:
             free(audioData);
             audioData = nullptr;
         }
-        audioData = o;
         audioDataSize = len;
         mTotalFrames = audioDataSize / (2 * channelCount);
+
+        float * data = static_cast<float *>(malloc(len));
+        int16_t * i16 = static_cast<int16_t*>(o);
+        for (int i = 0; i < mTotalFrames; i += 2) {
+            data[i] = SoapySDR::S16toF32(i16[i]);
+            data[i+1] = SoapySDR::S16toF32(i16[i+1]);
+        }
+        free(o);
+        audioData = data;
     }
 
     bool hasData() {

@@ -687,8 +687,8 @@ stereo_ports_free (
 void
 port_receive_midi_events_from_jack (
   Port *          self,
-  const ARDOUR::frames_t start_frames,
-  const ARDOUR::frames_t nframes);
+  const ARDOUR_TYPEDEFS::frames_t start_frames,
+  const ARDOUR_TYPEDEFS::frames_t nframes);
 
 /**
  * Receives audio data from the port's exposed
@@ -697,8 +697,8 @@ port_receive_midi_events_from_jack (
 void
 port_receive_audio_data_from_jack (
   Port *          self,
-  const ARDOUR::frames_t start_frames,
-  const ARDOUR::frames_t nframes);
+  const ARDOUR_TYPEDEFS::frames_t start_frames,
+  const ARDOUR_TYPEDEFS::frames_t nframes);
 #endif
 
 /**
@@ -866,8 +866,8 @@ port_prepare_rtmidi_events (
 void
 port_sum_data_from_rtmidi (
   Port * self,
-  const ARDOUR::frames_t start_frame,
-  const ARDOUR::frames_t nframes);
+  const ARDOUR_TYPEDEFS::frames_t start_frame,
+  const ARDOUR_TYPEDEFS::frames_t nframes);
 #endif
 
 #ifdef HAVE_RTAUDIO
@@ -886,8 +886,8 @@ port_prepare_rtaudio_data (
 void
 port_sum_data_from_rtaudio (
   Port * self,
-  const ARDOUR::frames_t start_frame,
-  const ARDOUR::frames_t nframes);
+  const ARDOUR_TYPEDEFS::frames_t start_frame,
+  const ARDOUR_TYPEDEFS::frames_t nframes);
 #endif
 
 /**
@@ -1047,10 +1047,10 @@ template<typename type> void
 port_apply_fader (
         Port *    port,
         float     amp,
-        ARDOUR::frames_t start_frame,
-        const ARDOUR::frames_t nframes)
+        ARDOUR_TYPEDEFS::frames_t start_frame,
+        const ARDOUR_TYPEDEFS::frames_t nframes)
 {
-    ARDOUR::frames_t end = start_frame + nframes;
+    ARDOUR_TYPEDEFS::frames_t end = start_frame + nframes;
     while (start_frame < end)
     {
         reinterpret_cast<type*>(port->buf)[start_frame++] *= amp;
@@ -1071,8 +1071,8 @@ void
 port_sum_signal_from_inputs (
         Port *          port,
         const long      g_start_frames,
-        const ARDOUR::frames_t start_frame,
-        const ARDOUR::frames_t nframes,
+        const ARDOUR_TYPEDEFS::frames_t start_frame,
+        const ARDOUR_TYPEDEFS::frames_t nframes,
         const bool      noroll);
 
 /**
@@ -1226,8 +1226,8 @@ port_verify_src_and_dests (
 //        float        pan,
 //        PanLaw       pan_law,
 //        PanAlgorithm pan_algo,
-//        ARDOUR::frames_t start_frame,
-//        const ARDOUR::frames_t nframes);
+//        ARDOUR_TYPEDEFS::frames_t start_frame,
+//        const ARDOUR_TYPEDEFS::frames_t nframes);
 
 /**
  * @}

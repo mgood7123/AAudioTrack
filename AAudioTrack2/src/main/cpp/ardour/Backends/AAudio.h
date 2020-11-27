@@ -12,7 +12,8 @@ namespace ARDOUR {
     class AAudio : public AudioBackend {
     public:
         std::string _instance_name;
-        aaudio_format_t AAUDIO_FORMAT = AAUDIO_FORMAT_PCM_I16;
+        aaudio_format_t AAUDIO_FORMAT = AAUDIO_FORMAT_PCM_FLOAT;
+//        aaudio_format_t AAUDIO_FORMAT = AAUDIO_FORMAT_PCM_I16;
 
         static AudioBackendInfo _descriptor;
         static std::shared_ptr<AudioBackend> backend_factory (AudioEngine& e);

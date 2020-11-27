@@ -5,26 +5,27 @@
 #ifndef AAUDIOTRACK_DELAYLINE_H
 #define AAUDIOTRACK_DELAYLINE_H
 
-
 #include <cstdint>
+
+using namespace ARDOUR_TYPEDEFS;
 
 class DelayLine {
 public:
 
-#define N 300
+#define N 48000
 
-    int16_t A[N] = {0};
-    int16_t *rptr = A; // read ptr
-    int16_t *wptr = A; // write ptr
+    ENGINE_FORMAT A[N] = {0};
+    ENGINE_FORMAT *rptr = A; // read ptr
+    ENGINE_FORMAT *wptr = A; // write ptr
 
-    int16_t setdelay(int M) {
+    void setdelay(int M) {
         rptr = wptr - M;
         while (rptr < A) { rptr += N; }
     }
 
-    int16_t delayline(int16_t x)
+    ENGINE_FORMAT delayline(ENGINE_FORMAT x)
     {
-        int16_t y;
+        ENGINE_FORMAT y;
         *wptr = x;
         wptr++;
         y = *rptr;

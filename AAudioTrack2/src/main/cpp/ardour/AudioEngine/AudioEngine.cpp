@@ -28,6 +28,7 @@
 using namespace std;
 
 namespace ARDOUR {
+    using namespace ARDOUR_TYPEDEFS;
     AudioEngine* AudioEngine::_instance = 0;
 
     AudioEngine::AudioEngine ()
@@ -439,11 +440,11 @@ namespace ARDOUR {
 //        LOGW("writing %G milliseconds (%d samples) of data", 1000 / (_backend->sample_rate() / out->ports.samples), out->ports.samples);
 
         PortUtils2 * mixerPortA = new PortUtils2();
-        mixerPortA->allocatePorts<int16_t>(out->ports.samples, out->ports.channelCount);
-        mixerPortA->fillPortBuffer<int16_t>(0);
+        mixerPortA->allocatePorts<ENGINE_FORMAT>(out->ports.samples, out->ports.channelCount);
+        mixerPortA->fillPortBuffer<ENGINE_FORMAT>(0);
         PortUtils2 * mixerPortB = new PortUtils2();
-        mixerPortB->allocatePorts<int16_t>(out->ports.samples, out->ports.channelCount);
-        mixerPortB->fillPortBuffer<int16_t>(0);
+        mixerPortB->allocatePorts<ENGINE_FORMAT>(out->ports.samples, out->ports.channelCount);
+        mixerPortB->fillPortBuffer<ENGINE_FORMAT>(0);
         if (hasData()) {
             if (sampler_is_writing) {
                 sampler_is_writing = sampler.write(in, mixerPortA, mixerPortA->ports.samples);
@@ -453,11 +454,11 @@ namespace ARDOUR {
 //            }
             if (delay_is_writing) {
                 PortUtils2 * tmpPort = new PortUtils2();
-                tmpPort->allocatePorts<int16_t>(out->ports.samples, out->ports.channelCount);
-                tmpPort->fillPortBuffer<int16_t>(0);
+                tmpPort->allocatePorts<ENGINE_FORMAT>(out->ports.samples, out->ports.channelCount);
+                tmpPort->fillPortBuffer<ENGINE_FORMAT>(0);
                 delay_is_writing = delay.write(mixerPortA, tmpPort, mixerPortA->ports.samples);
-                mixerPortA->copyFromPortToPort<int16_t>(*tmpPort);
-                tmpPort->deallocatePorts<int16_t>(out->ports.channelCount);
+                mixerPortA->copyFromPortToPort<ENGINE_FORMAT>(*tmpPort);
+                tmpPort->deallocatePorts<ENGINE_FORMAT>(out->ports.channelCount);
                 delete tmpPort;
             }
             for (int32_t i = 0; i < out->ports.samples; i += 2) {
@@ -472,12 +473,12 @@ namespace ARDOUR {
                     sampler_is_writing = sampler.write(in, mixerPortA, mixerPortA->ports.samples - i);
                     {
                         PortUtils2 * tmpPort = new PortUtils2();
-                        tmpPort->allocatePorts<int16_t>(out->ports.samples - 1, out->ports.channelCount);
-                        tmpPort->fillPortBuffer<int16_t>(0);
+                        tmpPort->allocatePorts<ENGINE_FORMAT>(out->ports.samples - 1, out->ports.channelCount);
+                        tmpPort->fillPortBuffer<ENGINE_FORMAT>(0);
 //                        delay.init(mixerPortA, tmpPort);
                         delay_is_writing = delay.write(mixerPortA, tmpPort, mixerPortA->ports.samples - i);
-                        mixerPortA->copyFromPortToPort<int16_t>(*tmpPort);
-                        tmpPort->deallocatePorts<int16_t>(out->ports.channelCount);
+                        mixerPortA->copyFromPortToPort<ENGINE_FORMAT>(*tmpPort);
+                        tmpPort->deallocatePorts<ENGINE_FORMAT>(out->ports.channelCount);
                         delete tmpPort;
                     }
 //                    delay_is_writing = delay.write(mixerPortA, mixerPortA, mixerPortA->ports.samples - i);
@@ -485,16 +486,16 @@ namespace ARDOUR {
                 } else {
                     if (!sampler_is_writing && !delay_is_writing) {// && !synth_is_writing && !delay_is_writing) {
                         // if there are no events for the current sample then output silence
-                        mixerPortA->setPortBufferIndex<int16_t>(i, 0);
-                        mixerPortB->setPortBufferIndex<int16_t>(i, 0);
+                        mixerPortA->setPortBufferIndex<ENGINE_FORMAT>(i, 0);
+                        mixerPortB->setPortBufferIndex<ENGINE_FORMAT>(i, 0);
                     }
                 }
                 engineFrame += 2;
                 // return from the audio loop
             }
         } else {
-            mixerPortA->fillPortBuffer<int16_t>(0);
-            mixerPortB->fillPortBuffer<int16_t>(0);
+            mixerPortA->fillPortBuffer<ENGINE_FORMAT>(0);
+            mixerPortB->fillPortBuffer<ENGINE_FORMAT>(0);
             // all ports have the same amount of samples as the out port
             engineFrame += mixerPortA->ports.samples;
         }
@@ -503,8 +504,8 @@ namespace ARDOUR {
         mixer.write(in, out);
         mixer.in.pop_back();
         mixer.in.pop_back();
-        mixerPortA->deallocatePorts<int16_t>(out->ports.channelCount);
-        mixerPortB->deallocatePorts<int16_t>(out->ports.channelCount);
+        mixerPortA->deallocatePorts<ENGINE_FORMAT>(out->ports.channelCount);
+        mixerPortB->deallocatePorts<ENGINE_FORMAT>(out->ports.channelCount);
         delete mixerPortA;
         delete mixerPortB;
     }

@@ -143,6 +143,23 @@ public:
         for (int i = 0; i < len; ++i) o[i] = inPtr[i];
         return o;
     }
+
+    inline static void *S16toF32(int16_t *data, int totalSamples) {
+        float * o = new float[totalSamples];
+        for (int i = 0; i < totalSamples; ++i) o[i] = SoapySDR::S16toF32(data[i]);
+        return o;
+    }
+
+    inline static void S16toF32(int16_t *data, float * out, int totalSamples, int len) {
+//        float * buffer = static_cast<float *>(malloc(len * 2));
+//        float * left = buffer;
+//        float * right = buffer + totalSamples;
+        for (int i = 0; i < totalSamples; i += 2) {
+            out[i] = SoapySDR::S16toF32(data[i]);
+            out[i+1] = SoapySDR::S16toF32(data[i+1]);
+        }
+//        return buffer;
+    }
 };
 
 

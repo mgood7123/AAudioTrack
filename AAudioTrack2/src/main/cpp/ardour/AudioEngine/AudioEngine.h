@@ -14,7 +14,9 @@
 #include "PortEngine/port_engine.h"
 #include "../Backends/PortUtils2.h"
 
+
 namespace ARDOUR {
+    using namespace ARDOUR_TYPEDEFS;
     class Session;
     class AudioBackend;
     struct AudioBackendInfo;

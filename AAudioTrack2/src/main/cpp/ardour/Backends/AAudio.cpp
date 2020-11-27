@@ -8,6 +8,7 @@
 #include <memory>
 
 namespace ARDOUR {
+    using namespace ARDOUR_TYPEDEFS;
 
     static std::string s_instance_name;
     const size_t _max_buffer_size = 8192;
@@ -122,22 +123,20 @@ namespace ARDOUR {
         // callback 1: onAudioReady(stream, userData, buffer[2], 2);
         // callback 2: onAudioReady(stream, userData, buffer[4], 2);
         // callback 3: onAudioReady(stream, userData, buffer[6], 2);
-
-//        aaudio->portUtils.deinterleaveToPortBuffers<int16_t>(audioData, number_of_frames_to_render);
         if (aaudio->engine.hasData()) {
-            int16_t *outputData = reinterpret_cast<int16_t *>(audioData);
+            ENGINE_FORMAT *outputData = reinterpret_cast<ENGINE_FORMAT *>(audioData);
             int channelCount = aaudio->currentOutputChannelCount;
             frames_t samples = number_of_frames_to_render;
             PortUtils2 inPort = PortUtils2();
             PortUtils2 outPort = PortUtils2();
-            inPort.allocatePorts<int16_t>(samples, channelCount);
-            outPort.allocatePorts<int16_t>(samples, channelCount);
+            inPort.allocatePorts<ENGINE_FORMAT>(samples, channelCount);
+            outPort.allocatePorts<ENGINE_FORMAT>(samples, channelCount);
             // TODO: the audio engine can be converted into a plugin, should we do so?
             aaudio->engine.renderAudio(nullptr, &inPort);
-            outPort.copyFromPortToPort<int16_t>(inPort);
-            outPort.copyFromPortToData<int16_t>(outputData);
-            outPort.deallocatePorts<int16_t>(channelCount);
-            inPort.deallocatePorts<int16_t>(channelCount);
+            outPort.copyFromPortToPort<ENGINE_FORMAT>(inPort);
+            outPort.copyFromPortToData<ENGINE_FORMAT>(outputData);
+            outPort.deallocatePorts<ENGINE_FORMAT>(channelCount);
+            inPort.deallocatePorts<ENGINE_FORMAT>(channelCount);
         }
 
         aaudio->_processed_samples += number_of_frames_to_render;
@@ -189,7 +188,7 @@ namespace ARDOUR {
         AAudioStreamBuilder_setDataCallback(builder, onAudioReady, this);
         AAudioStreamBuilder_setErrorCallback(builder, onError, this);
         AAudioStreamBuilder_setPerformanceMode(builder, AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
-        outputFormat = AAUDIO_FORMAT_PCM_I16;
+        outputFormat = AAUDIO_FORMAT;
         AAudioStreamBuilder_setFormat(builder, outputFormat);
         result = AAudioStreamBuilder_openStream(builder, &stream);
         if (result != AAUDIO_OK) {

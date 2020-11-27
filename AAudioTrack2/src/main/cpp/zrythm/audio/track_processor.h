@@ -189,8 +189,8 @@ void
 track_processor_process (
         TrackProcessor * self,
         const long       g_start_frames,
-        const ARDOUR::frames_t  local_offset,
-        const ARDOUR::frames_t  nframes);
+        const ARDOUR_TYPEDEFS::frames_t  local_offset,
+        const ARDOUR_TYPEDEFS::frames_t  nframes);
 
 /**
  * Disconnect the TrackProcessor's stereo out ports

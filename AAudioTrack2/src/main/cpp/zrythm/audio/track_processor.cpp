@@ -38,8 +38,8 @@ void
 track_processor_process (
         TrackProcessor * self,
         const long       g_start_frames,
-        const ARDOUR::frames_t  local_offset,
-        const ARDOUR::frames_t  nframes)
+        const ARDOUR_TYPEDEFS::frames_t  local_offset,
+        const ARDOUR_TYPEDEFS::frames_t  nframes)
 {
     Track * tr = track_processor_get_track (self);
     if (!tr) return;
@@ -58,10 +58,10 @@ track_processor_process (
     switch (tr->in_signal_type)
     {
         case TYPE_AUDIO:
-            for (ARDOUR::frames_t l = local_offset;
+            for (ARDOUR_TYPEDEFS::frames_t l = local_offset;
                  l < nframes; l++)
             {
-                ARDOUR::frames_t buffer_size =
+                ARDOUR_TYPEDEFS::frames_t buffer_size =
                         ARDOUR::AudioEngine::instance()->current_backend()->buffer_size();
                 if(!(l < buffer_size)) {
                     LOGF("buffer size mismatch: l: %d, buffer size: %d", l, buffer_size);
