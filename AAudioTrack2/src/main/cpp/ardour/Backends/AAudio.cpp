@@ -189,7 +189,8 @@ namespace ARDOUR {
         AAudioStreamBuilder_setDataCallback(builder, onAudioReady, this);
         AAudioStreamBuilder_setErrorCallback(builder, onError, this);
         AAudioStreamBuilder_setPerformanceMode(builder, AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
-        AAudioStreamBuilder_setFormat(builder, AAUDIO_FORMAT_PCM_I16);
+        outputFormat = AAUDIO_FORMAT_PCM_I16;
+        AAudioStreamBuilder_setFormat(builder, outputFormat);
         result = AAudioStreamBuilder_openStream(builder, &stream);
         if (result != AAUDIO_OK) {
             LOGE("FAILED TO OPEN THE STREAM: %s", AAudio_convertResultToText(result));

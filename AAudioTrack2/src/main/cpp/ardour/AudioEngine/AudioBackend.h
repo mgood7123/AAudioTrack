@@ -8,6 +8,7 @@
 #include "typedefs.h"
 #include "../../zrythm/audio/port.h"
 #include "PortUtils.h"
+#include "../Backends/PortUtils2.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -15,6 +16,7 @@
 namespace ARDOUR {
     class AudioBackend;
     class AudioEngine;
+
 
     struct AudioBackendInfo {
             const char* name;

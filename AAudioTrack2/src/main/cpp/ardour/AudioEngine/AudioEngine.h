@@ -99,15 +99,6 @@ namespace ARDOUR {
         int            stop (bool for_latency_measurement=false);
         std::string    get_last_backend_error () const { return _last_backend_error_string; }
 
-        void *audioData = nullptr;
-        size_t audioDataSize = -1;
-        int mReadFrameIndex = 0;
-        int mTotalFrames = 0;
-        bool mIsPlaying = false;
-        bool mIsLooping = true;
-        std::mutex _process_lock;
-
-
         static AudioEngine *instance() { return _instance; }
 
         static AudioEngine*       _instance;

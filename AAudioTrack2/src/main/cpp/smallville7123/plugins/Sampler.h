@@ -10,13 +10,18 @@
 
 class Sampler {
 public:
-    int mReadFrameIndex = 0;
     bool mIsPlaying = true;
     bool mIsLooping = true;
+
+    void * audioData = nullptr;
+    size_t audioDataSize = -1;
+    int mTotalFrames = 0;
+    int mReadFrameIndex = 0;
+
     /**
      * return true if we still have data to write, otherwise false
      */
-    bool write(void *audioData, int mTotalFrames, PortUtils2 * in, PortUtils2 * out, unsigned int samples = 0) {
+    bool write(PortUtils2 * in, PortUtils2 * out, unsigned int samples = 0) {
         if (mIsPlaying && audioData != nullptr) {
             if (mIsLooping) {
                 // we may transition from not looping to looping, upon the EOF being reached
@@ -80,6 +85,53 @@ public:
             out->fillPortBuffer(0, samples);
             return false;
         }
+    }
+
+    void load(const char *filename, int channelCount) {
+        int fd;
+        size_t len = 0;
+        char *o = NULL;
+        fd = open(filename, O_RDONLY);
+        if (!fd) {
+            LOGF("open() failure");
+            return;
+        }
+        len = (size_t) lseek(fd, 0, SEEK_END);
+        lseek(fd, 0, 0);
+        if (!(o = (char *) malloc(len))) {
+            int cl = close(fd);
+            if (cl < 0) {
+                LOGE("cannot close \"%s\", returned %d\n", filename, cl);
+            }
+            LOGF("failure to malloc()");
+            return;
+        }
+        if ((read(fd, o, len)) == -1) {
+            int cl = close(fd);
+            if (cl < 0) {
+                LOGE("cannot close \"%s\", returned %d\n", filename, cl);
+            }
+            LOGF("failure to read()");
+            return;
+        }
+        int cl = close(fd);
+        if (cl < 0) {
+            LOGF("cannot close \"%s\", returned %d\n", filename, cl);
+            return;
+        }
+
+        // file has been read into memory
+        if (audioData != nullptr) {
+            free(audioData);
+            audioData = nullptr;
+        }
+        audioData = o;
+        audioDataSize = len;
+        mTotalFrames = audioDataSize / (2 * channelCount);
+    }
+
+    bool hasData() {
+        return audioData != nullptr && audioDataSize != -1;
     }
 };
 

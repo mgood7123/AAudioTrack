@@ -7,10 +7,16 @@
 
 #include <cstdint>
 #include "../../ardour/Backends/PortUtils2.h"
+#include "DelayLine.h"
 
 class Delay {
 public:
 
+    DelayLine left;
+    DelayLine right;
+//    Delay() {
+//        left.setdelay(5);
+//    }
     /**
      * return true if we still have data to write, otherwise false
      */
@@ -27,8 +33,8 @@ public:
         //
 
         for (int i = 0; i < out->ports.samples; i += 2) {
-            reinterpret_cast<int16_t *>(out->ports.outputStereo->l->buf)[i] = reinterpret_cast<int16_t *>(in->ports.outputStereo->l->buf)[i];
-            reinterpret_cast<int16_t *>(out->ports.outputStereo->r->buf)[i] = reinterpret_cast<int16_t *>(in->ports.outputStereo->r->buf)[i];
+            reinterpret_cast<int16_t *>(out->ports.outputStereo->l->buf)[i] = right.delayline(reinterpret_cast<int16_t *>(in->ports.outputStereo->l->buf)[i]);
+            reinterpret_cast<int16_t *>(out->ports.outputStereo->r->buf)[i] = left.delayline(reinterpret_cast<int16_t *>(in->ports.outputStereo->r->buf)[i]);
         }
         return true;
     }

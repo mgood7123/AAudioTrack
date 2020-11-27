@@ -384,20 +384,25 @@ namespace ARDOUR {
 
     // AUDIO ENGINE
 
-    bool AudioEngine::hasData() {
-        return audioData != nullptr && audioDataSize != -1;
-    }
-
     TempoGrid tempoGrid = TempoGrid(60);
-    uint64_t engineFrame = 0;
 
+    uint64_t engineFrame = 0;
     Mixer mixer;
 
     Sampler sampler;
-    bool sampler_is_writing = false;
 
+    bool sampler_is_writing = false;
     Delay delay;
+
     bool delay_is_writing = false;
+
+    bool AudioEngine::hasData() {
+        return sampler.hasData();
+    }
+
+    void AudioEngine::load(const char *filename) {
+        sampler.load(filename, _backend->available_output_channel_count(_backend->device_name()));
+    }
 
     void AudioEngine::renderAudio(PortUtils2 * in, PortUtils2 * out) {
 
@@ -441,7 +446,7 @@ namespace ARDOUR {
         mixerPortB->fillPortBuffer<int16_t>(0);
         if (hasData()) {
             if (sampler_is_writing) {
-                sampler_is_writing = sampler.write(audioData, mTotalFrames, in, mixerPortA, mixerPortA->ports.samples);
+                sampler_is_writing = sampler.write(in, mixerPortA, mixerPortA->ports.samples);
             }
 //            if (synth_is_writing) {
 //                synth_is_writing = synth.write(in, mixerPortB, mixerPortB->ports.samples);
@@ -460,11 +465,11 @@ namespace ARDOUR {
                 if (engineFrame == 0 || tempoGrid.sample_matches_samples_per_note(engineFrame)) {
                     // if there are events for the current sample
                     LOGE("writing audio on frame %lld for %d frames, write every %d frames",
-                         engineFrame, mTotalFrames, tempoGrid.samples_per_note);
+                         engineFrame, sampler.mTotalFrames, tempoGrid.samples_per_note);
                     sampler.mReadFrameIndex = 0;
                     sampler.mIsPlaying = true;
                     sampler.mIsLooping = false;
-                    sampler_is_writing = sampler.write(audioData, mTotalFrames, in, mixerPortA, mixerPortA->ports.samples - i);
+                    sampler_is_writing = sampler.write(in, mixerPortA, mixerPortA->ports.samples - i);
                     {
                         PortUtils2 * tmpPort = new PortUtils2();
                         tmpPort->allocatePorts<int16_t>(out->ports.samples - 1, out->ports.channelCount);
@@ -504,72 +509,7 @@ namespace ARDOUR {
         delete mixerPortB;
     }
 
-//void metronome(AudioEngine * audioEngine) {
-//    if (audioEngine != nullptr) {
-//        audioEngine->mIsPlaying.store(true);
-//        while (audioEngine->metronomeMode.load()) {
-//            audioEngine->mReadFrameIndex = 0;
-//            //
-//            // the audio thread will pause playback if
-//            //
-//            // mReadFrameIndex + totalFrames >= mTotalFrames
-//            //
-//            // this means that, if the current frame index plus the total frames to write,
-//            // exceeds the total number of frames in the current audio data
-//            // then we should render what we can and then pause the playback
-//            //
-//            // do note that the current frame index is set to 0
-//            // when it becomes equal to, or greater then, the total number of frames
-//            // in the current audio data
-//            //
-//            audioEngine->mIsPlaying.store(true);
-//            this_thread::sleep_for(chrono::milliseconds (500));
-//        }
-//    }
 //}
-
-    void AudioEngine::load(const char *filename) {
-        int fd;
-        size_t len = 0;
-        char *o = NULL;
-        fd = open(filename, O_RDONLY);
-        if (!fd) {
-            LOGF("open() failure");
-            return;
-        }
-        len = (size_t) lseek(fd, 0, SEEK_END);
-        lseek(fd, 0, 0);
-        if (!(o = (char *) malloc(len))) {
-            int cl = close(fd);
-            if (cl < 0) {
-                LOGE("cannot close \"%s\", returned %d\n", filename, cl);
-            }
-            LOGF("failure to malloc()");
-            return;
-        }
-        if ((read(fd, o, len)) == -1) {
-            int cl = close(fd);
-            if (cl < 0) {
-                LOGE("cannot close \"%s\", returned %d\n", filename, cl);
-            }
-            LOGF("failure to read()");
-            return;
-        }
-        int cl = close(fd);
-        if (cl < 0) {
-            LOGF("cannot close \"%s\", returned %d\n", filename, cl);
-            return;
-        }
-
-        // file has been read into memory
-        if (audioData != nullptr) {
-            free(audioData);
-            audioData = nullptr;
-        }
-        audioData = o;
-        audioDataSize = len;
-        mTotalFrames = audioDataSize / (2 * _backend->available_output_channel_count(_backend->device_name()));
-    }
 
     sample_position_t AudioEngine::sample_time() {
         if (!_backend) {

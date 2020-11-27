@@ -8,6 +8,7 @@
 
 #include "../../zrythm/audio/port.h"
 #include <cstdint>
+#include "../../soapySDR/ConverterPrimitives.h"
 
 class PortUtils2 {
 
@@ -135,6 +136,12 @@ public:
     template <typename type> void setPortBufferIndex(int index, PortUtils2 & port) {
         reinterpret_cast<type *>(ports.outputStereo->l->buf)[index] = reinterpret_cast<type*>(ports.outputStereo->l->buf)[index];;
         reinterpret_cast<type *>(ports.outputStereo->r->buf)[index] = reinterpret_cast<type*>(ports.outputStereo->r->buf)[index];
+    }
+
+    template <typename in, typename out> static out * convert(in * inPtr, size_t len) {
+        out * o = new out[len];
+        for (int i = 0; i < len; ++i) o[i] = inPtr[i];
+        return o;
     }
 };
 
