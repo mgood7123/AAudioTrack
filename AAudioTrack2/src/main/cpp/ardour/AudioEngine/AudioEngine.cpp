@@ -405,6 +405,15 @@ namespace ARDOUR {
         sampler.load(filename, _backend->available_output_channel_count(_backend->device_name()));
     }
 
+    // TODO: add a Channel Rack, add an Effects Rack
+    // TODO: abstract to:
+    //    void AudioEngine::renderAudio(PortUtils2 * in, PortUtils2 * out) {
+    //        if (!tempoGrid.mapped) TempoGrid::map_tempo_to_frame(tempoGrid);
+    //        if (!_backend) { LOGE("no backend"); return; }
+    //        channelRack.process(in, mixer, out);
+    //    }
+
+
     void AudioEngine::renderAudio(PortUtils2 * in, PortUtils2 * out) {
 
         // the sample counter is used to synchronise events with frames
