@@ -9,6 +9,8 @@
 
 using namespace ARDOUR_TYPEDEFS;
 
+// https://ccrma.stanford.edu/~jos/pasp/Variable_Delay_Lines.html
+
 class DelayLine {
 public:
 
