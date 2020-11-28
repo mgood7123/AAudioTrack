@@ -17,38 +17,43 @@
 #include <cstdint>
 #include <vector>
 #include "../../ardour/Backends/PortUtils2.h"
+#include "../Plugin.h"
+
 using namespace ARDOUR_TYPEDEFS;
 
-class Mixer {
+class Mixer : public Plugin_Type_Mixer {
 public:
     std::vector<PortUtils2*> in;
 
-    template<typename type> type add(type TYPE_MIN, type TYPE_MAX, type lhs, type rhs, bool & overflowed)
-    {
-        overflowed = false;
-        if (lhs >= 0) {
-            if (TYPE_MAX - lhs < rhs) {
-                overflowed = true;
-                return TYPE_MAX;
-            }
-        }
-        else {
-            if (rhs < TYPE_MIN - lhs) {
-                overflowed = true;
-                return TYPE_MAX;
-            }
-        }
-        return lhs + rhs;
+    void addPort(PortUtils2 *port) override {
+        in.push_back(port);
     }
-    /**
-     * return true if we still have data to write, otherwise false
-     */
-    bool write(PortUtils2 * unused, PortUtils2 * out, unsigned int samples = 0) {
+
+    void removePort(PortUtils2 *port) override {
+        for (auto it = in.begin(); it != in.end(); it++) {
+            if (*it == port) {
+                in.erase(it);
+                break;
+            }
+        }
+    }
+
+    bool requires_sample_count() override {
+        return Plugin_Type_Mixer::requires_sample_count();
+    }
+
+    bool requires_mixer() override {
+        return Plugin_Type_Mixer::requires_mixer();
+    }
+
+    int write(HostInfo *hostInfo, PortUtils2 *unused, Plugin_Base *mixer, PortUtils2 *out,
+              unsigned int samples) override {
         // a mixer will have no direct input port, and instead manage its own input ports
         if (in.empty()) {
             out->fillPortBuffer<ENGINE_FORMAT>(0);
-            return false;
+            return PLUGIN_STOP;
         }
+
         for (int i = 0; i < out->ports.samples; i += 2) {
             // initialize with silence
             ENGINE_FORMAT sumLeft = 0;
@@ -56,15 +61,15 @@ public:
             // sum each input port in the mixer
             for (PortUtils2 * portUtils2 : in) {
                 bool overflowed;
-                sumLeft = add<ENGINE_FORMAT>(ENGINE_FORMAT_MIN, ENGINE_FORMAT_MAX, sumLeft, reinterpret_cast<ENGINE_FORMAT *>(portUtils2->ports.outputStereo->l->buf)[i], overflowed);
-                sumRight = add<ENGINE_FORMAT>(ENGINE_FORMAT_MIN, ENGINE_FORMAT_MAX, sumRight, reinterpret_cast<ENGINE_FORMAT *>(portUtils2->ports.outputStereo->r->buf)[i], overflowed);
+                sumLeft = PLUGIN_HELPERS_add<ENGINE_FORMAT>(ENGINE_FORMAT_MIN, ENGINE_FORMAT_MAX, sumLeft, reinterpret_cast<ENGINE_FORMAT *>(portUtils2->ports.outputStereo->l->buf)[i], overflowed);
+                sumRight = PLUGIN_HELPERS_add<ENGINE_FORMAT>(ENGINE_FORMAT_MIN, ENGINE_FORMAT_MAX, sumRight, reinterpret_cast<ENGINE_FORMAT *>(portUtils2->ports.outputStereo->r->buf)[i], overflowed);
                 if (overflowed) break;
             }
             // set the output buffer index to the result of the summed audio
             reinterpret_cast<ENGINE_FORMAT *>(out->ports.outputStereo->l->buf)[i] = sumLeft;
             reinterpret_cast<ENGINE_FORMAT *>(out->ports.outputStereo->r->buf)[i] = sumRight;
         }
-        return false;
+        return PLUGIN_STOP;
     }
 };
 

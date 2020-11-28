@@ -13,6 +13,8 @@
 #include "typedefs.h"
 #include "PortEngine/port_engine.h"
 #include "../Backends/PortUtils2.h"
+#include "../../smallville7123/plugins/Mixer.h"
+#include "../../smallville7123/plugins/ChannelRack.h"
 
 
 namespace ARDOUR {
@@ -26,6 +28,9 @@ namespace ARDOUR {
 
     class AudioEngine {
     public:
+
+        Mixer mixer;
+        ChannelRack channelRack;
 
         /* latency measurement */
 

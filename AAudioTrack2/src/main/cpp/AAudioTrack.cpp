@@ -92,6 +92,12 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_stopEngine(JNIEnv *env, jobject th
 }
 
 extern "C"
+JNIEXPORT jlong JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_newChannel(JNIEnv *env, jobject thiz) {
+    return reinterpret_cast<jlong>(engine->channelRack.newChannel());
+}
+
+extern "C"
 JNIEXPORT jint JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_getSampleRate(JNIEnv *env, jobject thiz) {
     if (!check_engine()) return 0;

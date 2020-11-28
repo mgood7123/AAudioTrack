@@ -384,8 +384,6 @@ namespace ARDOUR {
     // AUDIO ENGINE
 
     HostInfo hostInfo;
-    Mixer mixer;
-    ChannelRack channelRack;
 
     void AudioEngine::load(const char *filename) {
         channelRack.sampler.load(filename, _backend->available_output_channel_count(_backend->device_name()));
@@ -426,13 +424,15 @@ namespace ARDOUR {
         // input port
 
         // DON'T FORGET TO MAP!
-        if (!hostInfo.tempoGrid.mapped) TempoGrid::map_tempo_to_frame(hostInfo.tempoGrid);
+        if (!hostInfo.tempoGrid.mapped) {
+            TempoGrid::map_tempo_to_frame(hostInfo.tempoGrid);
+        }
 
         if (!_backend) {
             LOGE("no backend");
             return;
         }
-        channelRack.write(hostInfo, in, mixer, out);
+        channelRack.write(&hostInfo, in, &mixer, out, 0);
     }
 
     sample_position_t AudioEngine::sample_time() {

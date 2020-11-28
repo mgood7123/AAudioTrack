@@ -6,11 +6,14 @@
 #define AAUDIOTRACK_SAMPLER_H
 
 #include <cstdint>
+#include <unistd.h>
+#include <fcntl.h>
 #include "../../ardour/Backends/PortUtils2.h"
+#include "../Plugin.h"
 
 using namespace ARDOUR_TYPEDEFS;
 
-class Sampler {
+class Sampler : public Plugin_Type_Generator {
 public:
     bool mIsPlaying = true;
     bool mIsLooping = true;
@@ -20,10 +23,12 @@ public:
     int mTotalFrames = 0;
     int mReadFrameIndex = 0;
 
-    /**
-     * return true if we still have data to write, otherwise false
-     */
-    bool write(PortUtils2 * in, PortUtils2 * out, unsigned int samples = 0) {
+    bool requires_sample_count() override {
+        return true;
+    }
+
+    int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
+              unsigned int samples) override {
         if (mIsPlaying && audioData != nullptr) {
             if (mIsLooping) {
                 // we may transition from not looping to looping, upon the EOF being reached
@@ -36,7 +41,7 @@ public:
                     mReadFrameIndex += 2;
                     if (mReadFrameIndex >= mTotalFrames) mReadFrameIndex = 0;
                 }
-                return true;
+                return PLUGIN_CONTINUE;
             } else {
                 // if we are not looping then silence should be emmited when the end of the file is reached
                 bool EOF_reached = mReadFrameIndex >= mTotalFrames;
@@ -45,7 +50,7 @@ public:
                     // so just output silence with no additional checking
                     out->fillPortBuffer<ENGINE_FORMAT>(0, samples);
                     // and return from the audio loop
-                    return false;
+                    return PLUGIN_STOP;
                 } else {
                     // we know that the EOF has been not reached before we even start playing
                     // so we need to do checking to output silence when EOF has been reached
@@ -54,6 +59,7 @@ public:
 
                         // Increment and handle wrap-around
                         mReadFrameIndex += 2;
+                        LOGE("mReadFrameIndex = %d", mReadFrameIndex);
                         if (mReadFrameIndex >= mTotalFrames) {
                             // do not reset the frame index here
                             EOF_reached = true;
@@ -77,15 +83,15 @@ public:
                             }
                             // and return from the audio loop
                             mIsPlaying = false;
-                            return false;
+                            return PLUGIN_STOP;
                         }
                     }
-                    return true;
+                    return PLUGIN_CONTINUE;
                 }
             }
         } else {
             out->fillPortBuffer(0, samples);
-            return false;
+            return PLUGIN_STOP;
         }
     }
 
