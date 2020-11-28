@@ -34,9 +34,9 @@ public:
     }
 
     Sampler sampler;
-    bool sampler_is_writing = false;
+    int sampler_is_writing = PLUGIN_STOP;
     Delay delay;
-    bool delay_is_writing = false;
+    int delay_is_writing = PLUGIN_STOP;
 
 public:
     bool requires_sample_count() override {
@@ -55,10 +55,10 @@ public:
         PortUtils2 * mixerPortB = new PortUtils2();
         mixerPortB->allocatePorts<ENGINE_FORMAT>(out->ports.samples, out->ports.channelCount);
         mixerPortB->fillPortBuffer<ENGINE_FORMAT>(0);
-        if (sampler_is_writing) {
+        if (sampler_is_writing == PLUGIN_CONTINUE) {
             sampler_is_writing = sampler.write(hostInfo, in, mixer, mixerPortA, mixerPortA->ports.samples);
         }
-        if (delay_is_writing) {
+        if (delay_is_writing == PLUGIN_CONTINUE) {
             PortUtils2 * tmpPort = new PortUtils2();
             tmpPort->allocatePorts<ENGINE_FORMAT>(out->ports.samples, out->ports.channelCount);
             tmpPort->fillPortBuffer<ENGINE_FORMAT>(0);
@@ -75,7 +75,7 @@ public:
                      hostInfo->engineFrame, sampler.mTotalFrames, hostInfo->tempoGrid.samples_per_note);
                 sampler.mReadFrameIndex = 0;
                 sampler.mIsPlaying = true;
-                sampler.mIsLooping = false;
+                sampler.mIsLooping = true;
                 sampler_is_writing = sampler.write(hostInfo, in, mixer, mixerPortA, mixerPortA->ports.samples - i);
                 {
                     PortUtils2 * tmpPort = new PortUtils2();
@@ -87,7 +87,7 @@ public:
                     delete tmpPort;
                 }
             } else {
-                if (!sampler_is_writing && !delay_is_writing) {// && !synth_is_writing && !delay_is_writing) {
+                if (sampler_is_writing == PLUGIN_STOP && delay_is_writing == PLUGIN_STOP) {// && !synth_is_writing && !delay_is_writing) {
                     // if there are no events for the current sample then output silence
                     mixerPortA->setPortBufferIndex<ENGINE_FORMAT>(i, 0);
                     mixerPortB->setPortBufferIndex<ENGINE_FORMAT>(i, 0);

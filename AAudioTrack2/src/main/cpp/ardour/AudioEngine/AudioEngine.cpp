@@ -432,6 +432,18 @@ namespace ARDOUR {
             LOGE("no backend");
             return;
         }
+        // works
+//        channelRack.sampler.write(&hostInfo, in, &mixer, out, out->ports.samples);
+        // outputs nothing
+
+//        PortUtils2 * mixerPortA = new PortUtils2();
+//        mixerPortA->allocatePorts<ENGINE_FORMAT>(out->ports.samples, out->ports.channelCount);
+//        mixerPortA->fillPortBuffer<ENGINE_FORMAT>(0);
+//        PortUtils2 * mixerPortB = new PortUtils2();
+//        mixerPortB->allocatePorts<ENGINE_FORMAT>(out->ports.samples, out->ports.channelCount);
+//        mixerPortB->fillPortBuffer<ENGINE_FORMAT>(0);
+
+
         channelRack.write(&hostInfo, in, &mixer, out, 0);
     }
 

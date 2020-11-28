@@ -59,7 +59,6 @@ public:
 
                         // Increment and handle wrap-around
                         mReadFrameIndex += 2;
-                        LOGE("mReadFrameIndex = %d", mReadFrameIndex);
                         if (mReadFrameIndex >= mTotalFrames) {
                             // do not reset the frame index here
                             EOF_reached = true;
