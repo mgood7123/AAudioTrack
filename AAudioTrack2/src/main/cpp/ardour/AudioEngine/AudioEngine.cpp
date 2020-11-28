@@ -20,10 +20,8 @@
 
 // mixer plugin
 #include "../../smallville7123/plugins/Mixer.h"
-// sampler plugin
-#include "../../smallville7123/plugins/Sampler.h"
-// delay plugin
-#include "../../smallville7123/plugins/Delay.h"
+// channel rack plugin
+#include "../../smallville7123/plugins/ChannelRack.h"
 
 using namespace std;
 
@@ -385,24 +383,12 @@ namespace ARDOUR {
 
     // AUDIO ENGINE
 
-    TempoGrid tempoGrid = TempoGrid(60);
-
-    uint64_t engineFrame = 0;
+    HostInfo hostInfo;
     Mixer mixer;
-
-    Sampler sampler;
-
-    bool sampler_is_writing = false;
-    Delay delay;
-
-    bool delay_is_writing = false;
-
-    bool AudioEngine::hasData() {
-        return sampler.hasData();
-    }
+    ChannelRack channelRack;
 
     void AudioEngine::load(const char *filename) {
-        sampler.load(filename, _backend->available_output_channel_count(_backend->device_name()));
+        channelRack.sampler.load(filename, _backend->available_output_channel_count(_backend->device_name()));
     }
 
     // TODO: add a Channel Rack, add an Effects Rack
@@ -440,86 +426,14 @@ namespace ARDOUR {
         // input port
 
         // DON'T FORGET TO MAP!
-        if (!tempoGrid.mapped) TempoGrid::map_tempo_to_frame(tempoGrid);
+        if (!hostInfo.tempoGrid.mapped) TempoGrid::map_tempo_to_frame(hostInfo.tempoGrid);
 
         if (!_backend) {
             LOGE("no backend");
             return;
         }
-//        LOGW("writing %G milliseconds (%d samples) of data", 1000 / (_backend->sample_rate() / out->ports.samples), out->ports.samples);
-
-        PortUtils2 * mixerPortA = new PortUtils2();
-        mixerPortA->allocatePorts<ENGINE_FORMAT>(out->ports.samples, out->ports.channelCount);
-        mixerPortA->fillPortBuffer<ENGINE_FORMAT>(0);
-        PortUtils2 * mixerPortB = new PortUtils2();
-        mixerPortB->allocatePorts<ENGINE_FORMAT>(out->ports.samples, out->ports.channelCount);
-        mixerPortB->fillPortBuffer<ENGINE_FORMAT>(0);
-        if (hasData()) {
-            if (sampler_is_writing) {
-                sampler_is_writing = sampler.write(in, mixerPortA, mixerPortA->ports.samples);
-            }
-//            if (synth_is_writing) {
-//                synth_is_writing = synth.write(in, mixerPortB, mixerPortB->ports.samples);
-//            }
-            if (delay_is_writing) {
-                PortUtils2 * tmpPort = new PortUtils2();
-                tmpPort->allocatePorts<ENGINE_FORMAT>(out->ports.samples, out->ports.channelCount);
-                tmpPort->fillPortBuffer<ENGINE_FORMAT>(0);
-                delay_is_writing = delay.write(mixerPortA, tmpPort, mixerPortA->ports.samples);
-                mixerPortA->copyFromPortToPort<ENGINE_FORMAT>(*tmpPort);
-                tmpPort->deallocatePorts<ENGINE_FORMAT>(out->ports.channelCount);
-                delete tmpPort;
-            }
-            for (int32_t i = 0; i < out->ports.samples; i += 2) {
-                // write sample every beat, 120 bpm, 4 beats per bar
-                if (engineFrame == 0 || tempoGrid.sample_matches_samples_per_note(engineFrame)) {
-                    // if there are events for the current sample
-                    LOGE("writing audio on frame %lld for %d frames, write every %d frames",
-                         engineFrame, sampler.mTotalFrames, tempoGrid.samples_per_note);
-                    sampler.mReadFrameIndex = 0;
-                    sampler.mIsPlaying = true;
-                    sampler.mIsLooping = false;
-                    sampler_is_writing = sampler.write(in, mixerPortA, mixerPortA->ports.samples - i);
-                    {
-                        PortUtils2 * tmpPort = new PortUtils2();
-                        tmpPort->allocatePorts<ENGINE_FORMAT>(out->ports.samples - 1, out->ports.channelCount);
-                        tmpPort->fillPortBuffer<ENGINE_FORMAT>(0);
-//                        delay.init(mixerPortA, tmpPort);
-                        delay_is_writing = delay.write(mixerPortA, tmpPort, mixerPortA->ports.samples - i);
-                        mixerPortA->copyFromPortToPort<ENGINE_FORMAT>(*tmpPort);
-                        tmpPort->deallocatePorts<ENGINE_FORMAT>(out->ports.channelCount);
-                        delete tmpPort;
-                    }
-//                    delay_is_writing = delay.write(mixerPortA, mixerPortA, mixerPortA->ports.samples - i);
-//                    synth_is_writing = synth.write(in, mixerPortB, mixerPortB->ports.samples - i);
-                } else {
-                    if (!sampler_is_writing && !delay_is_writing) {// && !synth_is_writing && !delay_is_writing) {
-                        // if there are no events for the current sample then output silence
-                        mixerPortA->setPortBufferIndex<ENGINE_FORMAT>(i, 0);
-                        mixerPortB->setPortBufferIndex<ENGINE_FORMAT>(i, 0);
-                    }
-                }
-                engineFrame += 2;
-                // return from the audio loop
-            }
-        } else {
-            mixerPortA->fillPortBuffer<ENGINE_FORMAT>(0);
-            mixerPortB->fillPortBuffer<ENGINE_FORMAT>(0);
-            // all ports have the same amount of samples as the out port
-            engineFrame += mixerPortA->ports.samples;
-        }
-        mixer.in.push_back(mixerPortA);
-        mixer.in.push_back(mixerPortB);
-        mixer.write(in, out);
-        mixer.in.pop_back();
-        mixer.in.pop_back();
-        mixerPortA->deallocatePorts<ENGINE_FORMAT>(out->ports.channelCount);
-        mixerPortB->deallocatePorts<ENGINE_FORMAT>(out->ports.channelCount);
-        delete mixerPortA;
-        delete mixerPortB;
+        channelRack.write(hostInfo, in, mixer, out);
     }
-
-//}
 
     sample_position_t AudioEngine::sample_time() {
         if (!_backend) {

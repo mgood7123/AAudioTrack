@@ -114,8 +114,6 @@ namespace ARDOUR {
 
         void drop_backend();
 
-        bool hasData();
-
         void renderAudio(PortUtils2 * in, PortUtils2 * out);
 
         void load(const char *string);

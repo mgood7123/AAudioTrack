@@ -123,21 +123,19 @@ namespace ARDOUR {
         // callback 1: onAudioReady(stream, userData, buffer[2], 2);
         // callback 2: onAudioReady(stream, userData, buffer[4], 2);
         // callback 3: onAudioReady(stream, userData, buffer[6], 2);
-        if (aaudio->engine.hasData()) {
-            ENGINE_FORMAT *outputData = reinterpret_cast<ENGINE_FORMAT *>(audioData);
-            int channelCount = aaudio->currentOutputChannelCount;
-            frames_t samples = number_of_frames_to_render;
-            PortUtils2 inPort = PortUtils2();
-            PortUtils2 outPort = PortUtils2();
-            inPort.allocatePorts<ENGINE_FORMAT>(samples, channelCount);
-            outPort.allocatePorts<ENGINE_FORMAT>(samples, channelCount);
-            // TODO: the audio engine can be converted into a plugin, should we do so?
-            aaudio->engine.renderAudio(nullptr, &inPort);
-            outPort.copyFromPortToPort<ENGINE_FORMAT>(inPort);
-            outPort.copyFromPortToData<ENGINE_FORMAT>(outputData);
-            outPort.deallocatePorts<ENGINE_FORMAT>(channelCount);
-            inPort.deallocatePorts<ENGINE_FORMAT>(channelCount);
-        }
+        ENGINE_FORMAT *outputData = reinterpret_cast<ENGINE_FORMAT *>(audioData);
+        int channelCount = aaudio->currentOutputChannelCount;
+        frames_t samples = number_of_frames_to_render;
+        PortUtils2 inPort = PortUtils2();
+        PortUtils2 outPort = PortUtils2();
+        inPort.allocatePorts<ENGINE_FORMAT>(samples, channelCount);
+        outPort.allocatePorts<ENGINE_FORMAT>(samples, channelCount);
+        // TODO: the audio engine can be converted into a plugin, should we do so?
+        aaudio->engine.renderAudio(nullptr, &inPort);
+        outPort.copyFromPortToPort<ENGINE_FORMAT>(inPort);
+        outPort.copyFromPortToData<ENGINE_FORMAT>(outputData);
+        outPort.deallocatePorts<ENGINE_FORMAT>(channelCount);
+        inPort.deallocatePorts<ENGINE_FORMAT>(channelCount);
 
         aaudio->_processed_samples += number_of_frames_to_render;
 
