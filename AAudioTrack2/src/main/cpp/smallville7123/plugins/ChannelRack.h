@@ -75,7 +75,7 @@ public:
                      hostInfo->engineFrame, sampler.mTotalFrames, hostInfo->tempoGrid.samples_per_note);
                 sampler.mReadFrameIndex = 0;
                 sampler.mIsPlaying = true;
-                sampler.mIsLooping = true;
+                sampler.mIsLooping = false;
                 sampler_is_writing = sampler.write(hostInfo, in, mixer, mixerPortA, mixerPortA->ports.samples - i);
                 {
                     PortUtils2 * tmpPort = new PortUtils2();
