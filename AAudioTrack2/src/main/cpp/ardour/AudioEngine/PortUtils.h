@@ -6,7 +6,6 @@
 #define AAUDIOTRACK_PORTUTILS_H
 
 #include "../../zrythm/audio/port.h"
-#include "../../../../../../../../Android/Sdk-Mac/ndk/21.1.6352462/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/cstdint"
 #include <cstdint>
 
 namespace ARDOUR {
