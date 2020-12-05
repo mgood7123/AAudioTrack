@@ -43,9 +43,6 @@ public:
         return true;
     }
 
-    bool tmpA;
-    bool tmpB;
-
     PortUtils2 * silencePort = new PortUtils2();
 
     int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
