@@ -60,10 +60,21 @@ public:
             ENGINE_FORMAT sumRight = 0;
             // sum each input port in the mixer
             for (PortUtils2 * portUtils2 : in) {
-                bool overflowed;
-                sumLeft = PLUGIN_HELPERS_add<ENGINE_FORMAT>(ENGINE_FORMAT_MIN, ENGINE_FORMAT_MAX, sumLeft, reinterpret_cast<ENGINE_FORMAT *>(portUtils2->ports.outputStereo->l->buf)[i], overflowed);
-                sumRight = PLUGIN_HELPERS_add<ENGINE_FORMAT>(ENGINE_FORMAT_MIN, ENGINE_FORMAT_MAX, sumRight, reinterpret_cast<ENGINE_FORMAT *>(portUtils2->ports.outputStereo->r->buf)[i], overflowed);
-                if (overflowed) break;
+                if (portUtils2->allocated) {
+                    bool overflowed = false;
+                    bool underflowed = false;
+                    ENGINE_FORMAT left = static_cast<ENGINE_FORMAT *>(portUtils2->ports.outputStereo->l->buf)[i];
+                    sumLeft = PLUGIN_HELPERS_add<ENGINE_FORMAT>(ENGINE_FORMAT_MIN,
+                                                                ENGINE_FORMAT_MAX, sumLeft, left,
+                                                                overflowed, underflowed);
+                    ENGINE_FORMAT right = static_cast<ENGINE_FORMAT *>(portUtils2->ports.outputStereo->r->buf)[i];
+                    sumRight = PLUGIN_HELPERS_add<ENGINE_FORMAT>(ENGINE_FORMAT_MIN,
+                                                                 ENGINE_FORMAT_MAX, sumRight, right,
+                                                                 overflowed, underflowed);
+                    if (overflowed || underflowed) break;
+                } else {
+                    LOGE("cannot mix a deallocated port, skipping");
+                }
             }
             // set the output buffer index to the result of the summed audio
             reinterpret_cast<ENGINE_FORMAT *>(out->ports.outputStereo->l->buf)[i] = sumLeft;

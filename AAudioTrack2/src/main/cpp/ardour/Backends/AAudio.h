@@ -181,6 +181,8 @@ namespace ARDOUR {
 
         PortUtils &getPortUtils() override;
 
+        uint32_t XRunCount() const override;
+
     protected:
         int _start(bool for_latency_measurement) override;
     };

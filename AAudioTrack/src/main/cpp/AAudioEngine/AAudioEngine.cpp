@@ -17,8 +17,6 @@
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "AAudio", __VA_ARGS__)
 #define LOGF(...) __android_log_print(ANDROID_LOG_FATAL, "AAudio", __VA_ARGS__)
 
-extern AAudioEngine OboeAudioEngine;
-
 bool AAudioEngine::hasData() {
     return audioData != nullptr && audioDataSize != -1;
 }

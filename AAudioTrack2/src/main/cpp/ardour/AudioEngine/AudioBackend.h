@@ -536,6 +536,7 @@ namespace ARDOUR {
         virtual bool     interleaved () const                                   = 0;
         virtual uint32_t input_channels () const                                = 0;
         virtual uint32_t output_channels () const                               = 0;
+        virtual uint32_t XRunCount() const                                      = 0;
         virtual uint32_t systemic_input_latency () const                        = 0;
         virtual uint32_t systemic_output_latency () const                       = 0;
         virtual uint32_t systemic_midi_input_latency (std::string const) const  = 0;

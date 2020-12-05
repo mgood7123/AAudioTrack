@@ -23,14 +23,16 @@
 __android_log_print(ANDROID_LOG_FATAL, "AudioEngine", __VA_ARGS__); \
 abort(); \
 }
-#define LOGA_NO_REASON nullptr
-#define LOGA(bool_condition, string_reason) { \
+
+#define LOGA_NO_REASON "no reason given"
+
+#define LOGA(bool_condition, fmt, ...) { \
 if (!(bool_condition)) \
 LOGF(\
-"%s:%d: %s: Assertion '%s' failed. Additional information: %s", \
+"%s:%d: %s: Assertion '%s' failed. Additional Assertion information: " fmt, \
 __FILE__, __LINE__, __FUNCTION__, \
-#bool_condition, string_reason == LOGA_NO_REASON ? "no reason given" : string_reason \
-) \
+#bool_condition, __VA_ARGS__ \
+); \
 }
 
 #endif //AAUDIOTRACK_LOG_H

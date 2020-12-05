@@ -123,8 +123,7 @@ extern "C"
 JNIEXPORT jint JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_getUnderrunCount(JNIEnv *env, jobject thiz) {
     if (!check_engine()) return 0;
-//    return engine->current_backend()->output_channels();
-    return 0; //reinterpret_cast<AudioEngine*>(native_aaudio_track_pointer)->underrunCount;
+    return engine->current_backend()->XRunCount();
 }
 
 extern "C"

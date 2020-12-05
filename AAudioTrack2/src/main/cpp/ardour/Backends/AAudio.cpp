@@ -29,7 +29,8 @@ namespace ARDOUR {
     AAudio::backend_factory (AudioEngine& e)
     {
         if (!_instance) {
-            _instance.reset(new AAudio(e, _descriptor));
+            AAudio * aaudio = new AAudio(e, _descriptor);
+            _instance.reset(aaudio);
         }
         return _instance;
     }
@@ -94,9 +95,12 @@ namespace ARDOUR {
     }
 
     int AAudio::drop_device() {
-        StopStreamBlocking();
-        FlushStreamBlocking();
-        DestroyStream();
+        if (stream != nullptr) {
+            StopStreamBlocking();
+            FlushStreamBlocking();
+            DestroyStream();
+        }
+        _instance.reset();
         return 0;
     }
 
@@ -114,28 +118,23 @@ namespace ARDOUR {
     ) {
         AAudio *aaudio = static_cast<AAudio *>(userData);
 
-//        LOGE("audioData = %p, &audioData = %p", audioData, &audioData);
-
-        // how AAudio's data callback buffer works: (example)
-        // TYPE * buffer;
-        // frameBurstSize = 2;
-        // callback 0: onAudioReady(stream, userData, buffer[0], 2);
-        // callback 1: onAudioReady(stream, userData, buffer[2], 2);
-        // callback 2: onAudioReady(stream, userData, buffer[4], 2);
-        // callback 3: onAudioReady(stream, userData, buffer[6], 2);
-        ENGINE_FORMAT *outputData = reinterpret_cast<ENGINE_FORMAT *>(audioData);
         int channelCount = aaudio->currentOutputChannelCount;
         frames_t samples = number_of_frames_to_render;
+
         PortUtils2 inPort = PortUtils2();
         PortUtils2 outPort = PortUtils2();
+
         inPort.allocatePorts<ENGINE_FORMAT>(samples, channelCount);
         outPort.allocatePorts<ENGINE_FORMAT>(samples, channelCount);
+
         // TODO: the audio engine can be converted into a plugin, should we do so?
         aaudio->engine.renderAudio(nullptr, &inPort);
+
         outPort.copyFromPortToPort<ENGINE_FORMAT>(inPort);
-        outPort.copyFromPortToData<ENGINE_FORMAT>(outputData);
-        outPort.deallocatePorts<ENGINE_FORMAT>(channelCount);
+        outPort.copyFromPortToData<ENGINE_FORMAT>(reinterpret_cast<ENGINE_FORMAT *>(audioData));
+
         inPort.deallocatePorts<ENGINE_FORMAT>(channelCount);
+        outPort.deallocatePorts<ENGINE_FORMAT>(channelCount);
 
         aaudio->_processed_samples += number_of_frames_to_render;
 
@@ -158,9 +157,11 @@ namespace ARDOUR {
     }
 
     void AAudio::onError(AAudioStream *stream, void *userData, aaudio_result_t error) {
+        LOGW("onError");
         if (error == AAUDIO_ERROR_DISCONNECTED) {
-            std::function<void(void)> restartFunction = std::bind(&AAudio::RestartStreamNonBlocking,
+            std::function<void(void)> restartFunction = std::bind(&AAudio::RestartStreamBlocking,
                                                                   static_cast<AAudio *>(userData));
+            LOGW("onError restartFunction");
             new std::thread(restartFunction);
         }
     }
@@ -219,16 +220,12 @@ namespace ARDOUR {
     }
 
     void AAudio::RestartStreamNonBlocking() {
-        StopStreamNonBlocking();
-        FlushStreamNonBlocking();
         DestroyStream();
         CreateStream();
         StartStreamNonBlocking();
     }
 
     void AAudio::RestartStreamBlocking() {
-        StopStreamBlocking();
-        FlushStreamBlocking();
         DestroyStream();
         CreateStream();
         StartStreamBlocking();
@@ -298,6 +295,10 @@ namespace ARDOUR {
         return result;
     }
 
+
+    uint32_t AAudio::XRunCount() const {
+        return underrunCount;
+    }
 
     std::string AAudio::name() const {
         return std::string();
@@ -395,11 +396,11 @@ namespace ARDOUR {
     }
 
     float AAudio::sample_rate() const {
-        return AAudioStream_getSampleRate(stream);
+        return stream == nullptr ? 0.0f : AAudioStream_getSampleRate(stream);
     }
 
     uint32_t AAudio::buffer_size() const {
-        return AAudioStream_getBufferSizeInFrames(stream);
+        return stream == nullptr ? 0 : AAudioStream_getBufferSizeInFrames(stream);
     }
 
     bool AAudio::interleaved() const {
@@ -407,11 +408,11 @@ namespace ARDOUR {
     }
 
     uint32_t AAudio::input_channels() const {
-        return AAudioStream_getChannelCount(stream);
+        return stream == nullptr ? 0 : AAudioStream_getChannelCount(stream);
     }
 
     uint32_t AAudio::output_channels() const {
-        return AAudioStream_getChannelCount(stream);
+        return stream == nullptr ? 0 : AAudioStream_getChannelCount(stream);
     }
 
     uint32_t AAudio::systemic_input_latency() const {

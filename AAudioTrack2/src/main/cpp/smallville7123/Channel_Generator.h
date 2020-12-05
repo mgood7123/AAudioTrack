@@ -12,7 +12,15 @@ class Channel_Generator {
 public:
     Plugin_Type_Generator * plugin = nullptr;
     EffectRack * effectRack = nullptr;
-    PortUtils2 * out = new PortUtils2();
+    PortUtils2 * out = nullptr;
+    Channel_Generator() {
+        out = new PortUtils2();
+    }
+
+    ~Channel_Generator() {
+        out->deallocatePorts<ENGINE_FORMAT>();
+        delete out;
+    }
 };
 
 #endif //AAUDIOTRACK_CHANNEL_GENERATOR_H

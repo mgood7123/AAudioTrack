@@ -31,6 +31,7 @@ public:
     int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
               unsigned int samples) override {
         if (mIsPlaying && audioData != nullptr) {
+//            LOGW("playing audio %p at frame index %d", audioData, mReadFrameIndex);
             if (mIsLooping) {
                 // we may transition from not looping to looping, upon the EOF being reached
                 // if this happens, reset the frame index

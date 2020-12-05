@@ -19,11 +19,9 @@ public:
 
     int is_writing = PLUGIN_STOP;
 
-    // add two values and detect overflow, returning TYPE_MAX if overflow occured
-
-    template<typename type> type PLUGIN_HELPERS_add(type TYPE_MIN, type TYPE_MAX, type lhs, type rhs, bool & overflowed)
+    // add two values and detect overflow/underflow, returning TYPE_MAX if overflow occured, and TYPE_MIN if underflow occured
+    template<typename type> type PLUGIN_HELPERS_add(type TYPE_MIN, type TYPE_MAX, type lhs, type rhs, bool & overflowed, bool & underflow)
     {
-        overflowed = false;
         if (lhs >= 0) {
             if (TYPE_MAX - lhs < rhs) {
                 overflowed = true;
@@ -32,8 +30,8 @@ public:
         }
         else {
             if (rhs < TYPE_MIN - lhs) {
-                overflowed = true;
-                return TYPE_MAX;
+                underflow = true;
+                return TYPE_MIN;
             }
         }
         return lhs + rhs;
@@ -110,6 +108,10 @@ public:
         }
         free(o);
         audioData = data;
+    }
+
+    ~Plugin_Base() {
+        if (audioData != nullptr) free(audioData);
     }
 
     inline bool hasAudioData() {

@@ -47,12 +47,10 @@ public class AAudioTrack2 {
     public  native long newChannel();
 
     private String converted;
-    private long channelPointer;
 
     public AAudioTrack2() {
         createNativeInstance();
         startEngine();
-        channelPointer = newChannel();
     }
 
     // each Audio Track instance will correspond to a Channel in the Channel Rack

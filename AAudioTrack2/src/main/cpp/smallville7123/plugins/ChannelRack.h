@@ -43,12 +43,19 @@ public:
         return true;
     }
 
-    PortUtils2 * silencePort = new PortUtils2();
+    PortUtils2 * silencePort = nullptr;
+
+    ChannelRack() {
+        silencePort = new PortUtils2();
+    }
+
+    ~ChannelRack() {
+        silencePort->deallocatePorts<ENGINE_FORMAT>();
+        delete silencePort;
+    }
 
     int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
               unsigned int samples) override {
-        silencePort->allocatePorts<ENGINE_FORMAT>(out->ports.samples, out->ports.channelCount);
-        silencePort->fillPortBuffer<ENGINE_FORMAT>(0);
         for(auto channel : rack.typeList) {
             channel->out->allocatePorts<ENGINE_FORMAT>(out->ports.samples,
                                                      out->ports.channelCount);
@@ -95,11 +102,15 @@ public:
             // return from the audio loop
         }
         Plugin_Type_Mixer * mixer_ = reinterpret_cast<Plugin_Type_Mixer*>(mixer);
-        mixer_->addPort(silencePort);
         for(auto channel : rack.typeList) mixer_->addPort(channel->out);
+
+        silencePort->allocatePorts<ENGINE_FORMAT>(out->ports.samples, out->ports.channelCount);
+        silencePort->fillPortBuffer<ENGINE_FORMAT>(0);
+        mixer_->addPort(silencePort);
         mixer_->write(hostInfo, in, mixer, out, out->ports.samples);
         mixer_->removePort(silencePort);
         silencePort->deallocatePorts<ENGINE_FORMAT>(out->ports.channelCount);
+
         for(auto channel : rack.typeList) {
             mixer_->removePort(channel->out);
             channel->out->deallocatePorts<ENGINE_FORMAT>(out->ports.channelCount);

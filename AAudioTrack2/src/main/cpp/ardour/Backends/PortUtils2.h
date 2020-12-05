@@ -92,6 +92,11 @@ public:
         allocated = false;
     }
 
+    template<typename type>
+    void deallocatePorts() {
+        deallocatePorts<type>(ports.channelCount);
+    }
+
     template <typename type> void copyFromDataToPort(void * data, int & sampleIndex, int & totalSamples) {
         for (int i = 0; i < ports.samples; i += 2) {
             // copy input to input buffers
