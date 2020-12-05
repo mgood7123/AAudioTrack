@@ -25,6 +25,7 @@ public:
     Channel_Effect * newDelayChannel() {
         Channel_Effect * channel = rack.newType();
         channel->plugin = new Delay();
+        channel->plugin_is_allocated = true;
         return channel;
     }
 

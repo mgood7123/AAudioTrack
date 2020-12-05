@@ -10,7 +10,18 @@
 class Channel_Effect {
 public:
     Plugin_Type_Effect * plugin = nullptr;
-    PortUtils2 * out = new PortUtils2();
+    bool plugin_is_allocated = false;
+    PortUtils2 * out = nullptr;
+
+    Channel_Effect() {
+        out = new PortUtils2();
+    }
+
+    ~Channel_Effect() {
+        if (plugin_is_allocated) delete plugin;
+        out->deallocatePorts<ENGINE_FORMAT>();
+        delete out;
+    }
 };
 
 #endif //AAUDIOTRACK_CHANNEL_EFFECT_H
