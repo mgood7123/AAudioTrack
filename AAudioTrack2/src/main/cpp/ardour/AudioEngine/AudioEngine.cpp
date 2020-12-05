@@ -386,17 +386,10 @@ namespace ARDOUR {
     HostInfo hostInfo;
 
     void AudioEngine::load(const char *filename) {
-        channelRack.sampler.load(filename, _backend->available_output_channel_count(_backend->device_name()));
+        auto * channel = channelRack.newSamplerChannel(filename, _backend->available_output_channel_count(_backend->device_name()));
+        channel->effectRack = &effectRack;
+        effectRack.newDelayChannel();
     }
-
-    // TODO: add a Channel Rack, add an Effects Rack
-    // TODO: abstract to:
-    //    void AudioEngine::renderAudio(PortUtils2 * in, PortUtils2 * out) {
-    //        if (!tempoGrid.mapped) TempoGrid::map_tempo_to_frame(tempoGrid);
-    //        if (!_backend) { LOGE("no backend"); return; }
-    //        channelRack.process(in, mixer, out);
-    //    }
-
 
     void AudioEngine::renderAudio(PortUtils2 * in, PortUtils2 * out) {
 

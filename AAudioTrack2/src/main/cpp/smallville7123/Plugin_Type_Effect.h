@@ -21,6 +21,10 @@ public:
                       unsigned int samples) {
         return Plugin_Base::write(hostInfo, in, mixer, out, samples);
     }
+
+    virtual void stopPlayback() override {
+        Plugin_Base::stopPlayback();
+    }
 };
 
 #endif //AAUDIOTRACK_PLUGIN_TYPE_EFFECT_H

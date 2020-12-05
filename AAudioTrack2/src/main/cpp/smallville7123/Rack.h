@@ -6,9 +6,10 @@
 #define AAUDIOTRACK_RACK_H
 
 template <typename Type> class Rack {
-    std::vector<Type *> typeList;
 
 public:
+    std::vector<Type *> typeList;
+
     Type *newType() {
         Type * type = new Type();
         typeList.push_back(type);

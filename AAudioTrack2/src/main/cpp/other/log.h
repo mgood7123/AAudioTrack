@@ -19,6 +19,18 @@
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "AudioEngine", __VA_ARGS__)
 #define LOGW(...) __android_log_print(ANDROID_LOG_WARN, "AudioEngine", __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "AudioEngine", __VA_ARGS__)
-#define LOGF(...) { __android_log_print(ANDROID_LOG_FATAL, "AudioEngine", __VA_ARGS__); abort(); }
+#define LOGF(...) { \
+__android_log_print(ANDROID_LOG_FATAL, "AudioEngine", __VA_ARGS__); \
+abort(); \
+}
+#define LOGA_NO_REASON nullptr
+#define LOGA(bool_condition, string_reason) { \
+if (!(bool_condition)) \
+LOGF(\
+"%s:%d: %s: Assertion '%s' failed. Additional information: %s", \
+__FILE__, __LINE__, __FUNCTION__, \
+#bool_condition, string_reason == LOGA_NO_REASON ? "no reason given" : string_reason \
+) \
+}
 
 #endif //AAUDIOTRACK_LOG_H

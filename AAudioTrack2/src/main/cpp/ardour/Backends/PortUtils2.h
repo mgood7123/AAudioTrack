@@ -26,34 +26,39 @@ public:
         void * buffer;
     } ports;
 
+    bool allocated = false;
+
     template<typename type> void allocatePorts(uint32_t samples, uint32_t channelCount) {
+        if (allocated) return;
+        if (channelCount == 0) LOGF("invalid channel count: 0");
         ports.channelCount = channelCount;
         ports.samples = samples;
-        if (ports.channelCount == 0) LOGF("invalid channel count: 0");
         ports.mono = channelCount == 1;
         if (ports.mono) {
-            ports.outputMono = new Port();
+            if (ports.outputMono == nullptr) ports.outputMono = new Port();
         } else {
             ports.stereo = channelCount == 2;
             if (ports.stereo) {
-                ports.buffer = new type[samples*2];
-                ports.outputStereo = new StereoPorts();
-                ports.outputStereo->l = new Port();
-                ports.outputStereo->r = new Port();
+                if (ports.buffer == nullptr) ports.buffer = new type[samples*2];
+                if (ports.outputStereo == nullptr) ports.outputStereo = new StereoPorts();
+                if (ports.outputStereo->l == nullptr) ports.outputStereo->l = new Port();
+                if (ports.outputStereo->r == nullptr) ports.outputStereo->r = new Port();
                 ports.outputStereo->l->buf = ports.buffer;
                 ports.outputStereo->r->buf = reinterpret_cast<type*>(ports.buffer) + samples;
             } else {
                 ports.multiChannel = true;
-                ports.outputMultiChannel = new Port *[channelCount];
+                if (ports.outputMultiChannel == nullptr) ports.outputMultiChannel = new Port *[channelCount];
                 for (int i = 0; i < channelCount; ++i) {
-                    ports.outputMultiChannel[i] = new Port();
+                    if (ports.outputMultiChannel[i] == nullptr) ports.outputMultiChannel[i] = new Port();
                 }
             }
         }
+        allocated = true;
     }
 
     template<typename type>
     void deallocatePorts(uint32_t channelCount) {
+        if (!allocated) return;
         ports.channelCount = 0;
         ports.samples = 0;
         if (ports.outputMono != nullptr) {
@@ -68,6 +73,7 @@ public:
             delete ports.outputStereo;
             ports.outputStereo = nullptr;
             delete[] reinterpret_cast<type*>(ports.buffer);
+            ports.buffer = nullptr;
             ports.stereo = false;
         }
         if (ports.outputMultiChannel != nullptr) {
@@ -83,6 +89,7 @@ public:
             ports.outputMultiChannel = nullptr;
             ports.multiChannel = false;
         }
+        allocated = false;
     }
 
     template <typename type> void copyFromDataToPort(void * data, int & sampleIndex, int & totalSamples) {

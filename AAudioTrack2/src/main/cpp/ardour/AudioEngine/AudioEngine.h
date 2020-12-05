@@ -15,6 +15,7 @@
 #include "../Backends/PortUtils2.h"
 #include "../../smallville7123/plugins/Mixer.h"
 #include "../../smallville7123/plugins/ChannelRack.h"
+#include "../../smallville7123/plugins/EffectRack.h"
 
 
 namespace ARDOUR {
@@ -31,6 +32,7 @@ namespace ARDOUR {
 
         Mixer mixer;
         ChannelRack channelRack;
+        EffectRack effectRack;
 
         /* latency measurement */
 

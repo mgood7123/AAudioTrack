@@ -12,7 +12,7 @@
 
 using namespace ARDOUR_TYPEDEFS;
 
-class Delay : Plugin_Type_Effect {
+class Delay : public Plugin_Type_Effect {
 public:
 
     DelayLine left;
