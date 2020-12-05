@@ -56,7 +56,6 @@ public:
 
     int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
               unsigned int samples) override {
-//        LOGD("writing audio for %d channels", rack.typeList.size());
         for(int i = 0; i < rack.typeList.size(); i++) {
             auto * channel = rack.typeList[i];
             channel->out->allocatePorts<ENGINE_FORMAT>(out->ports.samples,
@@ -69,7 +68,6 @@ public:
                                                                          channel->out->ports.samples);
                 }
                 if (channel->effectRack != nullptr) {
-//                    LOGD("writing audio for %d effects in channel %d", channel->effectRack->rack.typeList.size(), i);
                     if (channel->effectRack->is_writing == PLUGIN_CONTINUE) {
                         channel->effectRack->is_writing = channel->effectRack->write(hostInfo, in,
                                                                                      mixer,
