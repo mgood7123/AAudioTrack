@@ -387,8 +387,8 @@ namespace ARDOUR {
 
     void AudioEngine::load(const char *filename) {
         auto * channel = channelRack.newSamplerChannel(filename, _backend->available_output_channel_count(_backend->device_name()));
-//        channel->effectRack = &effectRack;
-//        effectRack.newDelayChannel();
+        channel->effectRack = &effectRack;
+        effectRack.newDelayChannel();
     }
 
     void AudioEngine::renderAudio(PortUtils2 * in, PortUtils2 * out) {

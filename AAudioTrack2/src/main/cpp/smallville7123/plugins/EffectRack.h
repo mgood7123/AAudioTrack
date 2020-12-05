@@ -43,6 +43,7 @@ public:
               unsigned int samples) override {
         tmp = PLUGIN_STOP;
         for(auto effect : rack.typeList) {
+            if (effect->plugin == nullptr) continue;
             PortUtils2 * tmpPort = new PortUtils2();
             tmpPort->allocatePorts<ENGINE_FORMAT>(out->ports.samples, out->ports.channelCount);
             tmpPort->fillPortBuffer<ENGINE_FORMAT>(0);
