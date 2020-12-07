@@ -1,13 +1,13 @@
-package smallville7123.aaudiotrack;
-
-import androidx.annotation.DrawableRes;
-import androidx.appcompat.app.AppCompatActivity;
+package smallville7123.aaudiotrack.application;
 
 import android.os.Bundle;
 import android.util.Pair;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ToggleButton;
+
+import androidx.annotation.DrawableRes;
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 

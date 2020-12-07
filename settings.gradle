@@ -2,3 +2,4 @@ include ':AAudioTrack2'
 include ':AAudioTrack'
 include ':app'
 rootProject.name = "AAudioTrack"
+include ':AAudioTrack_Application'

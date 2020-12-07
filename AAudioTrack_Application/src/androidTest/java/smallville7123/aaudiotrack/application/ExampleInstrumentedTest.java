@@ -1,4 +1,4 @@
-package smallville7123.aaudiotrack;
+package smallville7123.aaudiotrack.application;
 
 import android.content.Context;
 
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
     public void useAppContext() {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        assertEquals("smallville7123.aaudiotrack", appContext.getPackageName());
+        assertEquals("smallville7123.aaudiotrack.application", appContext.getPackageName());
     }
 }

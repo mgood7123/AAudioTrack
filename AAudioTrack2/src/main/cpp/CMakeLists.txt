@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.10.2)
 
 project("AAudioTrack2")
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Ofast")
+set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   --optimize -Ofast -g3")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} --optimize -Ofast -g0")
 
 add_library(engine SHARED
         ardour/AudioEngine/AudioBackend.cpp

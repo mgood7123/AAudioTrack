@@ -111,7 +111,6 @@ namespace ARDOUR {
     }
 
     frames_t frameIndex;
-
     aaudio_data_callback_result_t AAudio::onAudioReady(
             AAudioStream *stream, void *userData, void *audioData,
             frames_t number_of_frames_to_render
@@ -119,21 +118,27 @@ namespace ARDOUR {
         AAudio *aaudio = static_cast<AAudio *>(userData);
 
         int channelCount = aaudio->currentOutputChannelCount;
-        frames_t samples = number_of_frames_to_render;
+        frames_t samples = number_of_frames_to_render*channelCount;
 
-        PortUtils2 inPort = PortUtils2();
         PortUtils2 outPort = PortUtils2();
 
-        inPort.allocatePorts<ENGINE_FORMAT>(samples, channelCount);
         outPort.allocatePorts<ENGINE_FORMAT>(samples, channelCount);
+        outPort.fillPortBuffer(0);
 
-        // TODO: the audio engine can be converted into a plugin, should we do so?
-        aaudio->engine.renderAudio(nullptr, &inPort);
+        ENGINE_FORMAT * data = reinterpret_cast<ENGINE_FORMAT *>(audioData);
+        ENGINE_FORMAT * left = reinterpret_cast<ENGINE_FORMAT *>(outPort.ports.outputStereo->l->buf);
+        ENGINE_FORMAT * right = reinterpret_cast<ENGINE_FORMAT *>(outPort.ports.outputStereo->r->buf);
 
-        outPort.copyFromPortToPort<ENGINE_FORMAT>(inPort);
-        outPort.copyFromPortToData<ENGINE_FORMAT>(reinterpret_cast<ENGINE_FORMAT *>(audioData));
+        aaudio->engine.renderAudio(nullptr, &outPort);
 
-        inPort.deallocatePorts<ENGINE_FORMAT>(channelCount);
+        uint32_t bufIndex = 0;
+        for (uint32_t dataIndex = 0; dataIndex < outPort.ports.samples; dataIndex += 2) {
+            // copy input buffers to output buffers
+            data[(dataIndex) + 0] = left[bufIndex];
+            data[(dataIndex) + 1] = right[bufIndex];
+            bufIndex++;
+        }
+
         outPort.deallocatePorts<ENGINE_FORMAT>(channelCount);
 
         aaudio->_processed_samples += number_of_frames_to_render;
@@ -143,15 +148,9 @@ namespace ARDOUR {
         if (tmpuc > aaudio->previousUnderrunCount) {
             aaudio->previousUnderrunCount = aaudio->underrunCount;
             aaudio->underrunCount = tmpuc;
-            // Try increasing the buffer size by one burst
-            frames_t bufferSize = AAudioStream_getBufferSizeInFrames(stream);
-            frames_t newBufferSize = AAudioStream_setBufferSizeInFrames(stream, bufferSize + AAudioStream_getFramesPerBurst(stream));
-            if (bufferSize == newBufferSize) {
-                LOGW("onAudioReady: bufferSize could not be increased from %d to %d", bufferSize,
-                     newBufferSize);
-            } else {
-                LOGW("onAudioReady: bufferSize increased from %d to %d", bufferSize, newBufferSize);
-            }
+            // increasing the buffer size here has no effect
+            // the audio stream must be re-created in order to change
+            // the buffer size
         }
         return AAUDIO_CALLBACK_RESULT_CONTINUE;
     }
@@ -186,10 +185,19 @@ namespace ARDOUR {
 
         AAudioStreamBuilder_setDataCallback(builder, onAudioReady, this);
         AAudioStreamBuilder_setErrorCallback(builder, onError, this);
+
+        // 192 samples at 44100 sample rate is 4 ms
+        // 8192 samples at 44100 sample rate is roughly 168 ms
+        AAudioStreamBuilder_setBufferCapacityInFrames(builder, 16384);
+        AAudioStreamBuilder_setFramesPerDataCallback(builder, 8192);
+
         AAudioStreamBuilder_setPerformanceMode(builder, AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
+
         outputFormat = AAUDIO_FORMAT;
         AAudioStreamBuilder_setFormat(builder, outputFormat);
+
         result = AAudioStreamBuilder_openStream(builder, &stream);
+
         if (result != AAUDIO_OK) {
             LOGE("FAILED TO OPEN THE STREAM: %s", AAudio_convertResultToText(result));
             return result;

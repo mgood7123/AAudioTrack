@@ -395,15 +395,15 @@ namespace ARDOUR {
         // as a cooler phone seems to be able to handle more channels and effects
         // than a hot phone
         //
-        // so far up to 50
+        // try 120, pc can handle 120 simoultaniously with a large buffer
         //
-        for (int i = 0; i < 50; ++i) {
+        for (int i = 0; i < 120; ++i) {
             channelRack.
                 newSamplerChannel(
                         filename,
                         _backend->available_output_channel_count(_backend->device_name())
                 )
-                ->effectRack->newDelayChannel()
+//                ->effectRack->newDelayChannel()
                 ;
         }
     }
@@ -442,7 +442,7 @@ namespace ARDOUR {
             LOGE("no backend");
             return;
         }
-        channelRack.write(&hostInfo, in, &mixer, out, 0);
+        channelRack.write(&hostInfo, in, &mixer, out, out->ports.samplesPerChannel);
     }
 
     sample_position_t AudioEngine::sample_time() {

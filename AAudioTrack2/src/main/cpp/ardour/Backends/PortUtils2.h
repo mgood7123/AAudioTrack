@@ -23,28 +23,38 @@ public:
         bool multiChannel = false;
         uint32_t channelCount = 0;
         uint32_t samples = 0;
+        uint32_t samplesPerChannel = 0;
         void * buffer;
     } ports;
 
     bool allocated = false;
+
+    template<typename type> void allocatePorts(PortUtils2 * templatePort) {
+        allocatePorts<type>(templatePort->ports.samples, templatePort->ports.channelCount);
+    }
+
+    template<typename type> void allocatePorts(PortUtils2 & templatePort) {
+        allocatePorts<type>(templatePort.ports.samples, templatePort.ports.channelCount);
+    }
 
     template<typename type> void allocatePorts(uint32_t samples, uint32_t channelCount) {
         if (allocated) return;
         if (channelCount == 0) LOGF("invalid channel count: 0");
         ports.channelCount = channelCount;
         ports.samples = samples;
+        ports.samplesPerChannel = samples/channelCount;
         ports.mono = channelCount == 1;
         if (ports.mono) {
             if (ports.outputMono == nullptr) ports.outputMono = new Port();
         } else {
             ports.stereo = channelCount == 2;
             if (ports.stereo) {
-                if (ports.buffer == nullptr) ports.buffer = new type[samples*2];
+                if (ports.buffer == nullptr) ports.buffer = new type[ports.samples];
                 if (ports.outputStereo == nullptr) ports.outputStereo = new StereoPorts();
                 if (ports.outputStereo->l == nullptr) ports.outputStereo->l = new Port();
                 if (ports.outputStereo->r == nullptr) ports.outputStereo->r = new Port();
                 ports.outputStereo->l->buf = ports.buffer;
-                ports.outputStereo->r->buf = reinterpret_cast<type*>(ports.buffer) + samples;
+                ports.outputStereo->r->buf = reinterpret_cast<type*>(ports.buffer) + ports.samplesPerChannel;
             } else {
                 ports.multiChannel = true;
                 if (ports.outputMultiChannel == nullptr) ports.outputMultiChannel = new Port *[channelCount];
@@ -61,6 +71,7 @@ public:
         if (!allocated) return;
         ports.channelCount = 0;
         ports.samples = 0;
+        ports.samplesPerChannel = 0;
         if (ports.outputMono != nullptr) {
             // buf is never allocated for mono
             delete ports.outputMono;
@@ -98,14 +109,15 @@ public:
     }
 
     template <typename type> void copyFromDataToPort(void * data, int & sampleIndex, int & totalSamples) {
-        for (int i = 0; i < ports.samples; i += 2) {
-            // copy input to input buffers
-            reinterpret_cast<type *>(ports.outputStereo->l->buf)[i] =
-                    reinterpret_cast<type *>(data)[(sampleIndex * ports.channelCount) + 0];
-            reinterpret_cast<type *>(ports.outputStereo->r->buf)[i] =
-                    reinterpret_cast<type *>(data)[(sampleIndex * ports.channelCount) + 1];
-            sampleIndex += 2;
-            if (sampleIndex >= totalSamples) sampleIndex = 0;
+        uint32_t bufIndex = 0;
+        int & dataIndex = sampleIndex;
+        if (dataIndex >= totalSamples) dataIndex = 0;
+        for (bufIndex = 0; bufIndex < ports.samplesPerChannel; bufIndex ++) {
+            // copy input buffers to output buffers
+            reinterpret_cast<type*>(ports.outputStereo->l->buf)[bufIndex] = reinterpret_cast<type*>(data)[(dataIndex) + 0];
+            reinterpret_cast<type*>(ports.outputStereo->r->buf)[bufIndex] = reinterpret_cast<type*>(data)[(dataIndex) + 1];
+            dataIndex+=2;
+            if (dataIndex >= totalSamples) dataIndex = 0;
         }
     }
 
@@ -118,15 +130,17 @@ public:
     }
 
     template <typename type> void copyFromPortToData(void * data) {
-        for (int i = 0; i < ports.samples; i += 2) {
+        uint32_t bufIndex = 0;
+        for (uint32_t dataIndex = 0; dataIndex < ports.samples; dataIndex += 2) {
             // copy input buffers to output buffers
-            reinterpret_cast<type*>(data)[(i * ports.channelCount) + 0] = reinterpret_cast<type*>(ports.outputStereo->l->buf)[i];
-            reinterpret_cast<type*>(data)[(i * ports.channelCount) + 1] = reinterpret_cast<type*>(ports.outputStereo->r->buf)[i];
+            reinterpret_cast<type*>(data)[(dataIndex) + 0] = reinterpret_cast<type*>(ports.outputStereo->l->buf)[bufIndex];
+            reinterpret_cast<type*>(data)[(dataIndex) + 1] = reinterpret_cast<type*>(ports.outputStereo->r->buf)[bufIndex];
+            bufIndex++;
         }
     }
 
     template <typename type> void fillPortBuffer(type value) {
-        for (int i = 0; i < ports.samples; i += 2) {
+        for (int i = 0; i < ports.samplesPerChannel; i++) {
             // copy input buffers to output buffers
             reinterpret_cast<type*>(ports.outputStereo->l->buf)[i] = value;
             reinterpret_cast<type*>(ports.outputStereo->r->buf)[i] = value;

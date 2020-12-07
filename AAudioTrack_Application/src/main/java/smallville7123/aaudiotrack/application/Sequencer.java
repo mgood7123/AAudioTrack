@@ -1,4 +1,4 @@
-package smallville7123.aaudiotrack;
+package smallville7123.aaudiotrack.application;
 
 import android.app.Activity;
 import android.util.Log;

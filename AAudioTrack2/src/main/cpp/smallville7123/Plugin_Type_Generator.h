@@ -9,16 +9,16 @@
 
 class Plugin_Type_Generator : public Plugin_Base {
 public:
-    virtual bool requires_sample_count() {
+    virtual bool requires_sample_count() override {
         return Plugin_Base::requires_sample_count();
     }
 
-    virtual bool requires_mixer() {
+    virtual bool requires_mixer() override {
         return Plugin_Base::requires_mixer();
     }
 
     virtual int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
-                      unsigned int samples) {
+                      unsigned int samples) override {
         return Plugin_Base::write(hostInfo, in, mixer, out, samples);
     }
 

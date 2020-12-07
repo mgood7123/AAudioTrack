@@ -30,17 +30,19 @@ public:
 
     int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
               unsigned int samples) override {
+        ENGINE_FORMAT * data = reinterpret_cast<ENGINE_FORMAT *>(audioData);
+        ENGINE_FORMAT * left = reinterpret_cast<ENGINE_FORMAT *>(out->ports.outputStereo->l->buf);
+        ENGINE_FORMAT * right = reinterpret_cast<ENGINE_FORMAT *>(out->ports.outputStereo->r->buf);
         if (mIsPlaying && audioData != nullptr) {
 //            LOGW("playing audio %p at frame index %d", audioData, mReadFrameIndex);
             if (mIsLooping) {
                 // we may transition from not looping to looping, upon the EOF being reached
                 // if this happens, reset the frame index
-                if (mReadFrameIndex == audioDataTotalFrames) mReadFrameIndex = 0;
-                for (int32_t i = 0; i < samples; i += 2) {
-                    out->setPortBufferIndex<ENGINE_FORMAT>(i, reinterpret_cast<ENGINE_FORMAT*>(audioData)[mReadFrameIndex]);
-
-                    // Increment and handle wrap-around
-                    mReadFrameIndex += 2;
+                if (mReadFrameIndex >= audioDataTotalFrames) mReadFrameIndex = 0;
+                for (uint32_t bufIndex = 0; bufIndex < samples; bufIndex++) {
+                    left[bufIndex] = data[mReadFrameIndex + 0];
+                    right[bufIndex] = data[mReadFrameIndex + 1];
+                    mReadFrameIndex+=2;
                     if (mReadFrameIndex >= audioDataTotalFrames) mReadFrameIndex = 0;
                 }
                 return PLUGIN_CONTINUE;
@@ -50,17 +52,17 @@ public:
                 if (EOF_reached) {
                     // we know that the EOF has been reached before we even start playing
                     // so just output silence with no additional checking
-                    out->fillPortBuffer<ENGINE_FORMAT>(0, samples);
+                    out->fillPortBuffer<ENGINE_FORMAT>(0);
                     // and return from the audio loop
                     return PLUGIN_STOP;
                 } else {
                     // we know that the EOF has been not reached before we even start playing
                     // so we need to do checking to output silence when EOF has been reached
-                    for (int32_t i = 0; i < samples; i += 2) {
-                        out->setPortBufferIndex<ENGINE_FORMAT>(i, reinterpret_cast<ENGINE_FORMAT*>(audioData)[mReadFrameIndex]);
-
-                        // Increment and handle wrap-around
-                        mReadFrameIndex += 2;
+                    if (mReadFrameIndex >= audioDataTotalFrames) mReadFrameIndex = 0;
+                    for (uint32_t bufIndex = 0; bufIndex < samples; bufIndex++) {
+                        left[bufIndex] = data[mReadFrameIndex + 0];
+                        right[bufIndex] = data[mReadFrameIndex + 1];
+                        mReadFrameIndex+=2;
                         if (mReadFrameIndex >= audioDataTotalFrames) {
                             // do not reset the frame index here
                             EOF_reached = true;
@@ -76,11 +78,11 @@ public:
                             // so we can correctly check if we still need to write a frame
                             //
 
-                            i += 2;
+                            bufIndex++;
 
                             // output the remaining frames as silence
-                            for (; i < samples; i += 2) {
-                                out->setPortBufferIndex(i, 0);
+                            for (; bufIndex < samples; bufIndex++) {
+                                out->setPortBufferIndex(bufIndex, 0);
                             }
                             // and return from the audio loop
                             mIsPlaying = false;
@@ -91,7 +93,7 @@ public:
                 }
             }
         } else {
-            out->fillPortBuffer(0, samples);
+            out->fillPortBuffer<ENGINE_FORMAT>(0);
             return PLUGIN_STOP;
         }
     }

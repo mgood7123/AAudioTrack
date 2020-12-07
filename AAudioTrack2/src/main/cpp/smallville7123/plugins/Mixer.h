@@ -54,7 +54,7 @@ public:
             return PLUGIN_STOP;
         }
 
-        for (int i = 0; i < out->ports.samples; i += 2) {
+        for (int i = 0; i < samples; i++) {
             // initialize with silence
             ENGINE_FORMAT sumLeft = 0;
             ENGINE_FORMAT sumRight = 0;

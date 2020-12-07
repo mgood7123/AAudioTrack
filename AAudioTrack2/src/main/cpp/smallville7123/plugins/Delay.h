@@ -33,7 +33,7 @@ public:
 
     int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
               unsigned int samples) override {
-        for (int i = 0; i < out->ports.samples; i += 2) {
+        for (int i = 0; i < samples; i += 2) {
             reinterpret_cast<ENGINE_FORMAT *>(out->ports.outputStereo->l->buf)[i] = left.delayline(reinterpret_cast<ENGINE_FORMAT *>(in->ports.outputStereo->l->buf)[i]);
             reinterpret_cast<ENGINE_FORMAT *>(out->ports.outputStereo->r->buf)[i] = right.delayline(reinterpret_cast<ENGINE_FORMAT *>(in->ports.outputStereo->r->buf)[i]);
         }

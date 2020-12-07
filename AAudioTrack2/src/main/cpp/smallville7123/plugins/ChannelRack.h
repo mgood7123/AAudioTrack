@@ -54,68 +54,101 @@ public:
         delete silencePort;
     }
 
-    int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
-              unsigned int samples) override {
+    void writePlugin(Plugin_Base * plugin, HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer,
+                     PortUtils2 *out, unsigned int samples) {
+        plugin->is_writing = plugin->write(hostInfo, in, mixer,
+                                           out, samples);
+    }
+
+    void writeEffectRack(EffectRack * effectRack, HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer,
+                         PortUtils2 *out, unsigned int samples) {
+        effectRack->is_writing = effectRack->write(hostInfo, in, mixer,
+                                                   out, samples);
+    }
+
+    void writeChannels(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
+                       unsigned int samples) {
+        // LOGE("writing channels");
         for(int i = 0; i < rack.typeList.size(); i++) {
             auto * channel = rack.typeList[i];
-            channel->out->allocatePorts<ENGINE_FORMAT>(out->ports.samples,
-                                                     out->ports.channelCount);
+            channel->out->allocatePorts<ENGINE_FORMAT>(out);
             channel->out->fillPortBuffer<ENGINE_FORMAT>(0);
             if (channel->plugin != nullptr) {
                 if (channel->plugin->is_writing == PLUGIN_CONTINUE) {
-                    channel->plugin->is_writing = channel->plugin->write(hostInfo, in, mixer,
-                                                                         channel->out,
-                                                                         channel->out->ports.samples);
+                    writePlugin(channel->plugin, hostInfo, in, mixer,
+                                channel->out, samples);
                 }
                 if (channel->effectRack != nullptr) {
                     if (channel->effectRack->is_writing == PLUGIN_CONTINUE) {
-                        channel->effectRack->is_writing = channel->effectRack->write(hostInfo, in,
-                                                                                     mixer,
-                                                                                     channel->out,
-                                                                                     channel->out->ports.samples);
+                        writeEffectRack(channel->effectRack, hostInfo, in, mixer,
+                                        channel->out, samples);
                     }
                 }
             }
         }
-        for (int32_t i = 0; i < out->ports.samples; i += 2) {
+        for (int32_t i = 0; i < samples; i ++) {
             // write sample every beat, 120 bpm, 4 beats per bar
             if (hostInfo->engineFrame == 0 || hostInfo->tempoGrid.sample_matches_samples_per_note(hostInfo->engineFrame)) {
                 // if there are events for the current sample
                 for(auto channel : rack.typeList) {
-                    channel->out->allocatePorts<ENGINE_FORMAT>(out->ports.samples,
-                                                             out->ports.channelCount);
+                    channel->out->allocatePorts<ENGINE_FORMAT>(out);
                     channel->out->fillPortBuffer<ENGINE_FORMAT>(0);
                     if (channel->plugin != nullptr) {
                         channel->plugin->stopPlayback();
-                        channel->plugin->is_writing = channel->plugin->write(hostInfo, in, mixer,
-                                                                             channel->out,
-                                                                             channel->out->ports.samples);
+                        writePlugin(channel->plugin, hostInfo, in, mixer,
+                                    channel->out, samples);
                         if (channel->effectRack != nullptr) {
-                            channel->effectRack->is_writing = channel->effectRack->write(hostInfo,
-                                                                                         in, mixer,
-                                                                                         channel->out,
-                                                                                         channel->out->ports.samples);
+                            writeEffectRack(channel->effectRack, hostInfo, in, mixer,
+                                            channel->out, samples);
                         }
                     }
                 }
             }
-            hostInfo->engineFrame += 2;
+            hostInfo->engineFrame++;
             // return from the audio loop
         }
-        Plugin_Type_Mixer * mixer_ = reinterpret_cast<Plugin_Type_Mixer*>(mixer);
-        for(auto channel : rack.typeList) mixer_->addPort(channel->out);
+        // LOGE("wrote channels");
+    }
 
-        silencePort->allocatePorts<ENGINE_FORMAT>(out->ports.samples, out->ports.channelCount);
-        silencePort->fillPortBuffer<ENGINE_FORMAT>(0);
+    void prepareMixer(Plugin_Type_Mixer * mixer_, PortUtils2 * out) {
+        // LOGE("preparing mixer");
+        for(auto channel : rack.typeList) mixer_->addPort(channel->out);
+        silencePort->allocatePorts<ENGINE_FORMAT>(out);
         mixer_->addPort(silencePort);
-        mixer_->write(hostInfo, in, mixer, out, out->ports.samples);
+        silencePort->fillPortBuffer<ENGINE_FORMAT>(0);
+        // LOGE("prepared mixer");
+    }
+
+    void mix(HostInfo *hostInfo, PortUtils2 *in, Plugin_Type_Mixer * mixer, PortUtils2 *out,
+             unsigned int samples) {
+        // LOGE("mixing");
+        mixer->write(hostInfo, in, mixer, out, samples);
+        // LOGE("mixed");
+    }
+
+    void finalizeMixer(Plugin_Type_Mixer * mixer_) {
+        // LOGE("finalizing mixer");
         mixer_->removePort(silencePort);
-        silencePort->deallocatePorts<ENGINE_FORMAT>(out->ports.channelCount);
+        silencePort->deallocatePorts<ENGINE_FORMAT>();
 
         for(auto channel : rack.typeList) {
             mixer_->removePort(channel->out);
-            channel->out->deallocatePorts<ENGINE_FORMAT>(out->ports.channelCount);
+            channel->out->deallocatePorts<ENGINE_FORMAT>();
         }
+        // LOGE("finalized mixer");
+    }
+
+    void mixChannels(HostInfo *hostInfo, PortUtils2 *in, Plugin_Type_Mixer * mixer, PortUtils2 *out,
+                     unsigned int samples) {
+        prepareMixer(mixer, out);
+        mix(hostInfo, in, mixer, out, samples);
+        finalizeMixer(mixer);
+    }
+
+    int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
+              unsigned int samples) override {
+        writeChannels(hostInfo, in, mixer, out, samples);
+        mixChannels(hostInfo, in, reinterpret_cast<Plugin_Type_Mixer*>(mixer), out, samples);
         return PLUGIN_CONTINUE;
     }
 };

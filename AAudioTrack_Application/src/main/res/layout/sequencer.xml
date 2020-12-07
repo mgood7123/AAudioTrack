@@ -20,7 +20,7 @@
         android:layout_weight="1"
         android:orientation="vertical"/>
 
-    <smallville7123.aaudiotrack.UpdatingTextView
+    <smallville7123.aaudiotrack.application.UpdatingTextView
         android:id="@+id/INFO"
         android:layout_width="match_parent"
         android:layout_height="220dp"
