@@ -386,24 +386,13 @@ namespace ARDOUR {
     HostInfo hostInfo;
 
     void AudioEngine::load(const char *filename) {
-        //
-        // 37 seems to be the max amount of channels and effects
-        // (37 channels and 37 effects)
-        // that i can have before underun's occur in android
-        //
-        // though this is also directly related to cpu temperature,
-        // as a cooler phone seems to be able to handle more channels and effects
-        // than a hot phone
-        //
-        // try 120, pc can handle 120 simoultaniously with a large buffer
-        //
-        for (int i = 0; i < 120; ++i) {
+        for (int i = 0; i < 88; ++i) {
             channelRack.
                 newSamplerChannel(
                         filename,
                         _backend->available_output_channel_count(_backend->device_name())
                 )
-//                ->effectRack->newDelayChannel()
+                ->effectRack->newDelayChannel()
                 ;
         }
     }
