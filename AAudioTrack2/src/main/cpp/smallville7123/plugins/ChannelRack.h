@@ -97,10 +97,14 @@ public:
                         channel->plugin->stopPlayback();
                         writePlugin(channel->plugin, hostInfo, in, mixer,
                                     channel->out, samples);
-                        if (channel->effectRack != nullptr) {
-                            writeEffectRack(channel->effectRack, hostInfo, in, mixer,
-                                            channel->out, samples);
-                        }
+                    }
+                    // an effect rack should be able to be played even without a plugin
+                    // as there may be an effect which acts as both a generator and an effect
+                    // for example an effect may add random data to the stream
+                    // this would turn it into a generator
+                    if (channel->effectRack != nullptr) {
+                        writeEffectRack(channel->effectRack, hostInfo, in, mixer,
+                                        channel->out, samples);
                     }
                 }
             }

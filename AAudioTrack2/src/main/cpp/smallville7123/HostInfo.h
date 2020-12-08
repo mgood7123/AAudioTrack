@@ -10,7 +10,7 @@
 
 class HostInfo {
 public:
-    TempoGrid tempoGrid = TempoGrid(60);
+    TempoGrid tempoGrid = TempoGrid(120);
     uint64_t engineFrame = 0;
 };
 

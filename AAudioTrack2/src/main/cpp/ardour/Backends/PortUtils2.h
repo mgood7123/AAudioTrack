@@ -113,7 +113,6 @@ public:
         int & dataIndex = sampleIndex;
         if (dataIndex >= totalSamples) dataIndex = 0;
         for (bufIndex = 0; bufIndex < ports.samplesPerChannel; bufIndex ++) {
-            // copy input buffers to output buffers
             reinterpret_cast<type*>(ports.outputStereo->l->buf)[bufIndex] = reinterpret_cast<type*>(data)[(dataIndex) + 0];
             reinterpret_cast<type*>(ports.outputStereo->r->buf)[bufIndex] = reinterpret_cast<type*>(data)[(dataIndex) + 1];
             dataIndex+=2;
@@ -122,26 +121,23 @@ public:
     }
 
     template <typename type> void copyFromPortToPort(PortUtils2 & portToCopyFrom) {
-        for (int i = 0; i < ports.samples; i += 2) {
-            // copy input buffers to output buffers
+        for (int i = 0; i < ports.samplesPerChannel; i++) {
             reinterpret_cast<type*>(ports.outputStereo->l->buf)[i] = reinterpret_cast<type*>(portToCopyFrom.ports.outputStereo->l->buf)[i];
             reinterpret_cast<type*>(ports.outputStereo->r->buf)[i] = reinterpret_cast<type*>(portToCopyFrom.ports.outputStereo->r->buf)[i];
         }
     }
 
     template <typename type> void copyFromPortToData(void * data) {
-        uint32_t bufIndex = 0;
-        for (uint32_t dataIndex = 0; dataIndex < ports.samples; dataIndex += 2) {
-            // copy input buffers to output buffers
-            reinterpret_cast<type*>(data)[(dataIndex) + 0] = reinterpret_cast<type*>(ports.outputStereo->l->buf)[bufIndex];
-            reinterpret_cast<type*>(data)[(dataIndex) + 1] = reinterpret_cast<type*>(ports.outputStereo->r->buf)[bufIndex];
-            bufIndex++;
+        uint32_t dataIndex = 0;
+        for (int i = 0; i < ports.samplesPerChannel; i++) {
+            reinterpret_cast<type*>(data)[(dataIndex) + 0] = reinterpret_cast<type*>(ports.outputStereo->l->buf)[i];
+            reinterpret_cast<type*>(data)[(dataIndex) + 1] = reinterpret_cast<type*>(ports.outputStereo->r->buf)[i];
+            dataIndex += 2;
         }
     }
 
     template <typename type> void fillPortBuffer(type value) {
         for (int i = 0; i < ports.samplesPerChannel; i++) {
-            // copy input buffers to output buffers
             reinterpret_cast<type*>(ports.outputStereo->l->buf)[i] = value;
             reinterpret_cast<type*>(ports.outputStereo->r->buf)[i] = value;
         }
@@ -149,7 +145,6 @@ public:
 
     template <typename type> void fillPortBuffer(type value, unsigned int samples) {
         for (unsigned int i = 0; i < samples; i += 2) {
-            // copy input buffers to output buffers
             reinterpret_cast<type*>(ports.outputStereo->l->buf)[i] = value;
             reinterpret_cast<type*>(ports.outputStereo->r->buf)[i] = value;
         }
@@ -177,14 +172,10 @@ public:
     }
 
     inline static void S16toF32(int16_t *data, float * out, int totalSamples, int len) {
-//        float * buffer = static_cast<float *>(malloc(len * 2));
-//        float * left = buffer;
-//        float * right = buffer + totalSamples;
         for (int i = 0; i < totalSamples; i += 2) {
             out[i] = SoapySDR::S16toF32(data[i]);
             out[i+1] = SoapySDR::S16toF32(data[i+1]);
         }
-//        return buffer;
     }
 };
 

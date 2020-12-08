@@ -386,7 +386,7 @@ namespace ARDOUR {
     HostInfo hostInfo;
 
     void AudioEngine::load(const char *filename) {
-        for (int i = 0; i < 88; ++i) {
+        for (int i = 0; i < 20; ++i) {
             channelRack.
                 newSamplerChannel(
                         filename,

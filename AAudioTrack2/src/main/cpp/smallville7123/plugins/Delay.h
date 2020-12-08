@@ -18,7 +18,7 @@ public:
     DelayLine left;
     DelayLine right;
     Delay() {
-        left.setdelay(48000/4);
+        left.setdelay(48000/8);
     }
 
 public:
