@@ -89,6 +89,8 @@ public:
         for (int32_t i = 0; i < samples; i ++) {
             // write sample every beat, 120 bpm, 4 beats per bar
             if (hostInfo->engineFrame == 0 || hostInfo->tempoGrid.sample_matches_samples_per_note(hostInfo->engineFrame)) {
+                LOGE("writing audio on frame %lld, write every %d frames",
+                     hostInfo->engineFrame, hostInfo->tempoGrid.samples_per_note);
                 // if there are events for the current sample
                 for(auto channel : rack.typeList) {
                     channel->out->allocatePorts<ENGINE_FORMAT>(out);

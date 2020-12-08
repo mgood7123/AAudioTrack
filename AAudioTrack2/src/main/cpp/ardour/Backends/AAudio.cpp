@@ -131,6 +131,15 @@ namespace ARDOUR {
         ENGINE_FORMAT * left = reinterpret_cast<ENGINE_FORMAT *>(outPort.ports.outputStereo->l->buf);
         ENGINE_FORMAT * right = reinterpret_cast<ENGINE_FORMAT *>(outPort.ports.outputStereo->r->buf);
 
+        // does timing drift as under-runs occur?
+        // for example, if every 24000 frames a note plays,
+        // and if the audio engine is on frame 72001,
+        // and 24000 frames of under-run occur,
+        // would the next note be played on frame 120000
+        // instead of frame 96000,
+        // or would it be delayed by 24000 frames
+        // and play on 96000 but 24000 frames later
+
         aaudio->engine.renderAudio(nullptr, &outPort);
 
         uint32_t bufIndex = 0;
@@ -156,65 +165,6 @@ namespace ARDOUR {
         }
         return AAUDIO_CALLBACK_RESULT_CONTINUE;
     }
-
-//    aaudio_data_callback_result_t AAudio::onAudioReady(
-//            AAudioStream *stream, void *userData, void *audioData,
-//            frames_t number_of_frames_to_render
-//    ) {
-//        AAudio *aaudio = static_cast<AAudio *>(userData);
-//
-//        int channelCount = aaudio->currentOutputChannelCount;
-//        int & dataIndex = mReadFrameIndex;
-//        frames_t samples = number_of_frames_to_render*channelCount;
-//
-//        PortUtils2 outPort = PortUtils2();
-//
-//        auto & ports = outPort.ports;
-//
-//        ports.channelCount = channelCount;
-//        ports.samples = samples;
-//        ports.samplesPerChannel = number_of_frames_to_render;
-//
-//        ports.buffer = new ENGINE_FORMAT[ports.samples];
-//        ports.outputStereo = new StereoPorts();
-//        ports.outputStereo->l = new Port();
-//        ports.outputStereo->r = new Port();
-//        ports.outputStereo->l->buf = ports.buffer;
-//        ports.outputStereo->r->buf = reinterpret_cast<ENGINE_FORMAT*>(ports.buffer) + ports.samplesPerChannel;
-//
-//        ENGINE_FORMAT * data = reinterpret_cast<ENGINE_FORMAT *>(audioData);
-//        ENGINE_FORMAT * left = reinterpret_cast<ENGINE_FORMAT *>(outPort.ports.outputStereo->l->buf);
-//        ENGINE_FORMAT * right = reinterpret_cast<ENGINE_FORMAT *>(outPort.ports.outputStereo->r->buf);
-//
-//        for (int i = 0; i < outPort.ports.samplesPerChannel; i++) {
-//            left[i] = sin (2 * M_PI * dataIndex / 100.0);
-//            right[i] = sin (2 * M_PI * dataIndex / 100.0);
-//            dataIndex = (dataIndex + 1) % 100;
-//        }
-//
-//        uint32_t bufIndex = 0;
-//        for (uint32_t dataIndex = 0; dataIndex < outPort.ports.samples; dataIndex += 2) {
-//            // copy input buffers to output buffers
-//            data[(dataIndex) + 0] = left[bufIndex];
-//            data[(dataIndex) + 1] = right[bufIndex];
-//            bufIndex++;
-//        }
-//
-//        delete ports.outputStereo->l;
-//        delete ports.outputStereo->r;
-//        delete ports.outputStereo;
-//        delete[] reinterpret_cast<ENGINE_FORMAT *>(ports.buffer);
-//
-//        aaudio->_processed_samples += number_of_frames_to_render;
-//
-//        // Are we getting underruns?
-//        frames_t tmpuc = AAudioStream_getXRunCount(stream);
-//        if (tmpuc > aaudio->previousUnderrunCount) {
-//            aaudio->previousUnderrunCount = aaudio->underrunCount;
-//            aaudio->underrunCount = tmpuc;
-//        }
-//        return AAUDIO_CALLBACK_RESULT_CONTINUE;
-//    }
 
     void AAudio::onError(AAudioStream *stream, void *userData, aaudio_result_t error) {
         LOGW("onError");
