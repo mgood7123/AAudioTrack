@@ -38,14 +38,6 @@ public:
         }
     }
 
-    bool requires_sample_count() override {
-        return Plugin_Type_Mixer::requires_sample_count();
-    }
-
-    bool requires_mixer() override {
-        return Plugin_Type_Mixer::requires_mixer();
-    }
-
     int write(HostInfo *hostInfo, PortUtils2 *unused, Plugin_Base *mixer, PortUtils2 *out,
               unsigned int samples) override {
         // a mixer will have no direct input port, and instead manage its own input ports

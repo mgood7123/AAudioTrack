@@ -6,11 +6,23 @@
 #define AAUDIOTRACK_DELAY_H
 
 #include <cstdint>
+// port utilities, created by me (Matthew Good), for interacting with port buffers
+// this should not be in ardour since it is not from ardour
+// but I can't be bothered moving it to a suitable location
 #include "../../ardour/Backends/PortUtils2.h"
+
+// delay line implementation
 #include "DelayLine.h"
+
+// plugin interface
 #include "../Plugin.h"
 
-using namespace ARDOUR_TYPEDEFS;
+// this particular delay implements a panned delay
+// letting audio pass on the right channel, but delaying it on the left channel
+// NOTE 1 R
+// NOTE 2 - L
+// NOTE 3 R
+// NOTE 4 - L
 
 class Delay : public Plugin_Type_Effect {
 public:

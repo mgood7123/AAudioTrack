@@ -140,6 +140,8 @@ namespace ARDOUR {
         // or would it be delayed by 24000 frames
         // and play on 96000 but 24000 frames later
 
+        // ughh im contemplating wether i want to start actually implementing the MIDI events system for sequencers/piano rolls or wether i should focus on fixing low priority bugs (such as audio desync occuring when given a large buffer of 8k, or if under-runs affect timing of events)
+
         aaudio->engine.renderAudio(nullptr, &outPort);
 
         uint32_t bufIndex = 0;
