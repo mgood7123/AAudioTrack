@@ -111,7 +111,6 @@ namespace ARDOUR {
     }
 
     frames_t frameIndex;
-//    int mReadFrameIndex = 0;
 
     aaudio_data_callback_result_t AAudio::onAudioReady(
             AAudioStream *stream, void *userData, void *audioData,

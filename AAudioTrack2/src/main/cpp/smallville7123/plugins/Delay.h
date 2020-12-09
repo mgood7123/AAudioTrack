@@ -19,9 +19,9 @@
 
 // this particular delay implements a panned delay
 // letting audio pass on the right channel, but delaying it on the left channel
-// NOTE 1 R
+// NOTE 1 R -
 // NOTE 2 - L
-// NOTE 3 R
+// NOTE 3 R -
 // NOTE 4 - L
 
 class Delay : public Plugin_Type_Effect {
@@ -30,7 +30,7 @@ public:
     DelayLine left;
     DelayLine right;
     Delay() {
-        left.setdelay(48000/8);
+        left.setdelay(48000/16);
     }
 
 public:

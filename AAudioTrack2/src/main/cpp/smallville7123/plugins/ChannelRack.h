@@ -12,6 +12,9 @@
 #include "../HostInfo.h"
 #include "../Rack.h"
 #include "../Channel_Generator.h"
+#include "../PianoRoll.h"
+#include "../Pattern.h"
+#include "../PatternList.h"
 
 class ChannelRack : Plugin_Base {
 public:
@@ -45,12 +48,26 @@ public:
 
     PortUtils2 * silencePort = nullptr;
 
+    PatternList patternList;
+    Pattern * pattern = nullptr;
+
     ChannelRack() {
         silencePort = new PortUtils2();
+        pattern = patternList.newPattern();
+        pattern->pianoRoll.setBPM(120*2);
+        pattern->pianoRoll.setResolution(16);
+        pattern->pianoRoll.updateGrid();
+        pattern->pianoRoll.setNoteData({
+            1,1,1,0,
+            1,1,1,0,
+            1,1,1,1,
+            1,1,1,0
+        });
     }
 
     ~ChannelRack() {
         silencePort->deallocatePorts<ENGINE_FORMAT>();
+        patternList.removePattern(pattern);
         delete silencePort;
     }
 
@@ -88,25 +105,24 @@ public:
         }
         for (int32_t i = 0; i < samples; i ++) {
             // write sample every beat, 120 bpm, 4 beats per bar
-            if (hostInfo->engineFrame == 0 || hostInfo->tempoGrid.sample_matches_samples_per_note(hostInfo->engineFrame)) {
-//                LOGE("writing audio on frame %lld, write every %d frames",
-//                     hostInfo->engineFrame, hostInfo->tempoGrid.samples_per_note);
-                // if there are events for the current sample
-                for(auto channel : rack.typeList) {
-                    channel->out->allocatePorts<ENGINE_FORMAT>(out);
-                    channel->out->fillPortBuffer<ENGINE_FORMAT>(0);
-                    if (channel->plugin != nullptr) {
-                        channel->plugin->stopPlayback();
-                        writePlugin(channel->plugin, hostInfo, in, mixer,
-                                    channel->out, samples);
-                    }
-                    // an effect rack should be able to be played even without a plugin
-                    // as there may be an effect which acts as both a generator and an effect
-                    // for example an effect may add random data to the stream
-                    // this would turn it into a generator
-                    if (channel->effectRack != nullptr) {
-                        writeEffectRack(channel->effectRack, hostInfo, in, mixer,
+            if (pattern != nullptr) {
+                if (pattern->hasNote(hostInfo->engineFrame)) {
+                    for(auto channel : rack.typeList) {
+                        channel->out->allocatePorts<ENGINE_FORMAT>(out);
+                        channel->out->fillPortBuffer<ENGINE_FORMAT>(0);
+                        if (channel->plugin != nullptr) {
+                            channel->plugin->stopPlayback();
+                            writePlugin(channel->plugin, hostInfo, in, mixer,
                                         channel->out, samples);
+                        }
+                        // an effect rack should be able to be played even without a plugin
+                        // as there may be an effect which acts as both a generator and an effect
+                        // for example an effect may add random data to the stream
+                        // this would turn it into a generator
+                        if (channel->effectRack != nullptr) {
+                            writeEffectRack(channel->effectRack, hostInfo, in, mixer,
+                                            channel->out, samples);
+                        }
                     }
                 }
             }

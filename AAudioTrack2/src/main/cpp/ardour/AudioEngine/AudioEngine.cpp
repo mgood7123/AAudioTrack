@@ -392,7 +392,7 @@ namespace ARDOUR {
                         filename,
                         _backend->available_output_channel_count(_backend->device_name())
                 )
-                ->effectRack->newDelayChannel()
+//                ->effectRack->newDelayChannel()
                 ;
         }
     }
