@@ -35,6 +35,8 @@ public class AAudioTrack2 {
     private native void stopEngine();
     public native void setNoteData(boolean[] array);
 
+    public native boolean isNotePlaying(int noteDataIndex);
+
     public  native int getSampleRate();
     public  native int getChannelCount();
     public  native int getUnderrunCount();

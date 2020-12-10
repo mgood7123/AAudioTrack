@@ -26,9 +26,11 @@ public:
         TempoGrid::map_tempo_to_frame(grid);
     }
 
-    // lock free, wait free ring buffer
-    /* 20 to the power of 2 */
+    // lock free, wait free ring buffer, 20 to the power of 2
+    // frame index, should this note be played
     jnk0le::Ringbuffer<std::pair<uint64_t, bool>, 1048576> noteData;
+
+    int noteindex = -1;
 
     void setNoteData(bool * noteData, int size) {
         uint64_t frame = 0;
@@ -54,16 +56,14 @@ public:
 
     bool hasNote(uint64_t frame) {
         if (noteData.isEmpty()) return false;
-
         uint64_t wrappedFrame = wrap(frame, 0, grid.samples_per_note * grid.notes_per_bar);
         for (int i = 0; i < noteData.readAvailable(); ++i) {
             auto * pair = noteData.at(i);
             if (pair != nullptr) {
-                if (pair->second == true) {
-                    auto &sampleToPlayNoteOn = pair->first;
-                    if (wrappedFrame == sampleToPlayNoteOn) {
-                        return true;
-                    }
+                auto &sampleToPlayNoteOn = pair->first;
+                if (wrappedFrame == sampleToPlayNoteOn) {
+                    noteindex = i;
+                    if (pair->second == true) return true;
                 }
             }
         }

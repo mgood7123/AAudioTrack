@@ -110,15 +110,29 @@ public class MainActivity extends AppCompatActivity {
 
         audioTrack.load(this, R.raw.kick, "wav");
         audioTrack.loop(false);
-
-        Instrument [] instruments = {
-                new Instrument(rows.get(0), "kick", audioTrack)
-        };
-
-        sequencer = new Sequencer(this, instruments);
-
-        sequencer.setIsPlaying(false);
-        new Thread(sequencer).start();
+        new Thread(() -> {
+            while (true) {
+                if (!rows.isEmpty()) {
+                    ArrayList<ToggleButton> toggleButtonArrayList = rows.get(0).second.second;
+                    for (int i = 0; i < toggleButtonArrayList.size(); i++) {
+                        int finalI = i;
+                        MainActivity.this.runOnUiThread(
+                                () -> toggleButtonArrayList
+                                        .get(finalI)
+                                        .setChecked(
+                                                audioTrack.isNotePlaying(finalI)
+                                        )
+                        );
+                    }
+                }
+                try {
+                    // sleep 1 nanosecond
+                    Thread.sleep(0, 500_000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
     void play() {

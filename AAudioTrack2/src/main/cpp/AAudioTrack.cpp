@@ -96,6 +96,18 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_setNoteData(JNIEnv *env, jobject t
 }
 
 extern "C"
+JNIEXPORT jboolean JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_isNotePlaying(JNIEnv *env, jobject thiz,
+                                                            jint note_data_index) {
+    if (engine_exists()) {
+        auto * pattern = engine->channelRack.pattern;
+        if (pattern != nullptr) {
+            return pattern->pianoRoll.noteindex == note_data_index;
+        }
+    }
+}
+
+extern "C"
 JNIEXPORT void JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_startEngine(JNIEnv *env, jobject thiz) {
     if (!engine_exists()) return;
