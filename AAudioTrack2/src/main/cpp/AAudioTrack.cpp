@@ -73,6 +73,30 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_createNativeInstance(JNIEnv* env, 
 
 extern "C"
 JNIEXPORT void JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_setNoteData(JNIEnv *env, jobject thiz,
+                                                          jbooleanArray booleanArray) {
+    jsize arrayLength = env->GetArrayLength(booleanArray);
+    if (arrayLength == 0) {
+        // clear note data
+    } else {
+        jboolean isCopy;
+        jboolean * ptr = env->GetBooleanArrayElements(booleanArray, &isCopy);
+        if (ptr != nullptr) {
+            // set note data
+            if (engine_exists()) {
+                auto * pattern = engine->channelRack.pattern;
+                if (pattern != nullptr) {
+                    pattern->pianoRoll.setNoteData(reinterpret_cast<bool *>(ptr), arrayLength);
+                }
+            }
+        }
+        // free the buffer without copying back the possible changes
+        env->ReleaseBooleanArrayElements(booleanArray, ptr, JNI_ABORT);
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_startEngine(JNIEnv *env, jobject thiz) {
     if (!engine_exists()) return;
     // start the engine
@@ -95,6 +119,12 @@ extern "C"
 JNIEXPORT jlong JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_newChannel(JNIEnv *env, jobject thiz) {
     return reinterpret_cast<jlong>(engine->channelRack.newChannel());
+}
+
+extern "C"
+JNIEXPORT jlong JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_newSamplerChannel(JNIEnv *env, jobject thiz) {
+//    return reinterpret_cast<jlong>(engine->channelRack.newChannel());
 }
 
 extern "C"

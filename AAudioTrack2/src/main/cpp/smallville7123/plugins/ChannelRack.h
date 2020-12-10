@@ -55,14 +55,37 @@ public:
         silencePort = new PortUtils2();
         pattern = patternList.newPattern();
         pattern->pianoRoll.setBPM(120*2);
-        pattern->pianoRoll.setResolution(16);
+        pattern->pianoRoll.setResolution(8);
         pattern->pianoRoll.updateGrid();
-        pattern->pianoRoll.setNoteData({
-            1,1,1,0,
-            1,1,1,0,
-            1,1,1,1,
-            1,1,1,0
-        });
+
+        // i dont think a ring buffer can be used, eg assuming the ring buffer IS the buffer, then it would need to re-push all notes in the new order each time it is modified, which would involve shifting and inserting notes, which could result in invalid playback of incorrect notes
+        // for example if you have 0,0,1,0 and you want to set 1,0,1,0 then it would need to be 0,0,1,0 > 1,0,0,1 > 0,1,0,0 > 1,0,1,0
+        // in which the audio thread CAN play any of the notes during the modification of the ring buffer
+
+        // lock-free and wait-free data structures are REQUIRED for communication
+        // between the audio thread and low priority threads such as the UI thread
+
+        //00:21 AndroidDAW: https://en.wikipedia.org/wiki/Non-blocking_algorithm#Wait-freedom *
+        //00:21 falktx: well anyway, for dsp->ui you very likely want to post data to some ringbuffer, then signal that there is data to read from it on the UI side5~
+        //00:21 falktx: the UI side basically just polls at regular intervals to check if there is data or not
+        //00:21 falktx: the usual stuff
+        //
+        //00:24 AndroidDAW: and could i do the same to manipulate for example, arrays which are shared between the RT thread and other non RT threads? for example a piano roll's note data
+        //00:24 AndroidDAW: in which the note data can be manipulated by the UI thread, and read by the RT thread
+        //00:24 niceplace has joined (~nplace@45.83.91.136)
+        //00:25 AndroidDAW: or would a different lock-free structure be required for this?
+        //00:27 AndroidDAW: for example, for manipulating channel racks and patterns (eg pattern 1, pattern 2, ect) and so on
+        //00:27 AndroidDAW: channel/effect racks*
+        //00:28 AndroidDAW: where a ring buffer would not be suitible as the data must be persistant for the duration of the programs runtime
+        //00:29 AndroidDAW: eg the channel/effect racks and patterns should not generally impose any limits on how many the user can create
+        //00:30 AndroidDAW: (tho i think its common to have something like a 999 limit but even that could be exceeded, especially in a playlist view)
+        //00:31 fundamental: If the audio thread goes to execute, the audio thread cannot be blocked by anything, it cannot allocate memory on the heap, nor free it to the heap, and if data is unavailable due to another thread it must be able to continue without it
+        //00:31 AndroidDAW: yea
+        //00:32 AndroidDAW: fundamental: eg the allocation could be done by the UI thread instead of the RT thread, however the RT thread would need to be capable of handling this
+        //00:33 AndroidDAW: eg it must be able to handle non allocated data and partially allocated data (assuming that is possible)
+        //00:34 AndroidDAW: tho partially allocated data is basically just non allocated data, or incomplete data, such as the data being allocated but its size not yet set when the RT thread reads it
+        //00:36 AndroidDAW: anyway, a ring buffer would not be a suitible structure for data which must not be recycled/size limited right?
+        //00:37 AndroidDAW: for example if you have a ring buffer with a capacity of 5, you cannot give it 7 pieces of data and except it to be able to store, and access, all 7 pieces of data
     }
 
     ~ChannelRack() {

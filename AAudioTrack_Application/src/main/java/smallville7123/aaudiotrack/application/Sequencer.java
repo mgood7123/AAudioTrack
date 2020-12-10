@@ -34,7 +34,6 @@ public class Sequencer implements Runnable {
                     break main;
                 }
                 for (Instrument instrument : instruments) {
-
                     Pair<ToggleButton, ToggleButton> buttonP = null;
                     Pair<ToggleButton, ToggleButton> buttonC = null;
                     buttonP = instrument.getButtonAt(i == 0 ? 7 : i-1);

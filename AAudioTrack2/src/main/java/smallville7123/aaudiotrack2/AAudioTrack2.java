@@ -33,6 +33,7 @@ public class AAudioTrack2 {
     private native void createNativeInstance();
     private native void startEngine();
     private native void stopEngine();
+    public native void setNoteData(boolean[] array);
 
     public  native int getSampleRate();
     public  native int getChannelCount();
