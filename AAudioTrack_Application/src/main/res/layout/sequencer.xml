@@ -44,7 +44,7 @@
                     android:fontFamily="monospace"
                     android:textColor="@color/cardview_light_background"
                     android:textSize="18sp"
-                    android:text="CPU"
+                    android:text="DSP"
                 />
                 <TextView
                     android:layout_width="match_parent"
