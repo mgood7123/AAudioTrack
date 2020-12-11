@@ -34,6 +34,7 @@ public class AAudioTrack2 {
     private native void startEngine();
     private native void stopEngine();
     public native void setNoteData(boolean[] array);
+    public native int getDSPLoad();
 
     public native boolean isNotePlaying(int noteDataIndex);
 

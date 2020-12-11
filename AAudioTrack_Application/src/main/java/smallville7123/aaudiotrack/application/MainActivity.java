@@ -1,9 +1,12 @@
 package smallville7123.aaudiotrack.application;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Pair;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.ToggleButton;
 
 import androidx.annotation.DrawableRes;
@@ -11,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 
+import smallville7123.UI.ImageProgressBar;
 import smallville7123.aaudiotrack2.AAudioTrack2;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
@@ -86,12 +90,14 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
+    ImageProgressBar CPU_LOAD;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.sequencer);
         initLayout();
         initSequencer();
+        CPU_LOAD = findViewById(R.id.CPU_LOAD);
         UpdatingTextView updatingTextView = findViewById(R.id.INFO);
         updatingTextView.addOnFirstDrawAction(() -> u(updatingTextView));
         updatingTextView.addOnDrawAction(() -> u(updatingTextView));
@@ -112,6 +118,18 @@ public class MainActivity extends AppCompatActivity {
         audioTrack.loop(false);
         new Thread(() -> {
             while (true) {
+                MainActivity.this.runOnUiThread(
+                        () -> CPU_LOAD.setProgress(audioTrack.getDSPLoad())
+                );
+                try {
+                    Thread.sleep(16);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+        new Thread(() -> {
+            while (true) {
                 if (!rows.isEmpty()) {
                     ArrayList<ToggleButton> toggleButtonArrayList = rows.get(0).second.second;
                     for (int i = 0; i < toggleButtonArrayList.size(); i++) {
@@ -126,7 +144,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 try {
-                    // sleep 1 nanosecond
                     Thread.sleep(0, 500_000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();

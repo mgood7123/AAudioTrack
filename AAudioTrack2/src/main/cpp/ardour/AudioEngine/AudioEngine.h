@@ -30,6 +30,11 @@ namespace ARDOUR {
     class AudioEngine {
     public:
 
+        int DSPLoadInt;
+        double DSPLoadDouble;
+        uint64_t processingTime;
+        uint64_t bufferLength;
+
         Mixer mixer;
         ChannelRack channelRack;
         EffectRack effectRack;

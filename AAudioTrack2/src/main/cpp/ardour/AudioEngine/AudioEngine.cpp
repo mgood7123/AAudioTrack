@@ -37,6 +37,10 @@ namespace ARDOUR {
             , monitor_check_interval (INT32_MAX)
             , last_monitor_check (0)
             , _processed_samples (-1)
+            , DSPLoadDouble(0.0)
+            , DSPLoadInt(0)
+            , processingTime(0)
+            , bufferLength(0)
 //            , m_meter_thread (0)
 //            , _main_thread (0)
             , _mtdm (0)
@@ -386,7 +390,8 @@ namespace ARDOUR {
     HostInfo hostInfo;
 
     void AudioEngine::load(const char *filename) {
-        for (int i = 0; i < 20; ++i) {
+        // this can handle up to 120 channels (with 0 FX), with rare under-runs
+        for (int i = 0; i < 1; ++i) {
             channelRack.
                 newSamplerChannel(
                         filename,
@@ -431,7 +436,14 @@ namespace ARDOUR {
             LOGE("no backend");
             return;
         }
+
+        auto start = std::chrono::high_resolution_clock::now();
         channelRack.write(&hostInfo, in, &mixer, out, out->ports.samplesPerChannel);
+        auto end = std::chrono::high_resolution_clock::now();
+        processingTime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+        bufferLength = static_cast<double>((static_cast<double>(out->ports.samples) * 1000000000.0f) / static_cast<double>(_backend->sample_rate()));
+        DSPLoadDouble = (static_cast<double>(processingTime) / static_cast<double>(bufferLength)) * 100.0f;
+        DSPLoadInt = processingTime > bufferLength ? 100 : static_cast<int>(DSPLoadDouble);
     }
 
     sample_position_t AudioEngine::sample_time() {

@@ -3,12 +3,12 @@ plugins {
 }
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "30.0.2"
+    compileSdkVersion 29 // Play requires Android Q or higher
+    buildToolsVersion "29.0.3" // Play requires Android Q or higher
 
     defaultConfig {
-        minSdkVersion 28
-        targetSdkVersion 30
+        minSdkVersion 28 // Android Pie
+        targetSdkVersion 29 // Play requires Android Q or higher
         versionCode 1
         versionName "1.0"
 

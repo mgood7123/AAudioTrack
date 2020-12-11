@@ -96,6 +96,15 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_setNoteData(JNIEnv *env, jobject t
 }
 
 extern "C"
+JNIEXPORT jint JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_getDSPLoad(JNIEnv *env, jobject thiz) {
+    if (engine_exists()) {
+        LOGE("processing time: %lld nanoseconds, buffer length: %lld nanoseconds, DSPLoadInt: %d, DSPLoadDouble: %G", engine->processingTime, engine->bufferLength, engine->DSPLoadInt, engine->DSPLoadDouble);
+        return engine->DSPLoadInt;
+    } else return 0;
+}
+
+extern "C"
 JNIEXPORT jboolean JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_isNotePlaying(JNIEnv *env, jobject thiz,
                                                             jint note_data_index) {
@@ -105,6 +114,7 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_isNotePlaying(JNIEnv *env, jobject
             return pattern->pianoRoll.noteindex == note_data_index;
         }
     }
+    return false;
 }
 
 extern "C"
@@ -136,6 +146,7 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_newChannel(JNIEnv *env, jobject th
 extern "C"
 JNIEXPORT jlong JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_newSamplerChannel(JNIEnv *env, jobject thiz) {
+    return 0;
 //    return reinterpret_cast<jlong>(engine->channelRack.newChannel());
 }
 
