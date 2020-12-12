@@ -14,7 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 
-import smallville7123.UI.ImageProgressBar;
+import smallville7123.UI.UpdatingImageProgressBar;
 import smallville7123.aaudiotrack2.AAudioTrack2;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
@@ -90,7 +90,11 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
-    ImageProgressBar CPU_LOAD;
+    void u2(UpdatingImageProgressBar updatingImageProgressBar) {
+        updatingImageProgressBar.setProgress(audioTrack.getDSPLoad());
+    }
+
+    UpdatingImageProgressBar CPU_LOAD;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +102,8 @@ public class MainActivity extends AppCompatActivity {
         initLayout();
         initSequencer();
         CPU_LOAD = findViewById(R.id.CPU_LOAD);
+        CPU_LOAD.addOnFirstDrawAction(() -> u2(CPU_LOAD));
+        CPU_LOAD.addOnDrawAction(() -> u2(CPU_LOAD));
         UpdatingTextView updatingTextView = findViewById(R.id.INFO);
         updatingTextView.addOnFirstDrawAction(() -> u(updatingTextView));
         updatingTextView.addOnDrawAction(() -> u(updatingTextView));
@@ -116,18 +122,18 @@ public class MainActivity extends AppCompatActivity {
 
         audioTrack.load(this, R.raw.kick, "wav");
         audioTrack.loop(false);
-        new Thread(() -> {
-            while (true) {
-                MainActivity.this.runOnUiThread(
-                        () -> CPU_LOAD.setProgress(audioTrack.getDSPLoad())
-                );
-                try {
-                    Thread.sleep(16);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
+//        new Thread(() -> {
+//            while (true) {
+//                MainActivity.this.runOnUiThread(
+//                        () -> CPU_LOAD.setProgress(audioTrack.getDSPLoad())
+//                );
+//                try {
+//                    Thread.sleep(16);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }).start();
         new Thread(() -> {
             while (true) {
                 if (!rows.isEmpty()) {
@@ -144,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 try {
-                    Thread.sleep(0, 500_000);
+                    Thread.sleep(16);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

@@ -198,10 +198,10 @@ namespace ARDOUR {
         AAudioStreamBuilder_setDataCallback(builder, onAudioReady, this);
         AAudioStreamBuilder_setErrorCallback(builder, onError, this);
 
-        // 192 samples at 44100 sample rate is 4 ms
-        // 8192 samples at 44100 sample rate is roughly 168 ms
-//        AAudioStreamBuilder_setBufferCapacityInFrames(builder, 16384);
-//        AAudioStreamBuilder_setFramesPerDataCallback(builder, 8192);
+        int bufferSize = 512;
+
+        AAudioStreamBuilder_setBufferCapacityInFrames(builder, bufferSize*2);
+        AAudioStreamBuilder_setFramesPerDataCallback(builder, bufferSize);
 
         AAudioStreamBuilder_setPerformanceMode(builder, AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
 

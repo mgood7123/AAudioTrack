@@ -127,7 +127,6 @@ public:
             }
         }
         for (int32_t i = 0; i < samples; i ++) {
-            // write sample every beat, 120 bpm, 4 beats per bar
             if (pattern != nullptr) {
                 if (pattern->hasNote(hostInfo->engineFrame)) {
                     for(auto channel : rack.typeList) {

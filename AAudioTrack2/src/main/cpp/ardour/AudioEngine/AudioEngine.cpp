@@ -390,8 +390,11 @@ namespace ARDOUR {
     HostInfo hostInfo;
 
     void AudioEngine::load(const char *filename) {
-        // this can handle up to 120 channels (with 0 FX), with rare under-runs
-        for (int i = 0; i < 120; ++i) {
+        // if the audio buffer is 8k or larger
+        // then this can handle up to 120 channels
+        // (with 0 FX)
+        // with rare under-runs
+        for (int i = 0; i < 1; ++i) {
             channelRack.
                 newSamplerChannel(
                         filename,
