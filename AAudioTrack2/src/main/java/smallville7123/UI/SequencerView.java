@@ -9,6 +9,8 @@ import android.widget.LinearLayout;
 
 import androidx.annotation.Nullable;
 
+import java.util.ArrayList;
+
 import smallville7123.aaudiotrack2.R;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
@@ -80,16 +82,9 @@ public class SequencerView extends FrameLayout {
             }
         }, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 3f));
 
-        LinearLayout pattern = new LinearLayout(mContext);
-        pattern.addView(new ToggleRadioButton(mContext), Layout.wrapContent);
-        pattern.addView(new ToggleRadioButton(mContext), Layout.wrapContent);
-        pattern.addView(new ToggleRadioButton(mContext), Layout.wrapContent);
-        pattern.addView(new ToggleRadioButton(mContext), Layout.wrapContent);
-        pattern.addView(new ToggleRadioButton(mContext), Layout.wrapContent);
-        pattern.addView(new ToggleRadioButton(mContext), Layout.wrapContent);
-        pattern.addView(new ToggleRadioButton(mContext), Layout.wrapContent);
-        pattern.addView(new ToggleRadioButton(mContext), Layout.wrapContent);
-        row.addView(pattern, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 1f));
+        Pattern pattern = patternList.addPattern(mContext);
+        pattern.resize(8);
+        row.addView(pattern.row, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 1f));
 
         if (rowWidth == Float.NaN) {
             rows.addView(row, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 1f));
@@ -97,4 +92,43 @@ public class SequencerView extends FrameLayout {
             rows.addView(row, new LinearLayout.LayoutParams(MATCH_PARENT, (int) rowWidth));
         }
     }
+
+    class PatternList {
+        ArrayList<Pattern> patterns = new ArrayList<>();
+        Pattern addPattern(Context context) {
+            Pattern pattern = new Pattern(context);
+            patterns.add(pattern);
+            return pattern;
+        }
+    }
+
+    PatternList patternList = new PatternList();
+
+    class Pattern {
+        LinearLayout row;
+        int length;
+        Context mContext;
+        Pattern(Context context) {
+            mContext = context;
+            row = new LinearLayout(context);
+            row.setOrientation(HORIZONTAL);
+            length = 0;
+        }
+
+        void resize(int size) {
+            if (size == length) return;
+            if (size > length) {
+                for (int i = length; i < size; i++) {
+                    row.addView(new ToggleRadioButton(mContext), Layout.wrapContent);
+                    length++;
+                }
+            } else {
+                for (int i = (length-1); i > (size-1); i--) {
+                    row.removeViewAt(i);
+                    length--;
+                }
+            }
+        }
+    }
+
 }
