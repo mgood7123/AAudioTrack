@@ -1,5 +1,4 @@
-include ':AAudioTrack2'
-include ':AAudioTrack'
-include ':app'
 rootProject.name = "AAudioTrack"
+include ':AAudioTrack'
+include ':AAudioTrack2'
 include ':AAudioTrack_Application'

@@ -1,12 +1,8 @@
 package smallville7123.aaudiotrack.application;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Pair;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.ToggleButton;
 
 import androidx.annotation.DrawableRes;
@@ -14,15 +10,15 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 
+import smallville7123.UI.Layout;
 import smallville7123.UI.UpdatingImageProgressBar;
+import smallville7123.UI.UpdatingTextView;
 import smallville7123.aaudiotrack2.AAudioTrack2;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
 public class MainActivity extends AppCompatActivity {
     AAudioTrack2 audioTrack = new AAudioTrack2();
-
-    static ViewGroup.LayoutParams matchParent = new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT);
 
     ToggleButton addToggleButton(Pair<LinearLayout, ArrayList<ToggleButton>> pair, @DrawableRes int id, LinearLayout.LayoutParams params) {
         ToggleButton buttonA = new ToggleButton(this);
@@ -68,23 +64,9 @@ public class MainActivity extends AppCompatActivity {
         rows.add(pair);
     }
 
-    ToggleButton playback;
-
-    private void initLayout() {
-        LinearLayout linearLayout = (LinearLayout) getLayoutInflater().inflate(R.layout.sequencer, null, false);
-        playback = linearLayout.findViewById(R.id.playbackButton);
-        linearLayout.setOrientation(LinearLayout.VERTICAL);
-        setContentView(linearLayout, matchParent);
-        LinearLayout sequencer = linearLayout.findViewById(R.id.sequenceLayout);
-        LinearLayout sequencerID = linearLayout.findViewById(R.id.sequenceLayoutID);
-        addRow(sequencer, sequencerID);
-    }
-
     void u(UpdatingTextView updatingTextView) {
         updatingTextView.setText(
                 "Underruns:     " + audioTrack.getUnderrunCount() + "\n" +
-                        "Current frame: " + audioTrack.getCurrentFrame() + "\n" +
-                        "Total frames:  " + audioTrack.getTotalFrames() + "\n" +
                         "Sample rate:   " + audioTrack.getSampleRate() + "\n" +
                         "Channel count: " + audioTrack.getChannelCount() + "\n"
         );
@@ -99,41 +81,20 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        initLayout();
-        initSequencer();
+
+        LinearLayout linearLayout = (LinearLayout) getLayoutInflater().inflate(R.layout.main_activity, null, false);
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+        setContentView(linearLayout, Layout.matchParent);
         CPU_LOAD = findViewById(R.id.CPU_LOAD);
         CPU_LOAD.addOnFirstDrawAction(() -> u2(CPU_LOAD));
         CPU_LOAD.addOnDrawAction(() -> u2(CPU_LOAD));
         UpdatingTextView updatingTextView = findViewById(R.id.INFO);
         updatingTextView.addOnFirstDrawAction(() -> u(updatingTextView));
         updatingTextView.addOnDrawAction(() -> u(updatingTextView));
-    }
 
-    Sequencer sequencer;
-
-    private void initSequencer() {
-        playback.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                play();
-            } else {
-                pause();
-            }
-        });
 
         audioTrack.load(this, R.raw.kick, "wav");
         audioTrack.loop(false);
-//        new Thread(() -> {
-//            while (true) {
-//                MainActivity.this.runOnUiThread(
-//                        () -> CPU_LOAD.setProgress(audioTrack.getDSPLoad())
-//                );
-//                try {
-//                    Thread.sleep(16);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }).start();
         new Thread(() -> {
             while (true) {
                 if (!rows.isEmpty()) {
@@ -156,13 +117,5 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }).start();
-    }
-
-    void play() {
-        sequencer.setIsPlaying(true);
-    }
-
-    void pause() {
-        sequencer.setIsPlaying(false);
     }
 }

@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:background="@color/cardview_dark_background">
 
@@ -63,28 +64,23 @@
         </LinearLayout>
     </FrameLayout>
 
-    <LinearLayout
-        android:id="@+id/sequenceLayout"
+    <smallville7123.UI.SequencerView
+        android:id="@+id/sequencer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="6"
-        android:orientation="vertical"/>
+        android:orientation="vertical"
+        app:rowWidth="40dp"
+    />
 
-    <LinearLayout
-        android:id="@+id/sequenceLayoutID"
+    <smallville7123.UI.UpdatingTextView
+        android:id="@+id/INFO"
         android:layout_width="match_parent"
         android:layout_height="120dp"
         android:layout_weight="1"
-        android:orientation="vertical"/>
-
-    <smallville7123.aaudiotrack.application.UpdatingTextView
-        android:id="@+id/INFO"
-        android:layout_width="match_parent"
-        android:layout_height="220dp"
-        android:layout_weight="1"
         android:fontFamily="monospace"
         android:textColor="@color/cardview_light_background"
-        android:textSize="20dp"
+        android:textSize="14dp"
         />
 
     <FrameLayout
