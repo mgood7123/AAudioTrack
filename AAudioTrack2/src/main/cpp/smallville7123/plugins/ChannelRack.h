@@ -25,14 +25,6 @@ public:
         return rack.newType();
     }
 
-    Channel_Generator * newSamplerChannel(const char * filename, int channelCount) {
-        Channel_Generator * channel = rack.newType();
-        channel->plugin = new Sampler();
-        // this will call the overloaded load if it exists
-        channel->plugin->load(filename, channelCount);
-        return channel;
-    }
-
     void removeChannel(Channel_Generator * channel) {
         rack.removeType(channel);
     }
@@ -194,6 +186,10 @@ public:
         writeChannels(hostInfo, in, mixer, out, samples);
         mixChannels(hostInfo, in, reinterpret_cast<Plugin_Type_Mixer*>(mixer), out, samples);
         return PLUGIN_CONTINUE;
+    }
+
+    Channel_Generator * getChannel(long channelID) {
+        return rack.typeList[channelID];
     }
 };
 

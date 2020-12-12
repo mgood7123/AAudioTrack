@@ -105,6 +105,19 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_getDSPLoad(JNIEnv *env, jobject th
 }
 
 extern "C"
+JNIEXPORT jlong JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_newPattern(JNIEnv *env, jobject thiz) {
+    if (engine_exists()) return reinterpret_cast<jlong>(engine->newPattern());
+    else return 0;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_deletePattern(JNIEnv *env, jobject thiz, jlong pattern) {
+    if (engine_exists()) engine->deletePattern(reinterpret_cast<Pattern*>(pattern));
+}
+
+extern "C"
 JNIEXPORT jboolean JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_isNotePlaying(JNIEnv *env, jobject thiz,
                                                             jint note_data_index) {
@@ -140,14 +153,17 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_stopEngine(JNIEnv *env, jobject th
 extern "C"
 JNIEXPORT jlong JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_newChannel(JNIEnv *env, jobject thiz) {
+    if (!engine_exists()) return 0;
     return reinterpret_cast<jlong>(engine->channelRack.newChannel());
 }
 
 extern "C"
 JNIEXPORT jlong JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_newSamplerChannel(JNIEnv *env, jobject thiz) {
-    return 0;
-//    return reinterpret_cast<jlong>(engine->channelRack.newChannel());
+    if (!engine_exists()) return 0;
+    Channel_Generator * channel = engine->channelRack.newChannel();
+    channel->plugin = new Sampler();
+    return reinterpret_cast<jlong>(channel);
 }
 
 extern "C"
@@ -163,12 +179,13 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_getChannelCount(JNIEnv *env, jobje
     if (!check_engine()) return 0;
     return engine->current_backend()->output_channels();
 }
+
 extern "C"
 JNIEXPORT void JNICALL
-Java_smallville7123_aaudiotrack2_AAudioTrack2_setTrack(JNIEnv *env, jobject thiz, jstring track) {
+Java_smallville7123_aaudiotrack2_AAudioTrack2_setTrack(JNIEnv *env, jobject thiz, jlong channelID, jstring track) {
     if (!engine_exists()) return;
     const char * path_ = JniHelpers::Strings::newJniStringUTF(env, track);
-    engine->load(path_);
+    engine->load(reinterpret_cast<void *>(channelID), path_);
     JniHelpers::Strings::deleteJniStringUTF(&path_);
 }
 

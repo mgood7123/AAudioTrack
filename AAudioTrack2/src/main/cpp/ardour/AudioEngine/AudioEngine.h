@@ -128,11 +128,13 @@ namespace ARDOUR {
 
         void renderAudio(PortUtils2 * in, PortUtils2 * out);
 
-        void load(const char *string);
+        void load(void * channelID, const char *string);
 
         sample_position_t sample_time();
-    };
 
+        Pattern *newPattern();
+        void deletePattern(Pattern * pattern);
+    };
 }
 
 #endif //AAUDIOTRACK_AAUDIOENGINE_H

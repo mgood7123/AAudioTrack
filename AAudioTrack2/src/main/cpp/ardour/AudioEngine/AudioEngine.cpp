@@ -389,20 +389,24 @@ namespace ARDOUR {
 
     HostInfo hostInfo;
 
-    void AudioEngine::load(const char *filename) {
+    void AudioEngine::load(void * channelID, const char *filename) {
+        reinterpret_cast<Channel_Generator*>(channelID)->plugin->load(
+                filename,
+                _backend->available_output_channel_count(_backend->device_name())
+        );
         // if the audio buffer is 8k or larger
         // then this can handle up to 120 channels
         // (with 0 FX)
         // with rare under-runs
-        for (int i = 0; i < 1; ++i) {
-            channelRack.
-                newSamplerChannel(
-                        filename,
-                        _backend->available_output_channel_count(_backend->device_name())
-                )
-//                ->effectRack->newDelayChannel()
-                ;
-        }
+//        for (int i = 0; i < 1; ++i) {
+//            channelRack.
+//                newSamplerChannel(
+//                        filename,
+//                        _backend->available_output_channel_count(_backend->device_name())
+//                )
+////                ->effectRack->newDelayChannel()
+//                ;
+//        }
     }
 
     void AudioEngine::renderAudio(PortUtils2 * in, PortUtils2 * out) {
@@ -458,5 +462,13 @@ namespace ARDOUR {
 
     shared_ptr<AudioBackend> AudioEngine::current_backend() const {
         return _backend;
+    }
+
+    Pattern * AudioEngine::newPattern() {
+        return channelRack.patternList.newPattern();
+    }
+
+    void AudioEngine::deletePattern(Pattern * pattern) {
+        channelRack.patternList.removePattern(pattern);
     }
 }

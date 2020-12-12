@@ -95,30 +95,35 @@ public class MainActivity extends AppCompatActivity {
 
         SequencerView sequencerView = findViewById(R.id.sequencer);
         sequencerView.setDAW(audioTrack);
-
-        audioTrack.load(this, R.raw.kick, "wav");
-        audioTrack.loop(false);
-        new Thread(() -> {
-            while (true) {
-                if (!rows.isEmpty()) {
-                    ArrayList<ToggleButton> toggleButtonArrayList = rows.get(0).second.second;
-                    for (int i = 0; i < toggleButtonArrayList.size(); i++) {
-                        int finalI = i;
-                        MainActivity.this.runOnUiThread(
-                                () -> toggleButtonArrayList
-                                        .get(finalI)
-                                        .setChecked(
-                                                audioTrack.isNotePlaying(finalI)
-                                        )
-                        );
-                    }
-                }
-                try {
-                    Thread.sleep(16);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
+        audioTrack.load(
+                sequencerView.addRow("Kick1").newSamplerChannel(),
+                this, R.raw.kick, "wav"
+        );
+        audioTrack.load(
+                sequencerView.addRow("Kick2").newSamplerChannel(),
+                this, R.raw.kick, "wav"
+        );
+//        new Thread(() -> {
+//            while (true) {
+//                if (!rows.isEmpty()) {
+//                    ArrayList<ToggleButton> toggleButtonArrayList = rows.get(0).second.second;
+//                    for (int i = 0; i < toggleButtonArrayList.size(); i++) {
+//                        int finalI = i;
+//                        MainActivity.this.runOnUiThread(
+//                                () -> toggleButtonArrayList
+//                                        .get(finalI)
+//                                        .setChecked(
+//                                                audioTrack.isNotePlaying(finalI)
+//                                        )
+//                        );
+//                    }
+//                }
+//                try {
+//                    Thread.sleep(16);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }).start();
     }
 }

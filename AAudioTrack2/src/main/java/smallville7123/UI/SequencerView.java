@@ -58,10 +58,6 @@ public class SequencerView extends FrameLayout {
         rows = new LinearLayout(context);
         rows.setOrientation(VERTICAL);
         addView(rows);
-        addRow("1");
-        addRow("2");
-        addRow("3");
-        addRow("4");
     }
 
     AAudioTrack2 DAW;
@@ -70,46 +66,47 @@ public class SequencerView extends FrameLayout {
         this.DAW = DAW;
     }
 
-    public void addRow(String label) {
-        LinearLayout row = new LinearLayout(mContext);
-        row.setOrientation(HORIZONTAL);
-        row.addView(new ToggleRadioButton(mContext) {
-            {
-                setChecked(true);
-                setTooltipText("Tap to disable this channel");
-                setOnCheckedChangeListener((unused, checked) -> {
-                    setTooltipText(
-                            "Tap to " +
-                                    (checked ? "disable" : "enable") +
-                                    " this channel"
-                    );
-                });
-            }
-        }, Layout.wrapContent);
-        row.addView(new Button(mContext) {
-            {
-                setText(label);
-            }
-        }, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 3f));
-
-        Pattern pattern = patternList.addPattern(mContext);
+    public Pattern addRow(String label) {
+        Pattern pattern = patternList.addPattern(mContext, label);
         pattern.resize(8);
-        row.addView(pattern.row, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 1f));
-
-        if (rowWidth == Float.NaN) {
-            rows.addView(row, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 1f));
-        } else {
-            rows.addView(row, new LinearLayout.LayoutParams(MATCH_PARENT, (int) rowWidth));
-        }
+        return pattern;
     }
 
     PatternList patternList = new PatternList();
 
     class PatternList {
         ArrayList<Pattern> patterns = new ArrayList<>();
-        Pattern addPattern(Context context) {
-            Pattern pattern = new Pattern(context);
+        Pattern addPattern(Context context, String label) {
+            Pattern pattern = new Pattern(context, DAW.newPattern());
             patterns.add(pattern);
+            LinearLayout row = new LinearLayout(mContext);
+            row.setOrientation(HORIZONTAL);
+            row.addView(new ToggleRadioButton(mContext) {
+                {
+                    setChecked(true);
+                    setTooltipText("Tap to disable this channel");
+                    setOnCheckedChangeListener((unused, checked) -> {
+                        setTooltipText(
+                                "Tap to " +
+                                        (checked ? "disable" : "enable") +
+                                        " this channel"
+                        );
+                    });
+                }
+            }, Layout.wrapContent);
+            row.addView(new Button(mContext) {
+                {
+                    setText(label);
+                }
+            }, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 3f));
+
+            row.addView(pattern.row, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 1f));
+
+            if (rowWidth == Float.NaN) {
+                rows.addView(row, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 1f));
+            } else {
+                rows.addView(row, new LinearLayout.LayoutParams(MATCH_PARENT, (int) rowWidth));
+            }
             return pattern;
         }
 
@@ -129,13 +126,15 @@ public class SequencerView extends FrameLayout {
         }
     }
 
-    class Pattern {
+    public class Pattern {
         ArrayList<CompoundButton> compoundButtons = new ArrayList<>();
+        long pattern;
         LinearLayout row;
         int length;
         Context mContext;
+        private long channel;
 
-        Pattern(Context context) {
+        Pattern(Context context, long pattern) {
             mContext = context;
             row = new LinearLayout(context);
             row.setOrientation(HORIZONTAL);
@@ -169,6 +168,11 @@ public class SequencerView extends FrameLayout {
                     length--;
                 }
             }
+        }
+
+        public long newSamplerChannel() {
+            channel = DAW.newSamplerChannel();
+            return channel;
         }
     }
 }
