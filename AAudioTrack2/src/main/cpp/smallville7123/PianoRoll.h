@@ -51,19 +51,21 @@ public:
     }
 
     uint64_t wrap(uint64_t frame, uint64_t min, uint64_t max) {
-        return min + ((frame-min) % (max - min + 1));
+        return min + ((frame-min) % (max - min));
     }
 
     bool hasNote(uint64_t frame) {
         if (noteData.isEmpty()) return false;
-        uint64_t wrappedFrame = wrap(frame, 0, grid.samples_per_note * grid.notes_per_bar);
+        uint64_t wrappedFrame = wrap(frame, 0, grid.samples_per_bar);
         for (int i = 0; i < noteData.readAvailable(); ++i) {
             auto * pair = noteData.at(i);
             if (pair != nullptr) {
                 auto &sampleToPlayNoteOn = pair->first;
                 if (wrappedFrame == sampleToPlayNoteOn) {
                     noteindex = i;
-                    if (pair->second == true) return true;
+                    if (pair->second == true) {
+                        return true;
+                    }
                 }
             }
         }

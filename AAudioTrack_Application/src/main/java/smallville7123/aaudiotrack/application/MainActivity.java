@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.util.ArrayList;
 
 import smallville7123.UI.Layout;
+import smallville7123.UI.SequencerView;
 import smallville7123.UI.UpdatingImageProgressBar;
 import smallville7123.UI.UpdatingTextView;
 import smallville7123.aaudiotrack2.AAudioTrack2;
@@ -92,6 +93,8 @@ public class MainActivity extends AppCompatActivity {
         updatingTextView.addOnFirstDrawAction(() -> u(updatingTextView));
         updatingTextView.addOnDrawAction(() -> u(updatingTextView));
 
+        SequencerView sequencerView = findViewById(R.id.sequencer);
+        sequencerView.setDAW(audioTrack);
 
         audioTrack.load(this, R.raw.kick, "wav");
         audioTrack.loop(false);
