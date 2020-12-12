@@ -33,7 +33,7 @@ public class AAudioTrack2 {
     private native void createNativeInstance();
     private native void startEngine();
     private native void stopEngine();
-    public native void setNoteData(boolean[] array);
+    public native void setNoteData(long pattern, boolean[] array);
     public native int getDSPLoad();
     public native long newPattern();
     public native void deletePattern(long pattern);

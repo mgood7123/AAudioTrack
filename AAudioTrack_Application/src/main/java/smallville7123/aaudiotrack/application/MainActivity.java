@@ -21,50 +21,6 @@ import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 public class MainActivity extends AppCompatActivity {
     AAudioTrack2 audioTrack = new AAudioTrack2();
 
-    ToggleButton addToggleButton(Pair<LinearLayout, ArrayList<ToggleButton>> pair, @DrawableRes int id, LinearLayout.LayoutParams params) {
-        ToggleButton buttonA = new ToggleButton(this);
-        buttonA.setBackgroundResource(id);
-        buttonA.setTextOn("");
-        buttonA.setTextOff("");
-        buttonA.setText("");
-        pair.second.add(buttonA);
-        pair.first.addView(buttonA, params);
-        return buttonA;
-    }
-
-    ToggleButton addToggleButton(Pair<LinearLayout, ArrayList<ToggleButton>> pair, @DrawableRes int id) {
-        return addToggleButton(pair, id, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 1f));
-    }
-
-    ArrayList<Pair<Pair<LinearLayout, ArrayList<ToggleButton>>, Pair<LinearLayout, ArrayList<ToggleButton>>>> rows = new ArrayList<>();
-
-    boolean[] data = new boolean[8];
-
-    void addRow(LinearLayout linearLayout, LinearLayout ID) {
-        Pair<Pair<LinearLayout, ArrayList<ToggleButton>>, Pair<LinearLayout, ArrayList<ToggleButton>>> pair = new Pair<>(
-                new Pair(new LinearLayout(this), new ArrayList<>()),
-                new Pair(new LinearLayout(this), new ArrayList<>())
-        );
-        pair.first.first.setOrientation(LinearLayout.HORIZONTAL);
-        linearLayout.addView(pair.first.first, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 1f));
-        for (int i = 0; i < 8; i++) {
-            ToggleButton b = addToggleButton(pair.first, R.drawable.toggle);
-            data[i] = false;
-            b.setTag(i);
-            int finalI = i;
-            b.setOnCheckedChangeListener((compoundButton, b1) -> {
-                data[finalI] = b1;
-                audioTrack.setNoteData(data);
-            });
-        }
-        pair.second.first.setOrientation(LinearLayout.HORIZONTAL);
-        ID.addView(pair.second.first, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 1f));
-        for (int i = 0; i < 8; i++) {
-            addToggleButton(pair.second, R.drawable.toggle).setClickable(false);
-        }
-        rows.add(pair);
-    }
-
     void u(UpdatingTextView updatingTextView) {
         updatingTextView.setText(
                 "Underruns:     " + audioTrack.getUnderrunCount() + "\n" +

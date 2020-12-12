@@ -41,14 +41,9 @@ public:
     PortUtils2 * silencePort = nullptr;
 
     PatternList patternList;
-    Pattern * pattern = nullptr;
 
     ChannelRack() {
         silencePort = new PortUtils2();
-        pattern = patternList.newPattern();
-        pattern->pianoRoll.setBPM(120*2);
-        pattern->pianoRoll.setResolution(8);
-        pattern->pianoRoll.updateGrid();
 
         // i dont think a ring buffer can be used, eg assuming the ring buffer IS the buffer, then it would need to re-push all notes in the new order each time it is modified, which would involve shifting and inserting notes, which could result in invalid playback of incorrect notes
         // for example if you have 0,0,1,0 and you want to set 1,0,1,0 then it would need to be 0,0,1,0 > 1,0,0,1 > 0,1,0,0 > 1,0,1,0
@@ -82,7 +77,6 @@ public:
 
     ~ChannelRack() {
         silencePort->deallocatePorts<ENGINE_FORMAT>();
-        patternList.removePattern(pattern);
         delete silencePort;
     }
 
@@ -118,6 +112,10 @@ public:
                 }
             }
         }
+        // TODO:
+        // how are patterns kept track of?
+        // for example, channel 1's pattern in pattern 1,
+        // and channel 1's pattern, in pattern 2, as well as playlist patterns
         for (int32_t i = 0; i < samples; i ++) {
             if (pattern != nullptr) {
                 if (pattern->hasNote(hostInfo->engineFrame)) {

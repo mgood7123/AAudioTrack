@@ -74,7 +74,7 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_createNativeInstance(JNIEnv* env, 
 extern "C"
 JNIEXPORT void JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_setNoteData(JNIEnv *env, jobject thiz,
-                                                          jbooleanArray booleanArray) {
+                                                          jlong pattern, jbooleanArray booleanArray) {
     jsize arrayLength = env->GetArrayLength(booleanArray);
     if (arrayLength == 0) {
         // clear note data
@@ -84,9 +84,8 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_setNoteData(JNIEnv *env, jobject t
         if (ptr != nullptr) {
             // set note data
             if (engine_exists()) {
-                auto * pattern = engine->channelRack.pattern;
-                if (pattern != nullptr) {
-                    pattern->pianoRoll.setNoteData(reinterpret_cast<bool *>(ptr), arrayLength);
+                if (pattern != 0) {
+                    reinterpret_cast<Pattern *>(pattern)->pianoRoll.setNoteData(reinterpret_cast<bool *>(ptr), arrayLength);
                 }
             }
         }

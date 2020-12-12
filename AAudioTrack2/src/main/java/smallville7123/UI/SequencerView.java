@@ -128,13 +128,14 @@ public class SequencerView extends FrameLayout {
 
     public class Pattern {
         ArrayList<CompoundButton> compoundButtons = new ArrayList<>();
-        long pattern;
+        long mPattern;
         LinearLayout row;
         int length;
         Context mContext;
-        private long channel;
+        long channel;
 
         Pattern(Context context, long pattern) {
+            mPattern = pattern;
             mContext = context;
             row = new LinearLayout(context);
             row.setOrientation(HORIZONTAL);
@@ -155,7 +156,7 @@ public class SequencerView extends FrameLayout {
                 for (int i = length; i < size; i++) {
                     CompoundButton compoundButton = new ToggleRadioButton(mContext);
                     compoundButton.setOnCheckedChangeListener((b0, b1) -> {
-                        DAW.setNoteData(patternList.getData());
+                        DAW.setNoteData(mPattern, getData());
                     });
                     compoundButtons.add(compoundButton);
                     row.addView(compoundButton, Layout.wrapContent);
