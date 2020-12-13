@@ -15,6 +15,7 @@
 #include "../PianoRoll.h"
 #include "../Pattern.h"
 #include "../PatternList.h"
+#include "../PatternGroup.h"
 
 class ChannelRack : Plugin_Base {
 public:
@@ -40,7 +41,7 @@ public:
 
     PortUtils2 * silencePort = nullptr;
 
-    PatternList patternList;
+    PatternGroup patternGroup;
 
     ChannelRack() {
         silencePort = new PortUtils2();
@@ -95,45 +96,57 @@ public:
     void writeChannels(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
                        unsigned int samples) {
         // LOGE("writing channels");
-        for(int i = 0; i < rack.typeList.size(); i++) {
-            auto * channel = rack.typeList[i];
-            channel->out->allocatePorts<ENGINE_FORMAT>(out);
-            channel->out->fillPortBuffer<ENGINE_FORMAT>(0);
-            if (channel->plugin != nullptr) {
-                if (channel->plugin->is_writing == PLUGIN_CONTINUE) {
-                    writePlugin(channel->plugin, hostInfo, in, mixer,
-                                channel->out, samples);
-                }
-                if (channel->effectRack != nullptr) {
-                    if (channel->effectRack->is_writing == PLUGIN_CONTINUE) {
-                        writeEffectRack(channel->effectRack, hostInfo, in, mixer,
-                                        channel->out, samples);
+        for (int i = 0; i < patternGroup.rack.typeList.size(); ++i) {
+            PatternList *patternList = patternGroup.rack.typeList[i];
+            if (patternList != nullptr) {
+                for (int i = 0; i < patternList->rack.typeList.size(); ++i) {
+                    Pattern *pattern = patternList->rack.typeList[i];
+                    if (pattern != nullptr) {
+                        Channel_Generator *channel = pattern->channelReference;
+                        if (channel != nullptr) {
+                            channel->out->allocatePorts<ENGINE_FORMAT>(out);
+                            channel->out->fillPortBuffer<ENGINE_FORMAT>(0);
+                            if (channel->plugin != nullptr) {
+                                if (channel->plugin->is_writing == PLUGIN_CONTINUE) {
+                                    writePlugin(channel->plugin, hostInfo, in, mixer,
+                                                channel->out, samples);
+                                }
+                            }
+                            if (channel->effectRack != nullptr) {
+                                if (channel->effectRack->is_writing == PLUGIN_CONTINUE) {
+                                    writeEffectRack(channel->effectRack, hostInfo, in,
+                                                    mixer,
+                                                    channel->out, samples);
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
-        // TODO:
-        // how are patterns kept track of?
-        // for example, channel 1's pattern in pattern 1,
-        // and channel 1's pattern, in pattern 2, as well as playlist patterns
         for (int32_t i = 0; i < samples; i ++) {
-            if (pattern != nullptr) {
-                if (pattern->hasNote(hostInfo->engineFrame)) {
-                    for(auto channel : rack.typeList) {
-                        channel->out->allocatePorts<ENGINE_FORMAT>(out);
-                        channel->out->fillPortBuffer<ENGINE_FORMAT>(0);
-                        if (channel->plugin != nullptr) {
-                            channel->plugin->stopPlayback();
-                            writePlugin(channel->plugin, hostInfo, in, mixer,
-                                        channel->out, samples);
-                        }
-                        // an effect rack should be able to be played even without a plugin
-                        // as there may be an effect which acts as both a generator and an effect
-                        // for example an effect may add random data to the stream
-                        // this would turn it into a generator
-                        if (channel->effectRack != nullptr) {
-                            writeEffectRack(channel->effectRack, hostInfo, in, mixer,
-                                            channel->out, samples);
+            for (int i = 0; i < patternGroup.rack.typeList.size(); ++i) {
+                PatternList *patternList = patternGroup.rack.typeList[i];
+                if (patternList != nullptr) {
+                    for (int i = 0; i < patternList->rack.typeList.size(); ++i) {
+                        Pattern *pattern = patternList->rack.typeList[i];
+                        if (pattern != nullptr) {
+                            if (pattern->hasNote(hostInfo->engineFrame)) {
+                                Channel_Generator * channel = pattern->channelReference;
+                                if (channel != nullptr) {
+                                    channel->out->allocatePorts<ENGINE_FORMAT>(out);
+                                    channel->out->fillPortBuffer<ENGINE_FORMAT>(0);
+                                    if (channel->plugin != nullptr) {
+                                        channel->plugin->stopPlayback();
+                                        writePlugin(channel->plugin, hostInfo, in, mixer,
+                                                    channel->out, samples);
+                                    }
+                                    if (channel->effectRack != nullptr) {
+                                        writeEffectRack(channel->effectRack, hostInfo, in, mixer,
+                                                        channel->out, samples);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -146,7 +159,21 @@ public:
 
     void prepareMixer(Plugin_Type_Mixer * mixer_, PortUtils2 * out) {
         // LOGE("preparing mixer");
-        for(auto channel : rack.typeList) mixer_->addPort(channel->out);
+        for (int i = 0; i < patternGroup.rack.typeList.size(); ++i) {
+            PatternList *patternList = patternGroup.rack.typeList[i];
+            if (patternList != nullptr) {
+                for (int i = 0; i < patternList->rack.typeList.size(); ++i) {
+                    Pattern *pattern = patternList->rack.typeList[i];
+                    if (pattern != nullptr) {
+                        if (pattern->channelReference != nullptr) {
+                            if (pattern->channelReference->out->allocated) {
+                                mixer_->addPort(pattern->channelReference->out);
+                            }
+                        }
+                    }
+                }
+            }
+        }
         silencePort->allocatePorts<ENGINE_FORMAT>(out);
         mixer_->addPort(silencePort);
         silencePort->fillPortBuffer<ENGINE_FORMAT>(0);
@@ -165,9 +192,21 @@ public:
         mixer_->removePort(silencePort);
         silencePort->deallocatePorts<ENGINE_FORMAT>();
 
-        for(auto channel : rack.typeList) {
-            mixer_->removePort(channel->out);
-            channel->out->deallocatePorts<ENGINE_FORMAT>();
+        for (int i = 0; i < patternGroup.rack.typeList.size(); ++i) {
+            PatternList *patternList = patternGroup.rack.typeList[i];
+            if (patternList != nullptr) {
+                for (int i = 0; i < patternList->rack.typeList.size(); ++i) {
+                    Pattern *pattern = patternList->rack.typeList[i];
+                    if (pattern != nullptr) {
+                        if (pattern->channelReference != nullptr) {
+                            if (pattern->channelReference->out->allocated) {
+                                mixer_->removePort(pattern->channelReference->out);
+                                pattern->channelReference->out->deallocatePorts<ENGINE_FORMAT>();
+                            }
+                        }
+                    }
+                }
+            }
         }
         // LOGE("finalized mixer");
     }
@@ -186,8 +225,24 @@ public:
         return PLUGIN_CONTINUE;
     }
 
-    Channel_Generator * getChannel(long channelID) {
-        return rack.typeList[channelID];
+    void bindChannelToPattern(void *channelID, void *patternID) {
+        static_cast<Pattern*>(patternID)->channelReference = static_cast<Channel_Generator *>(channelID);
+    }
+
+    PatternList * newPatternList() {
+        return patternGroup.newPatternList();
+    }
+
+    void deletePatternList(PatternList * patternList) {
+        return patternGroup.removePatternList(patternList);
+    }
+
+    Pattern * newPattern(PatternList * patternList) {
+        return patternList->newPattern();
+    }
+
+    void deletePattern(PatternList * patternList, Pattern * pattern) {
+        return patternList->removePattern(pattern);
     }
 };
 

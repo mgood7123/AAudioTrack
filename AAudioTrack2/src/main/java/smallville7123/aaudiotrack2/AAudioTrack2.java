@@ -35,8 +35,11 @@ public class AAudioTrack2 {
     private native void stopEngine();
     public native void setNoteData(long pattern, boolean[] array);
     public native int getDSPLoad();
-    public native long newPattern();
-    public native void deletePattern(long pattern);
+    public native void bindChannelToPattern(long channel, long pattern);
+    public native long createPatternList();
+    public native void deletePatternList(long patternList);
+    public native long createPattern(long patternList);
+    public native void deletePattern(long patternList, long pattern);
 
     public native boolean isNotePlaying(int noteDataIndex);
 

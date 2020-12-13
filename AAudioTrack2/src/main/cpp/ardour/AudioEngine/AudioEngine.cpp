@@ -464,11 +464,27 @@ namespace ARDOUR {
         return _backend;
     }
 
-    Pattern * AudioEngine::newPattern() {
-        return channelRack.patternList.newPattern();
+    void AudioEngine::bindChannelToPattern(void *channelID, void *patternID) {
+        channelRack.bindChannelToPattern(channelID, patternID);
     }
 
-    void AudioEngine::deletePattern(Pattern * pattern) {
-        channelRack.patternList.removePattern(pattern);
+    PatternList * AudioEngine::createPatternList() {
+        return channelRack.patternGroup.newPatternList();
+    }
+
+    void AudioEngine::deletePatternList(void * patternList) {
+        return channelRack.patternGroup.removePatternList(static_cast<PatternList *>(patternList));
+    }
+
+    Pattern * AudioEngine::createPattern(void * patternList) {
+        Pattern * pattern = static_cast<PatternList *>(patternList)->newPattern();
+        pattern->pianoRoll.setBPM(240);
+        pattern->pianoRoll.setResolution(8);
+        pattern->pianoRoll.updateGrid();
+        return pattern;
+    }
+
+    void AudioEngine::deletePattern(void * patternList, void * pattern) {
+        static_cast<PatternList *>(patternList)->removePattern(static_cast<Pattern *>(pattern));
     }
 }

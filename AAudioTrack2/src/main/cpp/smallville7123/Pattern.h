@@ -12,6 +12,7 @@
 class Pattern {
 public:
     PianoRoll pianoRoll;
+    Channel_Generator * channelReference;
 
     bool hasNote(uint64_t frame) {
         return pianoRoll.hasNote(frame);

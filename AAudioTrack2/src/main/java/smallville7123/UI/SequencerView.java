@@ -14,6 +14,7 @@ import androidx.annotation.Nullable;
 import java.util.ArrayList;
 
 import smallville7123.aaudiotrack2.AAudioTrack2;
+import smallville7123.aaudiotrack2.PatternGroup;
 import smallville7123.aaudiotrack2.R;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
@@ -66,19 +67,35 @@ public class SequencerView extends FrameLayout {
         this.DAW = DAW;
     }
 
-    public Pattern addRow(String label) {
-        Pattern pattern = patternList.addPattern(mContext, label);
+    PatternGroup<PatternList> group = null;
+
+    public PatternList newPatternList(AAudioTrack2 audioTrack) {
+        if (group == null) {
+            group = new PatternGroup<>(audioTrack);
+        }
+        return group.newPatternList(new PatternList());
+    }
+
+    public void removePatternList(PatternList patternList) {
+        group.removePatternList(patternList);
+    }
+
+    public Pattern addRow(PatternList patternList, String label) {
+        Pattern pattern = patternList.newPattern(mContext, label);
         pattern.resize(8);
         return pattern;
     }
 
-    PatternList patternList = new PatternList();
+    public class PatternList extends smallville7123.aaudiotrack2.PatternList<Pattern> {
+        Pattern newPattern(Context context, String label) {
+            Pattern pattern = newPattern(new Pattern());
 
-    class PatternList {
-        ArrayList<Pattern> patterns = new ArrayList<>();
-        Pattern addPattern(Context context, String label) {
-            Pattern pattern = new Pattern(context, DAW.newPattern());
-            patterns.add(pattern);
+            pattern.mContext = context;
+            pattern.row = new LinearLayout(context);
+            pattern.row.setOrientation(HORIZONTAL);
+            pattern.length = 0;
+
+            patternArrayList.add(pattern);
             LinearLayout row = new LinearLayout(mContext);
             row.setOrientation(HORIZONTAL);
             row.addView(new ToggleRadioButton(mContext) {
@@ -109,40 +126,16 @@ public class SequencerView extends FrameLayout {
             }
             return pattern;
         }
-
-        boolean[] getData() {
-            ArrayList<Boolean> data = new ArrayList<>();
-            for (int i = 0; i < patterns.size(); i++) {
-                boolean[] patternData = patterns.get(i).getData();
-                for (boolean value : patternData) {
-                    data.add(value);
-                }
-            }
-            boolean[] data_ = new boolean[data.size()];
-            for (int i = 0; i < data.size(); i++) {
-                data_[i] = data.get(i);
-            }
-            return data_;
-        }
     }
 
-    public class Pattern {
+    public class Pattern extends smallville7123.aaudiotrack2.Pattern {
         ArrayList<CompoundButton> compoundButtons = new ArrayList<>();
-        long mPattern;
         LinearLayout row;
         int length;
         Context mContext;
-        long channel;
 
-        Pattern(Context context, long pattern) {
-            mPattern = pattern;
-            mContext = context;
-            row = new LinearLayout(context);
-            row.setOrientation(HORIZONTAL);
-            length = 0;
-        }
-
-        boolean[] getData() {
+        @Override
+        public boolean[] getData() {
             boolean[] data = new boolean[compoundButtons.size()];
             for (int i = 0; i < compoundButtons.size(); i++) {
                 data[i] = compoundButtons.get(i).isChecked();
@@ -156,7 +149,7 @@ public class SequencerView extends FrameLayout {
                 for (int i = length; i < size; i++) {
                     CompoundButton compoundButton = new ToggleRadioButton(mContext);
                     compoundButton.setOnCheckedChangeListener((b0, b1) -> {
-                        DAW.setNoteData(mPattern, getData());
+                        setNoteData();
                     });
                     compoundButtons.add(compoundButton);
                     row.addView(compoundButton, Layout.wrapContent);
@@ -169,11 +162,6 @@ public class SequencerView extends FrameLayout {
                     length--;
                 }
             }
-        }
-
-        public long newSamplerChannel() {
-            channel = DAW.newSamplerChannel();
-            return channel;
         }
     }
 }

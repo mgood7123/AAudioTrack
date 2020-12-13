@@ -81,14 +81,8 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_setNoteData(JNIEnv *env, jobject t
     } else {
         jboolean isCopy;
         jboolean * ptr = env->GetBooleanArrayElements(booleanArray, &isCopy);
-        if (ptr != nullptr) {
-            // set note data
-            if (engine_exists()) {
-                if (pattern != 0) {
-                    reinterpret_cast<Pattern *>(pattern)->pianoRoll.setNoteData(reinterpret_cast<bool *>(ptr), arrayLength);
-                }
-            }
-        }
+        // set note data
+        reinterpret_cast<Pattern *>(pattern)->pianoRoll.setNoteData(reinterpret_cast<bool *>(ptr), arrayLength);
         // free the buffer without copying back the possible changes
         env->ReleaseBooleanArrayElements(booleanArray, ptr, JNI_ABORT);
     }
@@ -103,17 +97,16 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_getDSPLoad(JNIEnv *env, jobject th
     } else return 0;
 }
 
-extern "C"
-JNIEXPORT jlong JNICALL
-Java_smallville7123_aaudiotrack2_AAudioTrack2_newPattern(JNIEnv *env, jobject thiz) {
-    if (engine_exists()) return reinterpret_cast<jlong>(engine->newPattern());
-    else return 0;
-}
+#define makeVoidPtr(what) reinterpret_cast<void*>(what)
+#define makejlong(what) reinterpret_cast<jlong>(what)
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_smallville7123_aaudiotrack2_AAudioTrack2_deletePattern(JNIEnv *env, jobject thiz, jlong pattern) {
-    if (engine_exists()) engine->deletePattern(reinterpret_cast<Pattern*>(pattern));
+Java_smallville7123_aaudiotrack2_AAudioTrack2_bindChannelToPattern(JNIEnv *env, jobject thiz,
+                                                                   jlong channel, jlong pattern) {
+    if (engine_exists()) {
+        engine->bindChannelToPattern(makeVoidPtr(channel), makeVoidPtr(pattern));
+    }
 }
 
 extern "C"
@@ -121,9 +114,16 @@ JNIEXPORT jboolean JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_isNotePlaying(JNIEnv *env, jobject thiz,
                                                             jint note_data_index) {
     if (engine_exists()) {
-        auto * pattern = engine->channelRack.pattern;
-        if (pattern != nullptr) {
-            return pattern->pianoRoll.noteindex == note_data_index;
+        for (int i = 0; i < engine->channelRack.patternGroup.rack.typeList.size(); ++i) {
+            PatternList *patternList = engine->channelRack.patternGroup.rack.typeList[i];
+            if (patternList != nullptr) {
+                for (int i = 0; i < patternList->rack.typeList.size(); ++i) {
+                    Pattern *pattern = patternList->rack.typeList[i];
+                    if (pattern != nullptr) {
+                        return pattern->pianoRoll.noteindex == note_data_index;
+                    }
+                }
+            }
         }
     }
     return false;
@@ -159,7 +159,6 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_newChannel(JNIEnv *env, jobject th
 extern "C"
 JNIEXPORT jlong JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_newSamplerChannel(JNIEnv *env, jobject thiz) {
-    if (!engine_exists()) return 0;
     Channel_Generator * channel = engine->channelRack.newChannel();
     channel->plugin = new Sampler();
     return reinterpret_cast<jlong>(channel);
@@ -240,4 +239,38 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_loop(JNIEnv *env, jobject thiz,
 //    reinterpret_cast<AudioEngine*>(native_aaudio_track_pointer)->mReadFrameIndex = 0;
 //    AudioEngine* AE = reinterpret_cast<AudioEngine*>(native_aaudio_track_pointer);
 //    if (!AE->metronomeMode.load()) AE->mIsLooping.store(value);
+}
+
+extern "C"
+JNIEXPORT jlong JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_createPatternList(JNIEnv *env, jobject thiz) {
+    if (engine_exists()) {
+        return makejlong(engine->createPatternList());
+    } else return 0;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_deletePatternList(JNIEnv *env, jobject thiz,
+                                                                jlong patternList) {
+    if (engine_exists()) {
+        engine->deletePatternList(makeVoidPtr(patternList));
+    }
+}
+
+extern "C"
+JNIEXPORT jlong JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_createPattern(JNIEnv *env, jobject thiz, jlong patternList) {
+    if (engine_exists()) {
+        return makejlong(engine->createPattern(makeVoidPtr(patternList)));
+    } else return 0;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_deletePattern(JNIEnv *env, jobject thiz,
+                                                                jlong patternList, jlong pattern) {
+    if (engine_exists()) {
+        engine->deletePattern(makeVoidPtr(patternList), makeVoidPtr(pattern));
+    }
 }

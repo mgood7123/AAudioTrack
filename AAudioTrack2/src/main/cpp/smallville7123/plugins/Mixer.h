@@ -41,7 +41,8 @@ public:
     int write(HostInfo *hostInfo, PortUtils2 *unused, Plugin_Base *mixer, PortUtils2 *out,
               unsigned int samples) override {
         // a mixer will have no direct input port, and instead manage its own input ports
-        if (in.empty()) {
+        // a silence port will always be given
+        if (in.empty() || in.size() == 1) {
             out->fillPortBuffer<ENGINE_FORMAT>(0);
             return PLUGIN_STOP;
         }

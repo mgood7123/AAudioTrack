@@ -132,8 +132,15 @@ namespace ARDOUR {
 
         sample_position_t sample_time();
 
-        Pattern *newPattern();
-        void deletePattern(Pattern * pattern);
+        void bindChannelToPattern(void *channelID, void *patternID);
+
+        PatternList * createPatternList();
+
+        void deletePatternList(void *patternList);
+
+        Pattern *createPattern(void *patternList);
+
+        void deletePattern(void *patternList, void *pattern);
     };
 }
 

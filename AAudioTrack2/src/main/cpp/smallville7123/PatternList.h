@@ -9,8 +9,8 @@
 #include "Pattern.h"
 
 class PatternList {
-    Rack<Pattern> rack;
 public:
+    Rack<Pattern> rack;
 
     Pattern *newPattern() {
         return rack.newType();

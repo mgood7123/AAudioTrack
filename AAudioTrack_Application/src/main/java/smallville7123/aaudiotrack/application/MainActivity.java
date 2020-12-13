@@ -15,6 +15,7 @@ import smallville7123.UI.SequencerView;
 import smallville7123.UI.UpdatingImageProgressBar;
 import smallville7123.UI.UpdatingTextView;
 import smallville7123.aaudiotrack2.AAudioTrack2;
+import smallville7123.aaudiotrack2.PatternList;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
@@ -50,14 +51,14 @@ public class MainActivity extends AppCompatActivity {
         updatingTextView.addOnDrawAction(() -> u(updatingTextView));
 
         SequencerView sequencerView = findViewById(R.id.sequencer);
-        sequencerView.setDAW(audioTrack);
+        SequencerView.PatternList list = sequencerView.newPatternList(audioTrack);
         audioTrack.load(
-                sequencerView.addRow("Kick1").newSamplerChannel(),
+                sequencerView.addRow(list, "Kick").newSamplerChannel(),
                 this, R.raw.kick, "wav"
         );
         audioTrack.load(
-                sequencerView.addRow("Kick2").newSamplerChannel(),
-                this, R.raw.kick, "wav"
+                sequencerView.addRow(list, "Snare").newSamplerChannel(),
+                this, R.raw.snare_2, "wav"
         );
 //        new Thread(() -> {
 //            while (true) {
