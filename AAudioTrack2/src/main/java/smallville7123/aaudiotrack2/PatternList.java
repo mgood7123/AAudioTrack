@@ -9,13 +9,17 @@ public class PatternList<P extends Pattern> {
 
     public P newPattern(P pattern) {
         pattern.DAWReference = DAWReference;
-        pattern.nativePattern = DAWReference.createPattern(nativePatternList);
+        if (DAWReference != null) {
+            pattern.nativePattern = DAWReference.createPattern(nativePatternList);
+        }
         patternArrayList.add(pattern);
         return pattern;
     }
 
     public void removePattern(P pattern) {
-        DAWReference.deletePattern(nativePatternList, pattern.nativePattern);
+        if (DAWReference != null) {
+            DAWReference.deletePattern(nativePatternList, pattern.nativePattern);
+        }
         patternArrayList.remove(pattern);
     }
 

@@ -15,6 +15,10 @@ public class Pattern {
         return nativeChannel;
     }
 
+    public void setResolution(int size) {
+        DAWReference.setGridResolution(nativePattern, size);
+    }
+
     public void setNoteData() {
         DAWReference.setNoteData(nativePattern, getData());
     }

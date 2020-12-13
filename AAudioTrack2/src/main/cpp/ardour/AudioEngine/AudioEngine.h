@@ -128,11 +128,11 @@ namespace ARDOUR {
 
         void renderAudio(PortUtils2 * in, PortUtils2 * out);
 
-        void load(void * channelID, const char *string);
+        void load(void * nativeChannel, const char *string);
 
         sample_position_t sample_time();
 
-        void bindChannelToPattern(void *channelID, void *patternID);
+        void bindChannelToPattern(void *nativeChannel, void *nativePattern);
 
         PatternList * createPatternList();
 
@@ -141,6 +141,8 @@ namespace ARDOUR {
         Pattern *createPattern(void *patternList);
 
         void deletePattern(void *patternList, void *pattern);
+
+        void setGridResolution(void *nativePattern, int size);
     };
 }
 

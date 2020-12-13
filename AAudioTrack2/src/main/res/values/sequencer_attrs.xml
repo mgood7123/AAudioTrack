@@ -3,6 +3,9 @@
 
     <declare-styleable name="sequencer">
         <attr name="rowWidth" format="dimension" />
+        <attr name="noteWidth" format="dimension" />
+        <attr name="notes" format="integer" />
+        <attr name="fitNotesToView" format="boolean" />
     </declare-styleable>
 
 </resources>

@@ -8,6 +8,7 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ToggleButton;
 
 import androidx.annotation.Nullable;
 
@@ -18,6 +19,7 @@ import smallville7123.aaudiotrack2.PatternGroup;
 import smallville7123.aaudiotrack2.R;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 import static android.widget.LinearLayout.HORIZONTAL;
 import static android.widget.LinearLayout.VERTICAL;
 
@@ -46,19 +48,35 @@ public class SequencerView extends FrameLayout {
     LinearLayout rows;
     Context mContext;
     float rowWidth;
+    float noteWidth;
+    int notes;
+    boolean fitNotesToView;
 
     private void init(Context context, AttributeSet attrs) {
         mContext = context;
         if (attrs != null) {
             TypedArray attributes = context.getTheme().obtainStyledAttributes(attrs, R.styleable.sequencer, 0, 0);
             rowWidth = attributes.getDimension(R.styleable.sequencer_rowWidth, Float.NaN);
+            noteWidth = attributes.getDimension(R.styleable.sequencer_noteWidth, Float.NaN);
+            notes = attributes.getInteger(R.styleable.sequencer_notes, 8);
+            fitNotesToView = attributes.getBoolean(R.styleable.sequencer_fitNotesToView, true);
             attributes.recycle();
         } else {
             rowWidth = Float.NaN;
+            noteWidth = Float.NaN;
+            notes = 8;
+            fitNotesToView = true;
         }
         rows = new LinearLayout(context);
         rows.setOrientation(VERTICAL);
         addView(rows);
+        if (isInEditMode()) {
+            PatternList list = newPatternList(null);
+            addRow(list, "1");
+            addRow(list, "2");
+            addRow(list, "3");
+            addRow(list, "4");
+        }
     }
 
     AAudioTrack2 DAW;
@@ -82,7 +100,7 @@ public class SequencerView extends FrameLayout {
 
     public Pattern addRow(PatternList patternList, String label) {
         Pattern pattern = patternList.newPattern(mContext, label);
-        pattern.resize(8);
+        pattern.setResolution(notes);
         return pattern;
     }
 
@@ -143,16 +161,28 @@ public class SequencerView extends FrameLayout {
             return data;
         }
 
-        void resize(int size) {
+        @Override
+        public void setResolution(int size) {
             if (size == length) return;
+            super.setResolution(size);
             if (size > length) {
                 for (int i = length; i < size; i++) {
-                    CompoundButton compoundButton = new ToggleRadioButton(mContext);
+                    ToggleButton compoundButton = new ToggleButton(mContext);
+                    compoundButton.setBackgroundResource(R.drawable.toggle);
+                    compoundButton.setTextOn("");
+                    compoundButton.setTextOff("");
+                    compoundButton.setText("");
                     compoundButton.setOnCheckedChangeListener((b0, b1) -> {
                         setNoteData();
                     });
                     compoundButtons.add(compoundButton);
-                    row.addView(compoundButton, Layout.wrapContent);
+                    if (fitNotesToView) {
+                        row.addView(compoundButton, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 1f));
+                    } else if (noteWidth == Float.NaN) {
+                        row.addView(compoundButton, new LinearLayout.LayoutParams(WRAP_CONTENT, MATCH_PARENT));
+                    } else {
+                        row.addView(compoundButton, new LinearLayout.LayoutParams((int) noteWidth, MATCH_PARENT));
+                    }
                     length++;
                 }
             } else {

@@ -110,6 +110,15 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_bindChannelToPattern(JNIEnv *env, 
 }
 
 extern "C"
+JNIEXPORT void JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_setGridResolution(JNIEnv *env, jobject thiz,
+                                                                   jlong pattern, jint size) {
+    if (engine_exists()) {
+        engine->setGridResolution(makeVoidPtr(pattern), size);
+    }
+}
+
+extern "C"
 JNIEXPORT jboolean JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_isNotePlaying(JNIEnv *env, jobject thiz,
                                                             jint note_data_index) {
@@ -180,10 +189,10 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_getChannelCount(JNIEnv *env, jobje
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_smallville7123_aaudiotrack2_AAudioTrack2_setTrack(JNIEnv *env, jobject thiz, jlong channelID, jstring track) {
+Java_smallville7123_aaudiotrack2_AAudioTrack2_setTrack(JNIEnv *env, jobject thiz, jlong nativeChannel, jstring track) {
     if (!engine_exists()) return;
     const char * path_ = JniHelpers::Strings::newJniStringUTF(env, track);
-    engine->load(reinterpret_cast<void *>(channelID), path_);
+    engine->load(reinterpret_cast<void *>(nativeChannel), path_);
     JniHelpers::Strings::deleteJniStringUTF(&path_);
 }
 

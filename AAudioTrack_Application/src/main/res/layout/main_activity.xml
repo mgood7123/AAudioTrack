@@ -71,6 +71,9 @@
         android:layout_weight="6"
         android:orientation="vertical"
         app:rowWidth="40dp"
+        app:noteWidth="25dp"
+        app:notes="16"
+        app:fitNotesToView="true"
     />
 
     <smallville7123.UI.UpdatingTextView

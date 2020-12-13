@@ -42,13 +42,14 @@ public class AAudioTrack2 {
     public native void deletePattern(long patternList, long pattern);
 
     public native boolean isNotePlaying(int noteDataIndex);
+    public native void setGridResolution(long channel, long pattern);
 
     public  native int getSampleRate();
     public  native int getChannelCount();
     public  native int getUnderrunCount();
     public  native int getCurrentFrame();
     public  native int getTotalFrames();
-    public  native void setTrack(long channelID, String track);
+    public  native void setTrack(long nativeChannel, String track);
     public  native void resetPlayHead();
     public  native void pause();
     public  native void resume();
@@ -65,7 +66,7 @@ public class AAudioTrack2 {
 
     // each Audio Track instance will correspond to a Channel in the Channel Rack
 
-    private void _load(long channelID, Path tmp) {
+    private void _load(long nativeChannel, Path tmp) {
         int sampleRate = getSampleRate();
         int channelCount = getChannelCount();
         converted = tmp + ".converted.f_s16le.ar_" + sampleRate + ".ac_" + channelCount;
@@ -80,7 +81,7 @@ public class AAudioTrack2 {
         );
         if (returnCode == RETURN_CODE_SUCCESS) {
             Log.i(Config.TAG, "Command execution completed successfully.");
-            setTrack(channelID, converted);
+            setTrack(nativeChannel, converted);
         } else {
             throw new RuntimeException(Config.TAG + ": Command execution failed (returned " + returnCode + ")");
         }
@@ -89,11 +90,11 @@ public class AAudioTrack2 {
     /**
      * Load the sound from the specified path.
      *
-     * @param channelID the channel to load the audio into
+     * @param nativeChannel the channel to load the audio into
      * @param context this is used to obtain a temporary directory to decode the audio file to
      * @param path the path to the audio file
      */
-    public void loadPath(long channelID, Context context, String path) {
+    public void loadPath(long nativeChannel, Context context, String path) {
         CharSequence extension = path.substring(path.lastIndexOf("."));
         File out = createTemporaryFile(context, extension);
         Path outPath = out.toPath();
@@ -102,7 +103,7 @@ public class AAudioTrack2 {
         } catch (IOException e) {
             throw new RuntimeException("error loading " + path + ": " + e);
         }
-        _load(channelID, outPath);
+        _load(nativeChannel, outPath);
     }
 
     /**
@@ -114,7 +115,7 @@ public class AAudioTrack2 {
      * have both an "explosion.wav" and an "explosion.mp3" in the res/raw
      * directory.
      *
-     * @param channelID the channel to load the audio into
+     * @param nativeChannel the channel to load the audio into
      * @param context this is used to obtain a temporary directory to decode the audio file to
      * @param resId the resource ID
      * @param extension the extension that should be used to decode the file.
@@ -122,14 +123,14 @@ public class AAudioTrack2 {
      *                  have both an "explosion.wav" and an "explosion.mp3" in the res/raw
      *                  directory.
      */
-    public void load(long channelID, Context context, int resId, CharSequence extension) {
-        load(channelID, context, context.getResources().openRawResourceFd(resId), extension);
+    public void load(long nativeChannel, Context context, int resId, CharSequence extension) {
+        load(nativeChannel, context, context.getResources().openRawResourceFd(resId), extension);
     }
 
     /**
      * Load the sound from an asset file descriptor.
      *
-     * @param channelID the channel to load the audio into
+     * @param nativeChannel the channel to load the audio into
      * @param context this is used to obtain a temporary directory to decode the audio file to
      * @param afd an asset file descriptor
      * @param extension the extension that should be used to decode the file.
@@ -137,12 +138,12 @@ public class AAudioTrack2 {
      *                  have both an "explosion.wav" and an "explosion.mp3" in the res/raw
      *                  directory.
      */
-    public void load(long channelID, Context context, AssetFileDescriptor afd, CharSequence extension) {
+    public void load(long nativeChannel, Context context, AssetFileDescriptor afd, CharSequence extension) {
         Objects.requireNonNull(afd);
         File out = createTemporaryFile(context, extension);
         Path outPath = out.toPath();
         Utils.copy(afd, outPath);
-        _load(channelID, outPath);
+        _load(nativeChannel, outPath);
     }
 
     private File createTemporaryFile(Context context, CharSequence extension) {
@@ -156,7 +157,7 @@ public class AAudioTrack2 {
     /**
      * Load the sound from a FileDescriptor.
      *
-     * @param channelID the channel to load the audio into
+     * @param nativeChannel the channel to load the audio into
      * @param context this is used to obtain a temporary directory to decode the audio file to
      * @param fd a FileDescriptor object
      * @param extension the extension that should be used to decode the file.
@@ -164,11 +165,11 @@ public class AAudioTrack2 {
      *                  have both an "explosion.wav" and an "explosion.mp3" in the res/raw
      *                  directory.
      */
-    public void load(long channelID, Context context, FileDescriptor fd, CharSequence extension) {
+    public void load(long nativeChannel, Context context, FileDescriptor fd, CharSequence extension) {
         File out = createTemporaryFile(context, extension);
         Path outPath = out.toPath();
         Utils.copy(fd, outPath);
-        _load(channelID, outPath);
+        _load(nativeChannel, outPath);
     }
 
     /**
@@ -178,7 +179,7 @@ public class AAudioTrack2 {
      * binary. The offset specifies the offset from the start of the file
      * and the length specifies the length of the sound within the file.
      *
-     * @param channelID the channel to load the audio into
+     * @param nativeChannel the channel to load the audio into
      * @param context this is used to obtain a temporary directory to decode the audio file to
      * @param fd a FileDescriptor object
      * @param offset offset to the start of the sound
@@ -188,7 +189,7 @@ public class AAudioTrack2 {
      *                  have both an "explosion.wav" and an "explosion.mp3" in the res/raw
      *                  directory.
      */
-    public void load(long channelID, Context context, FileDescriptor fd, long offset, long length, CharSequence extension) {
+    public void load(long nativeChannel, Context context, FileDescriptor fd, long offset, long length, CharSequence extension) {
         File out = createTemporaryFile(context, extension);
         Path outPath = out.toPath();
         try {
@@ -198,7 +199,7 @@ public class AAudioTrack2 {
         } catch (IOException ex) {
             throw new RuntimeException("close failed: " + ex);
         }
-        _load(channelID, outPath);
+        _load(nativeChannel, outPath);
     }
 
     private static class Utils {

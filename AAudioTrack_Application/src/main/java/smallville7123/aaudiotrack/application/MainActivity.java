@@ -60,6 +60,10 @@ public class MainActivity extends AppCompatActivity {
                 sequencerView.addRow(list, "Snare").newSamplerChannel(),
                 this, R.raw.snare_2, "wav"
         );
+        audioTrack.load(
+                sequencerView.addRow(list, "Loop").newSamplerChannel(),
+                this, R.raw.loop_00001313, "wav"
+        );
 //        new Thread(() -> {
 //            while (true) {
 //                if (!rows.isEmpty()) {

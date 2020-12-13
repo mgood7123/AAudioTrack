@@ -225,8 +225,8 @@ public:
         return PLUGIN_CONTINUE;
     }
 
-    void bindChannelToPattern(void *channelID, void *patternID) {
-        static_cast<Pattern*>(patternID)->channelReference = static_cast<Channel_Generator *>(channelID);
+    void bindChannelToPattern(void *nativeChannel, void *nativePattern) {
+        static_cast<Pattern*>(nativePattern)->channelReference = static_cast<Channel_Generator *>(nativeChannel);
     }
 
     PatternList * newPatternList() {

@@ -389,8 +389,8 @@ namespace ARDOUR {
 
     HostInfo hostInfo;
 
-    void AudioEngine::load(void * channelID, const char *filename) {
-        reinterpret_cast<Channel_Generator*>(channelID)->plugin->load(
+    void AudioEngine::load(void * nativeChannel, const char *filename) {
+        reinterpret_cast<Channel_Generator*>(nativeChannel)->plugin->load(
                 filename,
                 _backend->available_output_channel_count(_backend->device_name())
         );
@@ -464,8 +464,14 @@ namespace ARDOUR {
         return _backend;
     }
 
-    void AudioEngine::bindChannelToPattern(void *channelID, void *patternID) {
-        channelRack.bindChannelToPattern(channelID, patternID);
+    void AudioEngine::bindChannelToPattern(void *nativeChannel, void *nativePattern) {
+        channelRack.bindChannelToPattern(nativeChannel, nativePattern);
+    }
+
+    void AudioEngine::setGridResolution(void *nativePattern, int size) {
+        Pattern * pattern = static_cast<Pattern *>(nativePattern);
+        pattern->pianoRoll.setResolution(size);
+        pattern->pianoRoll.updateGrid();
     }
 
     PatternList * AudioEngine::createPatternList() {
@@ -479,7 +485,7 @@ namespace ARDOUR {
     Pattern * AudioEngine::createPattern(void * patternList) {
         Pattern * pattern = static_cast<PatternList *>(patternList)->newPattern();
         pattern->pianoRoll.setBPM(240);
-        pattern->pianoRoll.setResolution(8);
+        pattern->pianoRoll.setResolution(16);
         pattern->pianoRoll.updateGrid();
         return pattern;
     }
