@@ -106,12 +106,6 @@ namespace ARDOUR {
 
     AAudio::~AAudio() {}
 
-    PortUtils &AAudio::getPortUtils() {
-//        return portUtils;
-    }
-
-    frames_t frameIndex;
-
     aaudio_data_callback_result_t AAudio::onAudioReady(
             AAudioStream *stream, void *userData, void *audioData,
             frames_t number_of_frames_to_render

@@ -179,8 +179,6 @@ namespace ARDOUR {
 
         int drop_device() override;
 
-        PortUtils &getPortUtils() override;
-
         uint32_t XRunCount() const override;
 
     protected:

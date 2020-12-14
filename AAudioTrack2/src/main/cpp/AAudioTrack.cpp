@@ -92,7 +92,7 @@ extern "C"
 JNIEXPORT jint JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_getDSPLoad(JNIEnv *env, jobject thiz) {
     if (engine_exists()) {
-        LOGE("processing time: %lld nanoseconds, buffer length: %lld nanoseconds, DSPLoadInt: %d, DSPLoadDouble: %G", engine->processingTime, engine->bufferLength, engine->DSPLoadInt, engine->DSPLoadDouble);
+//        LOGE("processing time: %llu nanoseconds, buffer length: %llu nanoseconds, DSPLoadInt: %d, DSPLoadDouble: %G", engine->processingTime, engine->bufferLength, engine->DSPLoadInt, engine->DSPLoadDouble);
         return engine->DSPLoadInt;
     } else return 0;
 }

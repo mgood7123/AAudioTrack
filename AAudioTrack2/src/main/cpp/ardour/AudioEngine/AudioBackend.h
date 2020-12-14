@@ -106,8 +106,6 @@ namespace ARDOUR {
             OutOfMemoryError,
         };
 
-        virtual PortUtils & getPortUtils() = 0;
-
         static std::string get_error_string (ErrorCode);
 
         enum StandardDeviceName {

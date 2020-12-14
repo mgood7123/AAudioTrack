@@ -70,8 +70,8 @@
         android:layout_height="match_parent"
         android:layout_weight="6"
         android:orientation="vertical"
-        app:rowWidth="40dp"
-        app:noteWidth="25dp"
+        app:channels="4"
+        app:fitChannelsToView="true"
         app:notes="16"
         app:fitNotesToView="true"
     />

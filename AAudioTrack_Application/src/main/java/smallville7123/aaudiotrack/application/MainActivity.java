@@ -1,23 +1,15 @@
 package smallville7123.aaudiotrack.application;
 
 import android.os.Bundle;
-import android.util.Pair;
 import android.widget.LinearLayout;
-import android.widget.ToggleButton;
 
-import androidx.annotation.DrawableRes;
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.util.ArrayList;
-
-import smallville7123.UI.Layout;
+import smallville7123.UI.Constants;
 import smallville7123.UI.SequencerView;
 import smallville7123.UI.UpdatingImageProgressBar;
 import smallville7123.UI.UpdatingTextView;
 import smallville7123.aaudiotrack2.AAudioTrack2;
-import smallville7123.aaudiotrack2.PatternList;
-
-import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
 public class MainActivity extends AppCompatActivity {
     AAudioTrack2 audioTrack = new AAudioTrack2();
@@ -42,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
         LinearLayout linearLayout = (LinearLayout) getLayoutInflater().inflate(R.layout.main_activity, null, false);
         linearLayout.setOrientation(LinearLayout.VERTICAL);
-        setContentView(linearLayout, Layout.matchParent);
+        setContentView(linearLayout, Constants.matchParent);
         CPU_LOAD = findViewById(R.id.CPU_LOAD);
         CPU_LOAD.addOnFirstDrawAction(() -> u2(CPU_LOAD));
         CPU_LOAD.addOnDrawAction(() -> u2(CPU_LOAD));

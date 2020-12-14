@@ -11,6 +11,7 @@ import android.widget.LinearLayout;
 import android.widget.ToggleButton;
 
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
@@ -45,31 +46,38 @@ public class SequencerView extends FrameLayout {
         init(context, attrs);
     }
 
-    LinearLayout rows;
+    GridView channelGrid;
     Context mContext;
-    float rowWidth;
-    float noteWidth;
+    int channels;
+    float channelHeight;
+    boolean fitChannelsToView;
     int notes;
+    float noteWidth;
     boolean fitNotesToView;
 
     private void init(Context context, AttributeSet attrs) {
         mContext = context;
         if (attrs != null) {
             TypedArray attributes = context.getTheme().obtainStyledAttributes(attrs, R.styleable.sequencer, 0, 0);
-            rowWidth = attributes.getDimension(R.styleable.sequencer_rowWidth, Float.NaN);
-            noteWidth = attributes.getDimension(R.styleable.sequencer_noteWidth, Float.NaN);
+            channels = attributes.getInteger(R.styleable.sequencer_channels, 4);
+            channelHeight = attributes.getDimension(R.styleable.sequencer_channelHeight, Float.NaN);
+            fitChannelsToView = attributes.getBoolean(R.styleable.sequencer_fitChannelsToView, true);
             notes = attributes.getInteger(R.styleable.sequencer_notes, 8);
+            noteWidth = attributes.getDimension(R.styleable.sequencer_noteWidth, Float.NaN);
             fitNotesToView = attributes.getBoolean(R.styleable.sequencer_fitNotesToView, true);
             attributes.recycle();
         } else {
-            rowWidth = Float.NaN;
-            noteWidth = Float.NaN;
+            channels = 4;
+            channelHeight = Float.NaN;
+            fitChannelsToView = true;
             notes = 8;
+            noteWidth = Float.NaN;
             fitNotesToView = true;
         }
-        rows = new LinearLayout(context);
-        rows.setOrientation(VERTICAL);
-        addView(rows);
+        channelGrid = new GridView(context);
+        channelGrid.setOrientation(VERTICAL);
+        channelGrid.setRows(channels);
+        addView(channelGrid);
         if (isInEditMode()) {
             PatternList list = newPatternList(null);
             addRow(list, "1");
@@ -109,8 +117,9 @@ public class SequencerView extends FrameLayout {
             Pattern pattern = newPattern(new Pattern());
 
             pattern.mContext = context;
-            pattern.row = new LinearLayout(context);
-            pattern.row.setOrientation(HORIZONTAL);
+            pattern.noteGrid = new GridView(context);
+            pattern.noteGrid.setOrientation(GridView.HORIZONTAL);
+            pattern.noteGrid.setRows(1);
             pattern.length = 0;
 
             patternArrayList.add(pattern);
@@ -128,27 +137,30 @@ public class SequencerView extends FrameLayout {
                         );
                     });
                 }
-            }, Layout.wrapContent);
+            }, Constants.wrapContent);
             row.addView(new Button(mContext) {
                 {
                     setText(label);
                 }
             }, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 3f));
 
-            row.addView(pattern.row, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 1f));
+            row.addView(pattern.noteGrid, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 1f));
 
-            if (rowWidth == Float.NaN) {
-                rows.addView(row, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 1f));
+            if (fitChannelsToView || channelHeight == Float.NaN) {
+                channelGrid.autoSizeRow = true;
             } else {
-                rows.addView(row, new LinearLayout.LayoutParams(MATCH_PARENT, (int) rowWidth));
+                channelGrid.autoSizeRow = false;
+                channelGrid.rowHeight = (int) channelHeight;
             }
+            channelGrid.data.add(row);
+            channelGrid.adapter.notifyDataSetChanged();
             return pattern;
         }
     }
 
     public class Pattern extends smallville7123.aaudiotrack2.Pattern {
         ArrayList<CompoundButton> compoundButtons = new ArrayList<>();
-        LinearLayout row;
+        GridView noteGrid;
         int length;
         Context mContext;
 
@@ -165,30 +177,37 @@ public class SequencerView extends FrameLayout {
         public void setResolution(int size) {
             if (size == length) return;
             super.setResolution(size);
+
+            // change this value to set the actual number
+            // of displayed notes before the user will need
+            // to scroll
+            noteGrid.setColumns(size);
+
             if (size > length) {
                 for (int i = length; i < size; i++) {
-                    ToggleButton compoundButton = new ToggleButton(mContext);
-                    compoundButton.setBackgroundResource(R.drawable.toggle);
-                    compoundButton.setTextOn("");
-                    compoundButton.setTextOff("");
-                    compoundButton.setText("");
-                    compoundButton.setOnCheckedChangeListener((b0, b1) -> {
+                    ToggleButton note = new ToggleButton(mContext);
+                    note.setBackgroundResource(R.drawable.toggle);
+                    note.setTextOn("");
+                    note.setTextOff("");
+                    note.setText("");
+                    note.setOnCheckedChangeListener((b0, b1) -> {
                         setNoteData();
                     });
-                    compoundButtons.add(compoundButton);
-                    if (fitNotesToView) {
-                        row.addView(compoundButton, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 1f));
-                    } else if (noteWidth == Float.NaN) {
-                        row.addView(compoundButton, new LinearLayout.LayoutParams(WRAP_CONTENT, MATCH_PARENT));
+                    compoundButtons.add(note);
+                    if (fitNotesToView || noteWidth == Float.NaN) {
+                        noteGrid.autoSizeColumn = true;
                     } else {
-                        row.addView(compoundButton, new LinearLayout.LayoutParams((int) noteWidth, MATCH_PARENT));
+                        noteGrid.autoSizeColumn = false;
+                        noteGrid.columnWidth = (int) noteWidth;
                     }
+                    noteGrid.data.add(note);
+                    noteGrid.adapter.notifyDataSetChanged();
                     length++;
                 }
             } else {
                 for (int i = (length-1); i > (size-1); i--) {
                     compoundButtons.remove(i);
-                    row.removeViewAt(i);
+//                    row.removeViewAt(i);
                     length--;
                 }
             }

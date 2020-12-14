@@ -2,9 +2,13 @@
 <resources>
 
     <declare-styleable name="sequencer">
-        <attr name="rowWidth" format="dimension" />
-        <attr name="noteWidth" format="dimension" />
+
+        <attr name="channels" format="integer" />
+        <attr name="channelHeight" format="dimension" />
+        <attr name="fitChannelsToView" format="boolean" />
+
         <attr name="notes" format="integer" />
+        <attr name="noteWidth" format="dimension" />
         <attr name="fitNotesToView" format="boolean" />
     </declare-styleable>
 
