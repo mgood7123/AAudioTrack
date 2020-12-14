@@ -11,7 +11,6 @@ import android.widget.LinearLayout;
 import android.widget.ToggleButton;
 
 import androidx.annotation.Nullable;
-import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
@@ -20,7 +19,6 @@ import smallville7123.aaudiotrack2.PatternGroup;
 import smallville7123.aaudiotrack2.R;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
-import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 import static android.widget.LinearLayout.HORIZONTAL;
 import static android.widget.LinearLayout.VERTICAL;
 

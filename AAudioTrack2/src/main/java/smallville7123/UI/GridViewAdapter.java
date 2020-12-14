@@ -1,26 +1,19 @@
 package smallville7123.UI;
 
-import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import static android.view.View.inflate;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
 public class GridViewAdapter extends RecyclerView.Adapter<GridViewAdapter.ViewHolder> {
     private static final String TAG = "GridViewAdapter";
     public GridLayoutManager manager;
     GridView gridview;
-    int global_padding = 75;
 
     public GridViewAdapter(GridView gridview) {
         this.gridview = gridview;
@@ -49,22 +42,14 @@ public class GridViewAdapter extends RecyclerView.Adapter<GridViewAdapter.ViewHo
             root = itemView;
         }
 
-        public void adjustHeightByRowCount() {
+        public void adjustDimensions() {
+            ViewGroup.LayoutParams p = new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT);
             if (manager.getOrientation() == RecyclerView.VERTICAL) {
-                float containerHeight = gridview.getHeight();
-                ViewGroup.LayoutParams p = new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT);
-                p.height = Math.round(containerHeight / gridview.rowCount);
-                root.setLayoutParams(p);
+                p.height = Math.round(gridview.getHeight() / gridview.rowCount);
             } else {
-                float containerHeight = gridview.getWidth();
-                ViewGroup.LayoutParams p = new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT);
-                p.width = Math.round(containerHeight / gridview.rowCount);
-                root.setLayoutParams(p);
+                p.width = Math.round(gridview.getWidth() / gridview.rowCount);
             }
-        }
-
-        public void adjustForPadding() {
-//            root.setPadding(global_padding, global_padding, global_padding, global_padding);
+            root.setLayoutParams(p);
         }
 
         public void setItem(int position) {
@@ -102,6 +87,7 @@ public class GridViewAdapter extends RecyclerView.Adapter<GridViewAdapter.ViewHo
 
     @Override
     public void onViewRecycled(@NonNull ViewHolder holder) {
+        holder.root.removeAllViews();
         super.onViewRecycled(holder);
     }
 
@@ -113,8 +99,7 @@ public class GridViewAdapter extends RecyclerView.Adapter<GridViewAdapter.ViewHo
     // Involves populating data into the item through holder
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        holder.adjustHeightByRowCount();
-        holder.adjustForPadding();
+        holder.adjustDimensions();
         holder.setEmptyOnClickListener();
         if (position < gridview.data.size()) {
             holder.setItem(position);
@@ -127,12 +112,6 @@ public class GridViewAdapter extends RecyclerView.Adapter<GridViewAdapter.ViewHo
     @Override
     public int getItemCount() {
         int itemSize = gridview.data.size();
-        if (manager.getOrientation() == RecyclerView.VERTICAL) {
-            // ensure there is at least rowCount items
-            return Math.max(gridview.columnCount*gridview.rowCount, itemSize + (itemSize % gridview.columnCount));
-        } else {
-            // ensure there is at least columnCount items
-            return Math.max(gridview.columnCount*gridview.rowCount, itemSize + (itemSize % gridview.rowCount));
-        }
+        return Math.max(gridview.columnCount*gridview.rowCount, itemSize + (itemSize % (manager.getOrientation() == RecyclerView.VERTICAL ? gridview.columnCount : gridview.rowCount)));
     }
 }
