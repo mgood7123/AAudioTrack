@@ -107,6 +107,7 @@ public class SequencerView extends FrameLayout {
     public Pattern addRow(PatternList patternList, String label) {
         Pattern pattern = patternList.newPattern(mContext, label);
         pattern.setResolution(notes);
+        pattern.setMaxLength(notes);
         return pattern;
     }
 
@@ -159,6 +160,7 @@ public class SequencerView extends FrameLayout {
     public class Pattern extends smallville7123.aaudiotrack2.Pattern {
         ArrayList<CompoundButton> compoundButtons = new ArrayList<>();
         GridView noteGrid;
+        int maxLength;
         int length;
         Context mContext;
 
@@ -180,9 +182,13 @@ public class SequencerView extends FrameLayout {
             // of displayed notes before the user will need
             // to scroll
             noteGrid.setColumns(size);
+            length = size;
+        }
 
-            if (size > length) {
-                for (int i = length; i < size; i++) {
+        public void setMaxLength(int size) {
+            if (size == maxLength) return;
+            if (size > maxLength) {
+                for (int i = maxLength; i < size; i++) {
                     ToggleButton note = new ToggleButton(mContext);
                     note.setBackgroundResource(R.drawable.toggle);
                     note.setTextOn("");
@@ -199,16 +205,16 @@ public class SequencerView extends FrameLayout {
                         noteGrid.columnWidth = (int) noteWidth;
                     }
                     noteGrid.data.add(note);
-                    noteGrid.adapter.notifyDataSetChanged();
-                    length++;
+                    maxLength++;
                 }
             } else {
-                for (int i = (length-1); i > (size-1); i--) {
+                for (int i = (maxLength-1); i > (size-1); i--) {
                     compoundButtons.remove(i);
-//                    row.removeViewAt(i);
-                    length--;
+                    noteGrid.data.remove(noteGrid.data.size()-1);
+                    maxLength--;
                 }
             }
+            noteGrid.adapter.notifyDataSetChanged();
         }
     }
 }
