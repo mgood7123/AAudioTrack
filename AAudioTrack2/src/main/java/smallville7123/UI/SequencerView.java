@@ -116,12 +116,26 @@ public class SequencerView extends FrameLayout {
             Pattern pattern = newPattern(new Pattern());
 
             pattern.mContext = context;
-            pattern.noteGrid = new GridView(context);
+            pattern.noteGrid = new GridView(context) {
+                @Override
+                public void onScrolled(int dx, int dy) {
+                    super.onScrolled(dx, dy);
+                    if (!pattern.scrolling) {
+                        pattern.scrolling = true;
+                        for (Pattern pattern1 : patternArrayList) {
+                            if (!pattern1.scrolling) {
+                                pattern1.scrolling = true;
+                                pattern1.noteGrid.scrollBy(dx, dy);
+                                pattern1.scrolling = false;
+                            }
+                        }
+                        pattern.scrolling = false;
+                    }
+                }
+            };
             pattern.noteGrid.setOrientation(GridView.HORIZONTAL);
             pattern.noteGrid.setRows(1);
             pattern.length = 0;
-
-            patternArrayList.add(pattern);
             LinearLayout row = new LinearLayout(mContext);
             row.setOrientation(HORIZONTAL);
             row.addView(new ToggleRadioButton(mContext) {
@@ -159,6 +173,7 @@ public class SequencerView extends FrameLayout {
 
     public class Pattern extends smallville7123.aaudiotrack2.Pattern {
         ArrayList<CompoundButton> compoundButtons = new ArrayList<>();
+        public boolean scrolling = false;
         GridView noteGrid;
         int maxLength;
         int length;
