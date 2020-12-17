@@ -106,7 +106,9 @@ public class SequencerView extends FrameLayout {
 
     public Pattern addRow(PatternList patternList, String label) {
         Pattern pattern = patternList.newPattern(mContext, label);
-        pattern.setNativeResolution(notes);
+        if (!isInEditMode()) {
+            pattern.setNativeResolution(notes);
+        }
         pattern.setViewResolution(4);
         pattern.setMaxLength(notes);
         return pattern;
