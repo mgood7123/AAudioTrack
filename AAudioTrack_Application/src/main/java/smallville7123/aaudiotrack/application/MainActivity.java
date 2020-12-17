@@ -56,27 +56,5 @@ public class MainActivity extends AppCompatActivity {
                 sequencerView.addRow(list, "Loop").newSamplerChannel(),
                 this, R.raw.loop_00001313, "wav"
         );
-//        new Thread(() -> {
-//            while (true) {
-//                if (!rows.isEmpty()) {
-//                    ArrayList<ToggleButton> toggleButtonArrayList = rows.get(0).second.second;
-//                    for (int i = 0; i < toggleButtonArrayList.size(); i++) {
-//                        int finalI = i;
-//                        MainActivity.this.runOnUiThread(
-//                                () -> toggleButtonArrayList
-//                                        .get(finalI)
-//                                        .setChecked(
-//                                                audioTrack.isNotePlaying(finalI)
-//                                        )
-//                        );
-//                    }
-//                }
-//                try {
-//                    Thread.sleep(16);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }).start();
     }
 }

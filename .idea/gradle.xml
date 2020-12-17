@@ -13,6 +13,11 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/AAudioTrack" />
             <option value="$PROJECT_DIR$/AAudioTrack2" />
+            <option value="$PROJECT_DIR$/AAudioTrack2/VstSystem" />
+            <option value="$PROJECT_DIR$/AAudioTrack2/VstSystem/Taggable" />
+            <option value="$PROJECT_DIR$/AAudioTrack2/VstSystem/VstCore" />
+            <option value="$PROJECT_DIR$/AAudioTrack2/VstSystem/VstManager" />
+            <option value="$PROJECT_DIR$/AAudioTrack2/VstSystem/libOverview" />
             <option value="$PROJECT_DIR$/AAudioTrack_Application" />
           </set>
         </option>

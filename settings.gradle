@@ -2,3 +2,8 @@ rootProject.name = "AAudioTrack"
 include ':AAudioTrack'
 include ':AAudioTrack2'
 include ':AAudioTrack_Application'
+include ':AAudioTrack2:VstSystem'
+include ':AAudioTrack2:VstSystem:VstCore'
+include ':AAudioTrack2:VstSystem:libOverview'
+include ':AAudioTrack2:VstSystem:VstManager'
+include ':AAudioTrack2:VstSystem:Taggable'

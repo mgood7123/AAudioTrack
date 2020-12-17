@@ -3,22 +3,17 @@ plugins {
 }
 
 android {
-    compileSdkVersion 29 // Play requires Android Q or higher
-    buildToolsVersion "29.0.3" // Play requires Android Q or higher
+    compileSdkVersion 30
+    buildToolsVersion "30.0.2"
 
     defaultConfig {
-        minSdkVersion 28 // Android Pie
-        targetSdkVersion 29 // Play requires Android Q or higher
+        minSdkVersion 28
+        targetSdkVersion 30
         versionCode 1
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
-        externalNativeBuild {
-            cmake {
-                cppFlags "-std=c++17"
-            }
-        }
     }
 
     buildTypes {
@@ -27,15 +22,16 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    externalNativeBuild {
-        cmake {
-            path "src/main/cpp/CMakeLists.txt"
-            version "3.10.2"
-        }
-    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+    sourceSets {
+        main {
+            res {
+                srcDirs 'src/main/res'
+            }
+        }
     }
 }
 
@@ -43,9 +39,10 @@ dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.material:material:1.2.1'
-    testImplementation 'junit:junit:4.+'
-    api project(path: ':AAudioTrack2:VstSystem:VstManager')
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    // VstCore includes Taggable and ReflectionUtils
+    api project(path: ':AAudioTrack2:VstSystem:VstCore')
+    testImplementation 'junit:junit:4.13.1'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
-    api 'com.arthenica:mobile-ffmpeg-full-gpl:4.4'
 }

@@ -64,17 +64,22 @@
         </LinearLayout>
     </FrameLayout>
 
-    <smallville7123.UI.SequencerView
-        android:id="@+id/sequencer"
+    <smallville7123.vstmanager.core.Views.VstView
+        android:id="@+id/vstView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="6"
-        android:orientation="vertical"
-        app:channels="4"
-        app:fitChannelsToView="true"
-        app:nativeNotes="16"
-        app:fitNotesToView="true"
-    />
+        android:layout_weight="6">
+        <smallville7123.UI.SequencerView
+            android:id="@+id/sequencer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            app:channels="4"
+            app:fitChannelsToView="true"
+            app:nativeNotes="16"
+            app:fitNotesToView="true"
+            />
+    </smallville7123.vstmanager.core.Views.VstView>
 
     <smallville7123.UI.UpdatingTextView
         android:id="@+id/INFO"
@@ -85,36 +90,4 @@
         android:textColor="@color/cardview_light_background"
         android:textSize="14dp"
         />
-
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="150dp"
-        android:layout_weight="1">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
-
-            <Space
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_weight="1" />
-
-            <ToggleButton
-                android:id="@+id/playbackButton"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="0.5"
-                android:background="@drawable/toggle_playback"
-                android:text="ToggleButton"
-                android:textOff=""
-                android:textOn="" />
-
-            <Space
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_weight="1" />
-        </LinearLayout>
-    </FrameLayout>
 </LinearLayout>
