@@ -7,7 +7,12 @@
         <attr name="channelHeight" format="dimension" />
         <attr name="fitChannelsToView" format="boolean" />
 
-        <attr name="notes" format="integer" />
+        <!-- the resolution of the note grid in the native api -->
+        <attr name="nativeNotes" format="integer" />
+
+        <!-- the resolution of the note grid in the UI -->
+        <attr name="viewNotes" format="integer" />
+
         <attr name="noteWidth" format="dimension" />
         <attr name="fitNotesToView" format="boolean" />
     </declare-styleable>

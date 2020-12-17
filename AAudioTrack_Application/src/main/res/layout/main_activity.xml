@@ -72,7 +72,7 @@
         android:orientation="vertical"
         app:channels="4"
         app:fitChannelsToView="true"
-        app:notes="16"
+        app:nativeNotes="16"
         app:fitNotesToView="true"
     />
 

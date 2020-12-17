@@ -49,7 +49,8 @@ public class SequencerView extends FrameLayout {
     int channels;
     float channelHeight;
     boolean fitChannelsToView;
-    int notes;
+    int nativeNoteResolution;
+    int UINoteResolution;
     float noteWidth;
     boolean fitNotesToView;
 
@@ -60,7 +61,8 @@ public class SequencerView extends FrameLayout {
             channels = attributes.getInteger(R.styleable.sequencer_channels, 4);
             channelHeight = attributes.getDimension(R.styleable.sequencer_channelHeight, Float.NaN);
             fitChannelsToView = attributes.getBoolean(R.styleable.sequencer_fitChannelsToView, true);
-            notes = attributes.getInteger(R.styleable.sequencer_notes, 8);
+            nativeNoteResolution = attributes.getInteger(R.styleable.sequencer_nativeNotes, 8);
+            UINoteResolution = attributes.getInteger(R.styleable.sequencer_viewNotes, 4);
             noteWidth = attributes.getDimension(R.styleable.sequencer_noteWidth, Float.NaN);
             fitNotesToView = attributes.getBoolean(R.styleable.sequencer_fitNotesToView, true);
             attributes.recycle();
@@ -68,7 +70,8 @@ public class SequencerView extends FrameLayout {
             channels = 4;
             channelHeight = Float.NaN;
             fitChannelsToView = true;
-            notes = 8;
+            nativeNoteResolution = 8;
+            UINoteResolution = 4;
             noteWidth = Float.NaN;
             fitNotesToView = true;
         }
@@ -107,10 +110,10 @@ public class SequencerView extends FrameLayout {
     public Pattern addRow(PatternList patternList, String label) {
         Pattern pattern = patternList.newPattern(mContext, label);
         if (!isInEditMode()) {
-            pattern.setNativeResolution(notes);
+            pattern.setNativeResolution(nativeNoteResolution);
         }
-        pattern.setViewResolution(4);
-        pattern.setMaxLength(notes);
+        pattern.setViewResolution(UINoteResolution);
+        pattern.setMaxLength(nativeNoteResolution);
         return pattern;
     }
 
