@@ -10,6 +10,7 @@ import smallville7123.UI.SequencerView;
 import smallville7123.UI.UpdatingImageProgressBar;
 import smallville7123.UI.UpdatingTextView;
 import smallville7123.aaudiotrack2.AAudioTrack2;
+import smallville7123.vstmanager.VstManager;
 
 public class MainActivity extends AppCompatActivity {
     AAudioTrack2 audioTrack = new AAudioTrack2();
@@ -56,6 +57,11 @@ public class MainActivity extends AppCompatActivity {
         audioTrack.load(
                 sequencerView.addRow(list, "Loop").newSamplerChannel(),
                 this, R.raw.loop_00001313, "wav"
+        );
+        audioTrack.manager = new VstManager(this, findViewById(R.id.vstView));
+        audioTrack.loadVST(
+                sequencerView.addRow(list, "VST").newChannel(),
+                "smallville7123.DAW.simplesinewave"
         );
     }
 }

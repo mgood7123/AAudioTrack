@@ -19,6 +19,7 @@
             <option value="$PROJECT_DIR$/AAudioTrack2/VstSystem/VstManager" />
             <option value="$PROJECT_DIR$/AAudioTrack2/VstSystem/libOverview" />
             <option value="$PROJECT_DIR$/AAudioTrack_Application" />
+            <option value="$PROJECT_DIR$/simplesinewave" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />
