@@ -229,6 +229,10 @@ public:
         static_cast<Pattern*>(nativePattern)->channelReference = static_cast<Channel_Generator *>(nativeChannel);
     }
 
+    void setPlugin(void *nativeChannel, void *nativePlugin) {
+        static_cast<Channel_Generator *>(nativeChannel)->plugin = static_cast<Plugin_Type_Generator *>(nativePlugin);
+    }
+
     PatternList * newPatternList() {
         return patternGroup.newPatternList();
     }

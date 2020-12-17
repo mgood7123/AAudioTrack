@@ -143,6 +143,8 @@ namespace ARDOUR {
         void deletePattern(void *patternList, void *pattern);
 
         void setGridResolution(void *nativePattern, int size);
+
+        void setPlugin(void *pVoid, void *pVoid1);
     };
 }
 

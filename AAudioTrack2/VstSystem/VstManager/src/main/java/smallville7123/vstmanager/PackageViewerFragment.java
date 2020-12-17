@@ -40,7 +40,7 @@ public final class PackageViewerFragment extends Fragment {
                 switch (objectInfo.getType()) {
                     case VST:
                         if (manager != null) {
-                            if (manager.load(objectInfo.vst)) {
+                            if (manager.load(objectInfo.vst) != null) {
                                 activity.getSupportFragmentManager().popBackStack();
                             }
                         }

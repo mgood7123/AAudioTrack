@@ -8,6 +8,7 @@ import android.util.Pair;
 import android.view.View;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import smallville7123.vstmanager.core.Views.VstView;
@@ -31,7 +32,7 @@ public class VstHost {
         vstScanner.scan(context, packageManager, mInstalledApplications);
     }
 
-    public void launchVst(Context context, String packageName, VST vst, VstView contentRoot) {
+    public ReflectionActivity launchVst(Context context, String packageName, VST vst, VstView contentRoot) {
         for (Pair<Class, Integer> callback : vst.callbacks) {
             if (ReflectionHelpers.classAextendsB(callback.first, ReflectionActivity.class)) {
                 Log.d(TAG, "launchVst: callback [" + callback.first + "] extends ReflectionActivity");
@@ -44,20 +45,35 @@ public class VstHost {
                 );
                 reflectionActivity.callOnCreate(null);
                 VSTs.add(reflectionActivity);
+                return reflectionActivity;
             } else {
                 Log.d(TAG, "launchVst: callback [" + callback.first + "] does not extend ReflectionActivity");
             }
         }
+        return null;
     }
 
-    public boolean loadVST(Context context, String packageName, VST vst, VstView contentRoot) {
-        launchVst(context, packageName, vst, contentRoot);
-        return true;
+    public ReflectionActivity loadVST(Context context, String packageName, VST vst, VstView contentRoot) {
+        return launchVst(context, packageName, vst, contentRoot);
     }
 
-    public boolean loadVST(Context context, String packageName, VST vst) {
-        launchVst(context, packageName, vst, contentRoot);
-        return true;
+    public ReflectionActivity loadVST(Context context, String packageName, VST vst) {
+        return launchVst(context, packageName, vst, contentRoot);
+    }
+
+    public Pair<VST, ReflectionActivity> loadVST(Context mContext, String packageName) {
+        try {
+            PackageManager pm = mContext.getPackageManager();
+            ApplicationInfo app = pm.getApplicationInfo(packageName, 0);
+            vstScanner.scanInForeground(mContext, pm, Collections.singletonList(app));
+            VST vst = getVST(app);
+            if (vst.verify(mContext, pm, app)) {
+                return new Pair<>(vst, loadVST(mContext, packageName, vst));
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     VstView contentRoot = null;
@@ -79,6 +95,11 @@ public class VstHost {
                     }
                 }
             }
+        }
+    }
+
+    public void getReflectionActivity(VST vst) {
+        for (ReflectionActivity reflectionActivity : VSTs) {
         }
     }
 }

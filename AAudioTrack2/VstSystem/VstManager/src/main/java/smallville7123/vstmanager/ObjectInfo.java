@@ -1,8 +1,5 @@
 package smallville7123.vstmanager;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
@@ -10,6 +7,9 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.lang.reflect.Modifier;
 import java.util.Locale;

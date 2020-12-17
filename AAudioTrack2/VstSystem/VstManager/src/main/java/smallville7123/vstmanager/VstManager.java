@@ -3,6 +3,7 @@ package smallville7123.vstmanager;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.util.Pair;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -11,6 +12,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 import java.util.List;
 
+import smallville7123.vstmanager.core.ReflectionActivity;
 import smallville7123.vstmanager.core.VST;
 import smallville7123.vstmanager.core.Views.VstView;
 import smallville7123.vstmanager.core.VstHost;
@@ -67,7 +69,15 @@ public class VstManager {
         mOrigin.getSupportFragmentManager().popBackStack();
     }
 
-    public boolean load(VST selected) {
+    public ReflectionActivity load(VST selected) {
         return mVstHost.loadVST(mContext, mOrigin.getPackageName(), selected);
+    }
+
+    public Pair<VST, ReflectionActivity> loadVst(String packageName) {
+        return mVstHost.loadVST(mContext, packageName);
+    }
+
+    public VstHost getHost() {
+        return mVstHost;
     }
 }

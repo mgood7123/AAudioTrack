@@ -153,6 +153,10 @@ public class ReflectionActivity extends ContextThemeWrapper {
     static String listName = "Clients";
     Object currentClient;
 
+    public Object getCurrentClient() {
+        return currentClient;
+    }
+
     public ReflectionActivity(Context context, String packageName, Context applicationContext, Class callback, ViewGroup contentRoot) {
         currentClient = linkClientWithHost(callback, context, applicationContext);
         Log.d(TAG, "client = [" + currentClient + "], contentRoot = [" + contentRoot + "]");

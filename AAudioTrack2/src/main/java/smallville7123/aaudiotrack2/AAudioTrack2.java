@@ -3,10 +3,10 @@ package smallville7123.aaudiotrack2;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.util.Log;
+import android.util.Pair;
 
 import com.arthenica.mobileffmpeg.Config;
 import com.arthenica.mobileffmpeg.FFmpeg;
-import com.google.common.io.PatternFilenameFilter;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -25,12 +25,19 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.Objects;
 
+import smallville7123.vstmanager.VstManager;
+import smallville7123.vstmanager.core.ReflectionActivity;
+import smallville7123.vstmanager.core.ReflectionHelpers;
+import smallville7123.vstmanager.core.VST;
+
 import static com.arthenica.mobileffmpeg.Config.RETURN_CODE_SUCCESS;
 
 public class AAudioTrack2 {
     static {
         System.loadLibrary("AAudioTrack2");
     }
+
+    public VstManager manager;
 
     private native void createNativeInstance();
     private native void startEngine();
@@ -52,6 +59,7 @@ public class AAudioTrack2 {
     public  native int getCurrentFrame();
     public  native int getTotalFrames();
     public  native void setTrack(long nativeChannel, String track);
+    public  native void setPlugin(long nativeChannel, long plugin);
     public  native void resetPlayHead();
     public  native void pause();
     public  native void resume();
@@ -210,6 +218,32 @@ public class AAudioTrack2 {
         }
         _load(nativeChannel, outPath);
         delete(out);
+    }
+
+    /**
+     * Load the VST instrument
+     * @param nativeChannel the channel to load the vst instrument into
+     * @param vst the vst to load
+     */
+    public void load(long nativeChannel, Pair<VST, ReflectionActivity> vst) {
+        long nativeInstance = ReflectionHelpers.callInstanceMethod(
+                vst.second.getCurrentClient(),
+                "newNativeInstance"
+        );
+        setPlugin(nativeChannel, nativeInstance);
+    }
+
+    /**
+     * Load the VST instrument using the given package name
+     *
+     * @param nativeChannel the channel to load the vst instrument into
+     * @param packageName the vst to load
+     */
+    public void loadVST(long nativeChannel, String packageName) {
+        Pair<VST, ReflectionActivity> vst = manager.loadVst(packageName);
+        if (vst != null) {
+            load(nativeChannel, vst);
+        }
     }
 
     static FilenameFilter TMP_pattern = (dir, name) -> name.startsWith("TMP_");

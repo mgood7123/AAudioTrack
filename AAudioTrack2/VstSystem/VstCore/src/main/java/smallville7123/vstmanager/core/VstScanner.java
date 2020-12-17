@@ -226,6 +226,69 @@ public class VstScanner {
         }).start();
     }
 
+    public void scanInForeground(Context context, PackageManager packageManager, List<ApplicationInfo> mInstalledApplications) {
+        if (isScanning) {
+            while(true) {
+                if (scanComplete) return;
+                try {
+                    Thread.sleep(0, 1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        int size = mInstalledApplications.size();
+        skipped = 0;
+        vstCount = 0;
+        onPackageScannedSetMax.run(size);
+        onVstFound.run(vstCount, null, -1);
+        onPackageSkipped.run(0);
+        resetPackageStats();
+        synchronized (scanLock) {
+            scanComplete = false;
+            isScanning = true;
+            runOnUiThread.run(() -> onScanStarted.run());
+            if (scannerDatabase != null) {
+                runOnUiThread.run(() -> onDatabaseStatusChanged.run("Database: Garbage collecting"));
+                scannerDatabase = null;
+                System.gc();
+                runOnUiThread.run(() -> onDatabaseStatusChanged.run("Database: Garbage collected"));
+            }
+            runOnUiThread.run(() -> onDatabaseStatusChanged.run("Database: Creating"));
+            scannerDatabase = new FileBundle(context, "ScannerDatabase");
+            runOnUiThread.run(() -> onDatabaseStatusChanged.run("Database: Created"));
+            runOnUiThread.run(() -> onDatabaseStatusChanged.run("Database: Reading"));
+            scannerDatabase.read();
+            runOnUiThread.run(() -> {
+                onDatabaseStatusChanged.run("Database: Read");
+                onDatabaseStatusChanged.run("Database: Updating");
+            });
+            for (int i = 0; i < size; i++) {
+                ApplicationInfo applicationInfo = mInstalledApplications.get(i);
+                int finalI = i+1;
+                runOnUiThread.run(() -> onPackageBeingScanned.run(applicationInfo.packageName));
+                verifyVST(context, packageManager, applicationInfo);
+                runOnUiThread.run(() -> onPackageScanned.run(finalI, applicationInfo, size));
+                try {
+                    Thread.sleep(0, 1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            runOnUiThread.run(() -> {
+                onDatabaseStatusChanged.run("Database: Updated");
+                onDatabaseStatusChanged.run("Database: Writing");
+            });
+            scannerDatabase.write();
+            runOnUiThread.run(() -> {
+                onDatabaseStatusChanged.run("Database: Written");
+                onScanComplete.run();
+            });
+            isScanning = false;
+            scanComplete = true;
+        }
+    }
+
     public VST getVST(ApplicationInfo applicationInfo) {
         for (VST vst : vstList) {
             if (vst.mApplicationInfo == applicationInfo) return vst;

@@ -468,6 +468,10 @@ namespace ARDOUR {
         channelRack.bindChannelToPattern(nativeChannel, nativePattern);
     }
 
+    void AudioEngine::setPlugin(void *nativeChannel, void *nativePlugin) {
+        channelRack.setPlugin(nativeChannel, nativePlugin);
+    }
+
     void AudioEngine::setGridResolution(void *nativePattern, int size) {
         Pattern * pattern = static_cast<Pattern *>(nativePattern);
         pattern->pianoRoll.setResolution(size);

@@ -1,5 +1,6 @@
 package smallville7123.vstmanager.core;
 
-public class VstActivity extends ReflectionActivity implements VstCallback {
+public abstract class VstActivity extends ReflectionActivity implements VstCallback {
     private static final String TAG = "VstActivity";
+    public abstract long newNativeInstance();
 }

@@ -11,6 +11,12 @@ public class Pattern {
         return new boolean[1];
     }
 
+    public long newChannel() {
+        nativeChannel = DAWReference.newChannel();
+        DAWReference.bindChannelToPattern(nativeChannel, nativePattern);
+        return nativeChannel;
+    }
+
     public long newSamplerChannel() {
         nativeChannel = DAWReference.newSamplerChannel();
         DAWReference.bindChannelToPattern(nativeChannel, nativePattern);

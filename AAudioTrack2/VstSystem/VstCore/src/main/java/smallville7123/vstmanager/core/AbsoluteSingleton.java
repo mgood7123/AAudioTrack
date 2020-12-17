@@ -1,6 +1,7 @@
 package smallville7123.vstmanager.core;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 
 /**
  * There can be only one - ie. even if the class is loaded in several different classloaders,
