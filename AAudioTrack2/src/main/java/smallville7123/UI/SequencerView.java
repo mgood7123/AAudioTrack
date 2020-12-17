@@ -22,6 +22,27 @@ import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.widget.LinearLayout.HORIZONTAL;
 import static android.widget.LinearLayout.VERTICAL;
 
+/*
+TODO:
+
+implementing the enable/disable channel button
+
+implementing a file picker for the sampler channel
+
+implementing a scroll bar
+
+implementing a visual sequence playback position indicator
+
+implementing resolution pickers
+
+implementing Solo/Mute buttons (maybe?)
+
+implementing L/R channel audio level meters
+
+implementing a BPM picker
+
+ */
+
 @SuppressLint("AppCompatCustomView")
 public class SequencerView extends FrameLayout {
     public SequencerView(Context context) {
