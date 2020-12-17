@@ -6,10 +6,12 @@ import android.util.Log;
 
 import com.arthenica.mobileffmpeg.Config;
 import com.arthenica.mobileffmpeg.FFmpeg;
+import com.google.common.io.PatternFilenameFilter;
 
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -104,6 +106,7 @@ public class AAudioTrack2 {
             throw new RuntimeException("error loading " + path + ": " + e);
         }
         _load(nativeChannel, outPath);
+        delete(out);
     }
 
     /**
@@ -144,6 +147,11 @@ public class AAudioTrack2 {
         Path outPath = out.toPath();
         Utils.copy(afd, outPath);
         _load(nativeChannel, outPath);
+        delete(out);
+    }
+
+    private void delete(File file) {
+        if (!file.delete()) throw new RuntimeException("failed to delete file " + file);
     }
 
     private File createTemporaryFile(Context context, CharSequence extension) {
@@ -170,6 +178,7 @@ public class AAudioTrack2 {
         Path outPath = out.toPath();
         Utils.copy(fd, outPath);
         _load(nativeChannel, outPath);
+        delete(out);
     }
 
     /**
@@ -200,6 +209,16 @@ public class AAudioTrack2 {
             throw new RuntimeException("close failed: " + ex);
         }
         _load(nativeChannel, outPath);
+        delete(out);
+    }
+
+    static FilenameFilter TMP_pattern = (dir, name) -> name.startsWith("TMP_");
+
+    public void deleteTemporaryFiles(Context context) {
+        File[] files = context.getFilesDir().listFiles(TMP_pattern);
+        if (files != null) {
+            for (File file : files) delete(file);
+        }
     }
 
     private static class Utils {
