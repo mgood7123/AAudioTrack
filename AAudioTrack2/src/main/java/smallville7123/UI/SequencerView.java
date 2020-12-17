@@ -106,7 +106,8 @@ public class SequencerView extends FrameLayout {
 
     public Pattern addRow(PatternList patternList, String label) {
         Pattern pattern = patternList.newPattern(mContext, label);
-        pattern.setResolution(notes);
+        pattern.setNativeResolution(notes);
+        pattern.setViewResolution(4);
         pattern.setMaxLength(notes);
         return pattern;
     }
@@ -135,7 +136,6 @@ public class SequencerView extends FrameLayout {
             };
             pattern.noteGrid.setOrientation(GridView.HORIZONTAL);
             pattern.noteGrid.setRows(1);
-            pattern.length = 0;
             LinearLayout row = new LinearLayout(mContext);
             row.setOrientation(HORIZONTAL);
             row.addView(new ToggleRadioButton(mContext) {
@@ -176,7 +176,6 @@ public class SequencerView extends FrameLayout {
         public boolean scrolling = false;
         GridView noteGrid;
         int maxLength;
-        int length;
         Context mContext;
 
         @Override
@@ -189,15 +188,14 @@ public class SequencerView extends FrameLayout {
         }
 
         @Override
-        public void setResolution(int size) {
-            if (size == length) return;
-            super.setResolution(size);
-
-            // change this value to set the actual number
-            // of displayed notes before the user will need
-            // to scroll
-            noteGrid.setColumns(size);
-            length = size;
+        public void setViewResolution(int size) {
+            if (currentViewResolution != size) {
+                // change this value to set the actual number
+                // of displayed notes before the user will need
+                // to scroll
+                noteGrid.setColumns(size);
+                currentViewResolution = size;
+            }
         }
 
         public void setMaxLength(int size) {

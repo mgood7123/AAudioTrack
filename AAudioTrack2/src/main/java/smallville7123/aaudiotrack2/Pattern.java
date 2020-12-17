@@ -1,9 +1,11 @@
 package smallville7123.aaudiotrack2;
 
 public class Pattern {
-    AAudioTrack2 DAWReference;
-    public long nativeChannel;
-    public long nativePattern;
+    AAudioTrack2 DAWReference = null;
+    public long nativeChannel = 0;
+    public long nativePattern = 0;
+    public int currentNativeResolution = 0;
+    public int currentViewResolution = 0;
 
     public boolean[] getData() {
         return new boolean[1];
@@ -15,8 +17,17 @@ public class Pattern {
         return nativeChannel;
     }
 
-    public void setResolution(int size) {
-        DAWReference.setGridResolution(nativePattern, size);
+    public void setNativeResolution(int size) {
+        if (currentNativeResolution != size) {
+            DAWReference.setGridResolution(nativePattern, size);
+            currentNativeResolution = size;
+        }
+    }
+
+    public void setViewResolution(int size) {
+        if (currentViewResolution != size) {
+            currentViewResolution = size;
+        }
     }
 
     public void setNoteData() {
