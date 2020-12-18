@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
+import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout;
@@ -177,11 +178,10 @@ public class SequencerView extends FrameLayout {
                     });
                 }
             }, Constants.wrapContent);
-            row.addView(new Button(mContext) {
-                {
-                    setText(label);
-                }
-            }, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 3f));
+            row.addView(
+                    newChannelButton(label),
+                    new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 3f)
+            );
 
             row.addView(pattern.noteGrid, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 1f));
 
@@ -195,6 +195,31 @@ public class SequencerView extends FrameLayout {
             channelGrid.adapter.notifyDataSetChanged();
             return pattern;
         }
+    }
+
+    Button newChannelButton(CharSequence label) {
+        Button button = new Button(mContext) {
+            {
+                setText(label);
+            }
+        };
+        button.setOnClickListener(new OnClickListener() {
+            boolean showing = false;
+            @Override
+            public void onClick(View unused) {
+                if (!showing) {
+                    showing = true;
+                }
+                WindowsContextMenu x = new WindowsContextMenu(mContext);
+                x.setAnchorView(button);
+                x.addSubMenu("Insert").subMenu.addItem("hi");
+                x.addSubMenu("Replace").subMenu.addItem("hi again");
+                x.addItem("Clone");
+                x.addItem("Delete");
+                x.show();
+            }
+        });
+        return button;
     }
 
     public class Pattern extends smallville7123.aaudiotrack2.Pattern {
