@@ -2,6 +2,7 @@ package smallville7123.UI;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -42,6 +43,12 @@ public class GridView extends RecyclerView {
     public GridView(@NonNull Context context) {
         super(context);
         init(context);
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        if (adapter != null) adapter.notifyDataSetChanged();
     }
 
     public GridView(@NonNull Context context, @Nullable AttributeSet attrs) {
