@@ -82,6 +82,11 @@ public class WindowsContextMenu {
 
     public void setAnchorView(@Nullable View anchor) {
         this.anchor = anchor;
+        for (WindowsContextMenuItem item : sampleData) {
+            if (item.subMenu != null) {
+                item.subMenu.listPopupWindow.setAnchorView(anchor);
+            }
+        }
         listPopupWindow.setAnchorView(anchor);
     }
 

@@ -75,9 +75,19 @@ public class SequencerView extends FrameLayout {
     int UINoteResolution;
     float noteWidth;
     boolean fitNotesToView;
+    WindowsContextMenu channelContextMenu;
+
+    void setupChannelContextMenu() {
+        channelContextMenu = new WindowsContextMenu(mContext);
+        channelContextMenu.addSubMenu("Insert").subMenu.addItem("hi");
+        channelContextMenu.addSubMenu("Replace").subMenu.addItem("hi again");
+        channelContextMenu.addItem("Clone");
+        channelContextMenu.addItem("Delete");
+    }
 
     private void init(Context context, AttributeSet attrs) {
         mContext = context;
+        setupChannelContextMenu();
         if (attrs != null) {
             TypedArray attributes = context.getTheme().obtainStyledAttributes(attrs, R.styleable.sequencer, 0, 0);
             channels = attributes.getInteger(R.styleable.sequencer_channels, 4);
@@ -210,13 +220,8 @@ public class SequencerView extends FrameLayout {
                 if (!showing) {
                     showing = true;
                 }
-                WindowsContextMenu x = new WindowsContextMenu(mContext);
-                x.setAnchorView(button);
-                x.addSubMenu("Insert").subMenu.addItem("hi");
-                x.addSubMenu("Replace").subMenu.addItem("hi again");
-                x.addItem("Clone");
-                x.addItem("Delete");
-                x.show();
+                channelContextMenu.setAnchorView(button);
+                channelContextMenu.show();
             }
         });
         return button;
