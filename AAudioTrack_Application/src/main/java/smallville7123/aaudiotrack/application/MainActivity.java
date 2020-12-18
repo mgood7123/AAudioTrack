@@ -43,9 +43,10 @@ public class MainActivity extends AppCompatActivity {
         updatingTextView.addOnFirstDrawAction(() -> u(updatingTextView));
         updatingTextView.addOnDrawAction(() -> u(updatingTextView));
 
+        audioTrack.deleteTemporaryFiles(this);
+
         SequencerView sequencerView = findViewById(R.id.sequencer);
         SequencerView.PatternList list = sequencerView.newPatternList(audioTrack);
-        audioTrack.deleteTemporaryFiles(this);
         audioTrack.load(
                 sequencerView.addRow(list, "Kick").newSamplerChannel(),
                 this, R.raw.kick, "wav"
