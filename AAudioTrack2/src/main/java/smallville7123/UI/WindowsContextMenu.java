@@ -22,6 +22,7 @@ public class WindowsContextMenu {
         listPopupWindow = new ListPopupWindow(mContext);
         listPopupWindowAdapter = new WindowsContextMenuAdapter(mContext, sampleData);
         listPopupWindow.setWidth(600);
+        listPopupWindow.setModal(true);
         listPopupWindow.setOnItemClickListener((parent, view, position, id) -> {
             WindowsContextMenuItem item = listPopupWindowAdapter.getItem(position);
             if (item.subMenu == null) {
