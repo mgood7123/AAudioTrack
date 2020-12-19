@@ -5,7 +5,6 @@ import java.util.ArrayList;
 public class PatternGroup<P extends PatternList<? extends Pattern>> {
     public ArrayList<P> patternListArrayList = new ArrayList<>();
     AAudioTrack2 DAWReference;
-    long nativePatternList;
 
     public PatternGroup(AAudioTrack2 instance) {
         DAWReference = instance;

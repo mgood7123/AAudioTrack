@@ -2,16 +2,13 @@
 // Created by Matthew Good on 9/12/20.
 //
 
-#ifndef AAUDIOTRACK_PATTERN_H
-#define AAUDIOTRACK_PATTERN_H
+#ifndef AAUDIOTRACK_TRACK_H
+#define AAUDIOTRACK_TRACK_H
 
 
 #include "PianoRoll.h"
-#include "Rack.h"
-#include "Channel_Generator.h"
-#include <cstdint>
 
-class Pattern {
+class Track {
 public:
     PianoRoll pianoRoll;
     Channel_Generator * channelReference;
@@ -22,4 +19,4 @@ public:
 };
 
 
-#endif //AAUDIOTRACK_PATTERN_H
+#endif //AAUDIOTRACK_TRACK_H

@@ -464,10 +464,6 @@ namespace ARDOUR {
         return _backend;
     }
 
-    void AudioEngine::bindChannelToPattern(void *nativeChannel, void *nativePattern) {
-        channelRack.bindChannelToPattern(nativeChannel, nativePattern);
-    }
-
     void AudioEngine::setPlugin(void *nativeChannel, void *nativePlugin) {
         channelRack.setPlugin(nativeChannel, nativePlugin);
     }
@@ -476,6 +472,10 @@ namespace ARDOUR {
         Pattern * pattern = static_cast<Pattern *>(nativePattern);
         pattern->pianoRoll.setResolution(size);
         pattern->pianoRoll.updateGrid();
+    }
+
+    void AudioEngine::bindChannelToPattern(void *nativeChannel, void *nativePattern) {
+        channelRack.bindChannelToPattern(nativeChannel, nativePattern);
     }
 
     PatternList * AudioEngine::createPatternList() {
@@ -496,5 +496,30 @@ namespace ARDOUR {
 
     void AudioEngine::deletePattern(void * patternList, void * pattern) {
         static_cast<PatternList *>(patternList)->removePattern(static_cast<Pattern *>(pattern));
+    }
+
+
+    void AudioEngine::bindChannelToTrack(void *nativeChannel, void *nativeTrack) {
+        playlist.bindChannelToTrack(nativeChannel, nativeTrack);
+    }
+
+    TrackList * AudioEngine::createTrackList() {
+        return playlist.trackGroup.newTrackList();
+    }
+
+    void AudioEngine::deleteTrackList(void * trackList) {
+        return playlist.trackGroup.removeTrackList(static_cast<TrackList *>(trackList));
+    }
+
+    Track * AudioEngine::createTrack(void * trackList) {
+        Track * track = static_cast<TrackList *>(trackList)->newTrack();
+        track->pianoRoll.setBPM(240);
+        track->pianoRoll.setResolution(16);
+        track->pianoRoll.updateGrid();
+        return track;
+    }
+
+    void AudioEngine::deleteTrack(void * trackList, void * track) {
+        static_cast<TrackList *>(trackList)->removeTrack(static_cast<Track *>(track));
     }
 }

@@ -16,6 +16,7 @@
 #include "../../smallville7123/plugins/Mixer.h"
 #include "../../smallville7123/plugins/ChannelRack.h"
 #include "../../smallville7123/plugins/EffectRack.h"
+#include "../../smallville7123/plugins/Playlist.h"
 
 
 namespace ARDOUR {
@@ -38,6 +39,7 @@ namespace ARDOUR {
         Mixer mixer;
         ChannelRack channelRack;
         EffectRack effectRack;
+        Playlist playlist;
 
         /* latency measurement */
 
@@ -132,6 +134,10 @@ namespace ARDOUR {
 
         sample_position_t sample_time();
 
+        void setGridResolution(void *nativePattern, int size);
+
+        void setPlugin(void *pVoid, void *pVoid1);
+
         void bindChannelToPattern(void *nativeChannel, void *nativePattern);
 
         PatternList * createPatternList();
@@ -142,9 +148,15 @@ namespace ARDOUR {
 
         void deletePattern(void *patternList, void *pattern);
 
-        void setGridResolution(void *nativePattern, int size);
+        void bindChannelToTrack(void *nativeChannel, void *nativeTrack);
 
-        void setPlugin(void *pVoid, void *pVoid1);
+        TrackList * createTrackList();
+
+        void deleteTrackList(void *trackList);
+
+        Track *createTrack(void *trackList);
+
+        void deleteTrack(void *trackList, void *track);
     };
 }
 

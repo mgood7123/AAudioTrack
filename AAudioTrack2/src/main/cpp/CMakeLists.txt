@@ -13,7 +13,6 @@ add_library(engine SHARED
         ardour/Backends/AAudio.cpp
         zrythm/audio/port_identifier.cpp
         zrythm/audio/port.cpp
-        zrythm/audio/track_processor.cpp
         smallville7123/TempoGrid.cpp
 )
 

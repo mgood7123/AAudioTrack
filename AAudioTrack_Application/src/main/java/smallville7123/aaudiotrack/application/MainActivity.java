@@ -6,6 +6,7 @@ import android.widget.LinearLayout;
 import androidx.appcompat.app.AppCompatActivity;
 
 import smallville7123.UI.Constants;
+import smallville7123.UI.PlaylistView;
 import smallville7123.UI.SequencerView;
 import smallville7123.UI.UpdatingImageProgressBar;
 import smallville7123.UI.UpdatingTextView;
@@ -45,6 +46,15 @@ public class MainActivity extends AppCompatActivity {
 
         audioTrack.deleteTemporaryFiles(this);
 
+        // configure the Playlist
+        PlaylistView playlistView = findViewById(R.id.playlist);
+        PlaylistView.TrackList playlist = playlistView.newTrackList(audioTrack);
+        playlistView.addRow(playlist, "1");
+        playlistView.addRow(playlist, "2");
+        playlistView.addRow(playlist, "3");
+        playlistView.addRow(playlist, "4");
+
+        // configure the Sequencer
         SequencerView sequencerView = findViewById(R.id.sequencer);
         SequencerView.PatternList list = sequencerView.newPatternList(audioTrack);
         audioTrack.load(

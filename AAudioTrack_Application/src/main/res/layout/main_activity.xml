@@ -77,6 +77,11 @@
             app:nativeNotes="16"
             app:fitNotesToView="true"
             />
+        <smallville7123.UI.PlaylistView
+            android:id="@+id/playlist"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            />
     </smallville7123.vstmanager.core.Views.VstView>
 
     <smallville7123.UI.UpdatingTextView

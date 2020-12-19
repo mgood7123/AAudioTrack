@@ -102,15 +102,6 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_getDSPLoad(JNIEnv *env, jobject th
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_smallville7123_aaudiotrack2_AAudioTrack2_bindChannelToPattern(JNIEnv *env, jobject thiz,
-                                                                   jlong channel, jlong pattern) {
-    if (engine_exists()) {
-        engine->bindChannelToPattern(makeVoidPtr(channel), makeVoidPtr(pattern));
-    }
-}
-
-extern "C"
-JNIEXPORT void JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_setGridResolution(JNIEnv *env, jobject thiz,
                                                                    jlong pattern, jint size) {
     if (engine_exists()) {
@@ -258,6 +249,15 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_loop(JNIEnv *env, jobject thiz,
 }
 
 extern "C"
+JNIEXPORT void JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_bindChannelToPattern(JNIEnv *env, jobject thiz,
+                                                                   jlong channel, jlong pattern) {
+    if (engine_exists()) {
+        engine->bindChannelToPattern(makeVoidPtr(channel), makeVoidPtr(pattern));
+    }
+}
+
+extern "C"
 JNIEXPORT jlong JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_createPatternList(JNIEnv *env, jobject thiz) {
     if (engine_exists()) {
@@ -288,5 +288,50 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_deletePattern(JNIEnv *env, jobject
                                                                 jlong patternList, jlong pattern) {
     if (engine_exists()) {
         engine->deletePattern(makeVoidPtr(patternList), makeVoidPtr(pattern));
+    }
+}
+
+
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_bindChannelToTrack(JNIEnv *env, jobject thiz,
+                                                                   jlong channel, jlong track) {
+    if (engine_exists()) {
+        engine->bindChannelToTrack(makeVoidPtr(channel), makeVoidPtr(track));
+    }
+}
+
+extern "C"
+JNIEXPORT jlong JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_createTrackList(JNIEnv *env, jobject thiz) {
+    if (engine_exists()) {
+        return makejlong(engine->createTrackList());
+    } else return 0;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_deleteTrackList(JNIEnv *env, jobject thiz,
+                                                                jlong trackList) {
+    if (engine_exists()) {
+        engine->deleteTrackList(makeVoidPtr(trackList));
+    }
+}
+
+extern "C"
+JNIEXPORT jlong JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_createTrack(JNIEnv *env, jobject thiz, jlong trackList) {
+    if (engine_exists()) {
+        return makejlong(engine->createTrack(makeVoidPtr(trackList)));
+    } else return 0;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_deleteTrack(JNIEnv *env, jobject thiz,
+                                                            jlong trackList, jlong track) {
+    if (engine_exists()) {
+        engine->deleteTrack(makeVoidPtr(trackList), makeVoidPtr(track));
     }
 }
