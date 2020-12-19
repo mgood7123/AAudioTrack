@@ -33,16 +33,6 @@ public:
         left.setdelay(48000/8);
     }
 
-public:
-
-    bool requires_sample_count() override {
-        return Plugin_Type_Effect::requires_sample_count();
-    }
-
-    bool requires_mixer() override {
-        return Plugin_Type_Effect::requires_mixer();
-    }
-
     int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
               unsigned int samples) override {
         for (int i = 0; i < samples; i += 2) {

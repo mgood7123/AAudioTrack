@@ -28,7 +28,7 @@ TODO:
 
 implementing the enable/disable channel button
 
-implementing a file picker for the sampler channel
+implementing a file picker for the sampler plugin
 
 implementing a scroll bar
 

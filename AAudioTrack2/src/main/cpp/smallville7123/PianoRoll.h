@@ -32,6 +32,15 @@ public:
 
     int noteindex = -1;
 
+    //what would happen if two notes sit side by side?
+    //as a frame CANNOT occupy both an ON and an OFF for the same note data
+    //
+    //i would assume thet either:
+    //
+    //we ignore this, merging both notes into a single note with some kind of RESET/MIDI_PANIC marker located at where the second note begins
+    //
+    //or, that we put an OFF note exactly 1 frame before the ON note's frame (seems more realistic given MIDI, since a MIDI PANIC would, i think, stop all audio for the target device untill it recieves an ON note again (or is told to process data))
+
     void setNoteData(bool * noteData, int size) {
         uint64_t frame = 0;
         this->noteData.consumerClear();

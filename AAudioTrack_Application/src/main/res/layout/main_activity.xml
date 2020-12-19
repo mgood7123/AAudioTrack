@@ -10,7 +10,7 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="250dp"
-        android:layout_weight="1">
+        android:layout_weight="6">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -23,39 +23,37 @@
                 android:layout_weight="1" />
 
             <LinearLayout
-                android:layout_width="250dp"
+                android:layout_width="350dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:orientation="vertical"
                 >
                 <smallville7123.UI.UpdatingImageProgressBar
                     android:id="@+id/CPU_LOAD"
-                    android:layout_width="match_parent"
+                    android:layout_width="30dp"
                     android:layout_height="120dp"
-                    android:layout_weight="1"
+                    android:layout_weight="6"
+                    android:layout_gravity="center"
                     app:progress_background="@drawable/cpu"
                     app:progress_max="100"
                     app:progress_value="75"
                     />
 
-                <TextView
+                <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="4"
-                    android:fontFamily="monospace"
-                    android:textColor="@color/cardview_light_background"
-                    android:textSize="18sp"
-                    android:text="DSP"
-                />
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="3"
-                    android:fontFamily="monospace"
-                    android:textColor="@color/cardview_light_background"
-                    android:textSize="16sp"
-                    android:text="LOAD"
-                    />
+                    >
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:textAlignment="center"
+                        android:fontFamily="monospace"
+                        android:textColor="@color/cardview_light_background"
+                        android:textSize="18sp"
+                        android:text="DSP LOAD"
+                        />
+                </FrameLayout>
             </LinearLayout>
             <Space
                 android:layout_width="match_parent"
