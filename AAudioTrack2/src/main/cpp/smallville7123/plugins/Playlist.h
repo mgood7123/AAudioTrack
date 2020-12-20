@@ -68,146 +68,87 @@ public:
                        unsigned int samples) {
         // LOGE("writing channels");
 
-        // this causes the current pattern list in the step sequencer's channel rack to partially play
-//        for (int i = 0; i < trackGroup.rack.typeList.size(); ++i) {
-//            TrackList *trackList = trackGroup.rack.typeList[i];
-//            if (trackList != nullptr) {
-//                for (int i = 0; i < trackList->rack.typeList.size(); ++i) {
-//                    Track *track = trackList->rack.typeList[i];
+        // this causes the current pattern list
+        // in the step sequencer's channel rack
+        // to partially play
+        for (int i = 0; i < trackGroup.rack.typeList.size(); ++i) {
+            TrackList *trackList = trackGroup.rack.typeList[i];
+            if (trackList != nullptr) {
+                for (int i = 0; i < trackList->rack.typeList.size(); ++i) {
+                    Track *track = trackList->rack.typeList[i];
 //                    if (track->hasNote(hostInfo->engineFrame)) {
-//                        for (int i = 0; i < PatternGroup::cast(
-//                                hostInfo->patternGroup)->rack.typeList.size(); ++i) {
-//                            PatternList *patternList = PatternGroup::cast(
-//                                    hostInfo->patternGroup)->rack.typeList[i];
-//                            if (patternList != nullptr) {
-//                                for (int i = 0; i < patternList->rack.typeList.size(); ++i) {
-//                                    Pattern *pattern = patternList->rack.typeList[i];
-//                                    if (pattern != nullptr) {
-//                                        Channel_Generator *channel = pattern->channelReference;
-//                                        if (channel != nullptr) {
-//                                            channel->out->allocatePorts<ENGINE_FORMAT>(out);
-//                                            channel->out->fillPortBuffer<ENGINE_FORMAT>(0);
-//                                            if (channel->plugin != nullptr) {
-//                                                if (channel->plugin->is_writing ==
-//                                                    PLUGIN_CONTINUE) {
-//                                                    writePlugin(channel->plugin, hostInfo, in,
-//                                                                mixer,
-//                                                                channel->out, samples);
-//                                                }
-//                                            }
-//                                            if (channel->effectRack != nullptr) {
-//                                                if (channel->effectRack->is_writing ==
-//                                                    PLUGIN_CONTINUE) {
-//                                                    writeEffectRack(channel->effectRack, hostInfo,
-//                                                                    in,
-//                                                                    mixer,
-//                                                                    channel->out, samples);
-//                                                }
-//                                            }
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//        for (int32_t i = 0; i < samples; i ++) {
-//            for (int i = 0; i < trackGroup.rack.typeList.size(); ++i) {
-//                TrackList *trackList = trackGroup.rack.typeList[i];
-//                if (trackList != nullptr) {
-//                    for (int i = 0; i < trackList->rack.typeList.size(); ++i) {
-//                        Track *track = trackList->rack.typeList[i];
-//                        if (track->hasNote(hostInfo->engineFrame)) {
-//                            for (int i = 0; i < PatternGroup::cast(
-//                                    hostInfo->patternGroup)->rack.typeList.size(); ++i) {
-//                                PatternList *patternList = PatternGroup::cast(
-//                                        hostInfo->patternGroup)->rack.typeList[i];
-//                                if (patternList != nullptr) {
-//                                    for (int i = 0; i < patternList->rack.typeList.size(); ++i) {
-//                                        Pattern *pattern = patternList->rack.typeList[i];
-//                                        if (pattern != nullptr) {
-//                                            if (pattern->hasNote(hostInfo->engineFrame)) {
-//                                                Channel_Generator *channel = pattern->channelReference;
-//                                                if (channel != nullptr) {
-//                                                    channel->out->allocatePorts<ENGINE_FORMAT>(out);
-//                                                    channel->out->fillPortBuffer<ENGINE_FORMAT>(0);
-//                                                    if (channel->plugin != nullptr) {
-//                                                        channel->plugin->stopPlayback();
-//                                                        writePlugin(channel->plugin, hostInfo, in,
-//                                                                    mixer,
-//                                                                    channel->out, samples);
-//                                                    }
-//                                                    if (channel->effectRack != nullptr) {
-//                                                        writeEffectRack(channel->effectRack,
-//                                                                        hostInfo, in, mixer,
-//                                                                        channel->out, samples);
-//                                                    }
-//                                                }
-//                                            }
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//            hostInfo->engineFrame++;
-//            // return from the audio loop
-//        }
-
-        // this causes the current pattern list in the step sequencer's channel rack to play
-
-        for (int i = 0; i < PatternGroup::cast(hostInfo->patternGroup)->rack.typeList.size(); ++i) {
-            PatternList *patternList = PatternGroup::cast(hostInfo->patternGroup)->rack.typeList[i];
-            if (patternList != nullptr) {
-                for (int i = 0; i < patternList->rack.typeList.size(); ++i) {
-                    Pattern *pattern = patternList->rack.typeList[i];
-                    if (pattern != nullptr) {
-                        Channel_Generator *channel = pattern->channelReference;
-                        if (channel != nullptr) {
-                            channel->out->allocatePorts<ENGINE_FORMAT>(out);
-                            channel->out->fillPortBuffer<ENGINE_FORMAT>(0);
-                            if (channel->plugin != nullptr) {
-                                if (channel->plugin->is_writing == PLUGIN_CONTINUE) {
-                                    writePlugin(channel->plugin, hostInfo, in, mixer,
-                                                channel->out, samples);
-                                }
-                            }
-                            if (channel->effectRack != nullptr) {
-                                if (channel->effectRack->is_writing == PLUGIN_CONTINUE) {
-                                    writeEffectRack(channel->effectRack, hostInfo, in,
-                                                    mixer,
-                                                    channel->out, samples);
+                        for (int i = 0; i < PatternGroup::cast(
+                                hostInfo->patternGroup)->rack.typeList.size(); ++i) {
+                            PatternList *patternList = PatternGroup::cast(
+                                    hostInfo->patternGroup)->rack.typeList[i];
+                            if (patternList != nullptr) {
+                                for (int i = 0; i < patternList->rack.typeList.size(); ++i) {
+                                    Pattern *pattern = patternList->rack.typeList[i];
+                                    if (pattern != nullptr) {
+                                        Channel_Generator *channel = pattern->channelReference;
+                                        if (channel != nullptr) {
+                                            channel->out->allocatePorts<ENGINE_FORMAT>(out);
+                                            channel->out->fillPortBuffer<ENGINE_FORMAT>(0);
+                                            if (channel->plugin != nullptr) {
+                                                if (channel->plugin->is_writing ==
+                                                    PLUGIN_CONTINUE) {
+                                                    writePlugin(channel->plugin, hostInfo, in,
+                                                                mixer,
+                                                                channel->out, samples);
+                                                }
+                                            }
+                                            if (channel->effectRack != nullptr) {
+                                                if (channel->effectRack->is_writing ==
+                                                    PLUGIN_CONTINUE) {
+                                                    writeEffectRack(channel->effectRack, hostInfo,
+                                                                    in,
+                                                                    mixer,
+                                                                    channel->out, samples);
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
-                    }
+//                    }
                 }
             }
         }
         for (int32_t i = 0; i < samples; i ++) {
-            for (int i = 0; i < PatternGroup::cast(hostInfo->patternGroup)->rack.typeList.size(); ++i) {
-                PatternList *patternList = PatternGroup::cast(hostInfo->patternGroup)->rack.typeList[i];
-                if (patternList != nullptr) {
-                    for (int i = 0; i < patternList->rack.typeList.size(); ++i) {
-                        Pattern *pattern = patternList->rack.typeList[i];
-                        if (pattern != nullptr) {
-                            if (pattern->hasNote(hostInfo->engineFrame)) {
-                                Channel_Generator * channel = pattern->channelReference;
-                                if (channel != nullptr) {
-                                    channel->out->allocatePorts<ENGINE_FORMAT>(out);
-                                    channel->out->fillPortBuffer<ENGINE_FORMAT>(0);
-                                    if (channel->plugin != nullptr) {
-                                        channel->plugin->stopPlayback();
-                                        writePlugin(channel->plugin, hostInfo, in, mixer,
-                                                    channel->out, samples);
-                                    }
-                                    if (channel->effectRack != nullptr) {
-                                        writeEffectRack(channel->effectRack, hostInfo, in, mixer,
-                                                        channel->out, samples);
+            for (int i = 0; i < trackGroup.rack.typeList.size(); ++i) {
+                TrackList *trackList = trackGroup.rack.typeList[i];
+                if (trackList != nullptr) {
+                    for (int i = 0; i < trackList->rack.typeList.size(); ++i) {
+                        Track *track = trackList->rack.typeList[i];
+                        if (track->hasNote(hostInfo->engineFrame)) {
+                            for (int i = 0; i < PatternGroup::cast(
+                                    hostInfo->patternGroup)->rack.typeList.size(); ++i) {
+                                PatternList *patternList = PatternGroup::cast(
+                                        hostInfo->patternGroup)->rack.typeList[i];
+                                if (patternList != nullptr) {
+                                    for (int i = 0; i < patternList->rack.typeList.size(); ++i) {
+                                        Pattern *pattern = patternList->rack.typeList[i];
+                                        if (pattern != nullptr) {
+                                            if (pattern->hasNote(hostInfo->engineFrame)) {
+                                                Channel_Generator *channel = pattern->channelReference;
+                                                if (channel != nullptr) {
+                                                    channel->out->allocatePorts<ENGINE_FORMAT>(out);
+                                                    channel->out->fillPortBuffer<ENGINE_FORMAT>(0);
+                                                    if (channel->plugin != nullptr) {
+                                                        channel->plugin->stopPlayback();
+                                                        writePlugin(channel->plugin, hostInfo, in,
+                                                                    mixer,
+                                                                    channel->out, samples);
+                                                    }
+                                                    if (channel->effectRack != nullptr) {
+                                                        writeEffectRack(channel->effectRack,
+                                                                        hostInfo, in, mixer,
+                                                                        channel->out, samples);
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
