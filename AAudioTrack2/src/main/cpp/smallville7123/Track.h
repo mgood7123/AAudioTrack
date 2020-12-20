@@ -11,7 +11,7 @@
 class Track {
 public:
     PianoRoll pianoRoll;
-    Channel_Generator * channelReference;
+    PatternList * patternListReference;
 
     bool hasNote(uint64_t frame) {
         return pianoRoll.hasNote(frame);

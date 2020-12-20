@@ -41,8 +41,6 @@ public:
 
     PortUtils2 * silencePort = nullptr;
 
-    PatternGroup patternGroup;
-
     ChannelRack() {
         silencePort = new PortUtils2();
 
@@ -96,8 +94,8 @@ public:
     void writeChannels(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
                        unsigned int samples) {
         // LOGE("writing channels");
-        for (int i = 0; i < patternGroup.rack.typeList.size(); ++i) {
-            PatternList *patternList = patternGroup.rack.typeList[i];
+        for (int i = 0; i < PatternGroup::cast(hostInfo->patternGroup)->rack.typeList.size(); ++i) {
+            PatternList *patternList = PatternGroup::cast(hostInfo->patternGroup)->rack.typeList[i];
             if (patternList != nullptr) {
                 for (int i = 0; i < patternList->rack.typeList.size(); ++i) {
                     Pattern *pattern = patternList->rack.typeList[i];
@@ -125,8 +123,8 @@ public:
             }
         }
         for (int32_t i = 0; i < samples; i ++) {
-            for (int i = 0; i < patternGroup.rack.typeList.size(); ++i) {
-                PatternList *patternList = patternGroup.rack.typeList[i];
+            for (int i = 0; i < PatternGroup::cast(hostInfo->patternGroup)->rack.typeList.size(); ++i) {
+                PatternList *patternList = PatternGroup::cast(hostInfo->patternGroup)->rack.typeList[i];
                 if (patternList != nullptr) {
                     for (int i = 0; i < patternList->rack.typeList.size(); ++i) {
                         Pattern *pattern = patternList->rack.typeList[i];
@@ -157,10 +155,10 @@ public:
         // LOGE("wrote channels");
     }
 
-    void prepareMixer(Plugin_Type_Mixer * mixer_, PortUtils2 * out) {
+    void prepareMixer(HostInfo * hostInfo, Plugin_Type_Mixer * mixer_, PortUtils2 * out) {
         // LOGE("preparing mixer");
-        for (int i = 0; i < patternGroup.rack.typeList.size(); ++i) {
-            PatternList *patternList = patternGroup.rack.typeList[i];
+        for (int i = 0; i < PatternGroup::cast(hostInfo->patternGroup)->rack.typeList.size(); ++i) {
+            PatternList *patternList = PatternGroup::cast(hostInfo->patternGroup)->rack.typeList[i];
             if (patternList != nullptr) {
                 for (int i = 0; i < patternList->rack.typeList.size(); ++i) {
                     Pattern *pattern = patternList->rack.typeList[i];
@@ -187,13 +185,13 @@ public:
         // LOGE("mixed");
     }
 
-    void finalizeMixer(Plugin_Type_Mixer * mixer_) {
+    void finalizeMixer(HostInfo * hostInfo, Plugin_Type_Mixer * mixer_) {
         // LOGE("finalizing mixer");
         mixer_->removePort(silencePort);
         silencePort->deallocatePorts<ENGINE_FORMAT>();
 
-        for (int i = 0; i < patternGroup.rack.typeList.size(); ++i) {
-            PatternList *patternList = patternGroup.rack.typeList[i];
+        for (int i = 0; i < PatternGroup::cast(hostInfo->patternGroup)->rack.typeList.size(); ++i) {
+            PatternList *patternList = PatternGroup::cast(hostInfo->patternGroup)->rack.typeList[i];
             if (patternList != nullptr) {
                 for (int i = 0; i < patternList->rack.typeList.size(); ++i) {
                     Pattern *pattern = patternList->rack.typeList[i];
@@ -213,9 +211,9 @@ public:
 
     void mixChannels(HostInfo *hostInfo, PortUtils2 *in, Plugin_Type_Mixer * mixer, PortUtils2 *out,
                      unsigned int samples) {
-        prepareMixer(mixer, out);
+        prepareMixer(hostInfo, mixer, out);
         mix(hostInfo, in, mixer, out, samples);
-        finalizeMixer(mixer);
+        finalizeMixer(hostInfo, mixer);
     }
 
     int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
@@ -233,12 +231,12 @@ public:
         static_cast<Channel_Generator *>(nativeChannel)->plugin = static_cast<Plugin_Type_Generator *>(nativePlugin);
     }
 
-    PatternList * newPatternList() {
-        return patternGroup.newPatternList();
+    PatternList * newPatternList(HostInfo * hostInfo) {
+        return PatternGroup::cast(hostInfo->patternGroup)->newPatternList();
     }
 
-    void deletePatternList(PatternList * patternList) {
-        return patternGroup.removePatternList(patternList);
+    void deletePatternList(HostInfo * hostInfo, PatternList * patternList) {
+        return PatternGroup::cast(hostInfo->patternGroup)->removePatternList(patternList);
     }
 
     Pattern * newPattern(PatternList * patternList) {

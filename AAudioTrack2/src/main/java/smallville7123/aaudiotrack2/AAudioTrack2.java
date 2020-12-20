@@ -43,6 +43,7 @@ public class AAudioTrack2 {
     private native void startEngine();
     private native void stopEngine();
     public native void setNoteData(long pattern, boolean[] array);
+    public native void setTrackData(long track, boolean[] array);
     public native int getDSPLoad();
 
     public native void bindChannelToPattern(long channel, long pattern);
@@ -58,7 +59,8 @@ public class AAudioTrack2 {
     public native void deleteTrack(long trackList, long track);
 
     public native boolean isNotePlaying(int noteDataIndex);
-    public native void setGridResolution(long channel, long pattern);
+    public native void setPatternGridResolution(long pattern, int size);
+    public native void setTrackGridResolution(long track, int size);
 
     public  native int getSampleRate();
     public  native int getChannelCount();

@@ -25,7 +25,7 @@ public class Track {
 
     public void setNativeResolution(int size) {
         if (currentNativeResolution != size) {
-            DAWReference.setGridResolution(nativeTrack, size);
+            DAWReference.setTrackGridResolution(nativeTrack, size);
             currentNativeResolution = size;
         }
     }
@@ -36,7 +36,7 @@ public class Track {
         }
     }
 
-    public void setNoteData() {
-        DAWReference.setNoteData(nativeTrack, getData());
+    public void setTrackData() {
+        DAWReference.setTrackData(nativeTrack, getData());
     }
 }

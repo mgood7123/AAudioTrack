@@ -29,6 +29,10 @@ namespace ARDOUR {
     using namespace ARDOUR_TYPEDEFS;
     AudioEngine* AudioEngine::_instance = 0;
 
+    HostInfo hostInfo;
+
+    PatternGroup patternGroup;
+
     AudioEngine::AudioEngine ()
             :// session_remove_pending (false)
 //            , session_removal_countdown (-1)
@@ -65,6 +69,7 @@ namespace ARDOUR {
     {
 //        reset_silence_countdown ();
 //        start_hw_event_processing();
+        hostInfo.patternGroup = &patternGroup;
         discover_backends ();
     }
 
@@ -387,8 +392,6 @@ namespace ARDOUR {
 
     // AUDIO ENGINE
 
-    HostInfo hostInfo;
-
     void AudioEngine::load(void * nativeChannel, const char *filename) {
         reinterpret_cast<Channel_Generator*>(nativeChannel)->plugin->load(
                 filename,
@@ -445,7 +448,10 @@ namespace ARDOUR {
         }
 
         auto start = std::chrono::high_resolution_clock::now();
-        channelRack.write(&hostInfo, in, &mixer, out, out->ports.samplesPerChannel);
+
+//        channelRack.write(&hostInfo, in, &mixer, out, out->ports.samplesPerChannel);
+        playlist.write(&hostInfo, in, &mixer, out, out->ports.samplesPerChannel);
+
         auto end = std::chrono::high_resolution_clock::now();
         processingTime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
         bufferLength = static_cast<double>((static_cast<double>(out->ports.samples) * 1000000000.0f) / static_cast<double>(_backend->sample_rate()));
@@ -468,10 +474,16 @@ namespace ARDOUR {
         channelRack.setPlugin(nativeChannel, nativePlugin);
     }
 
-    void AudioEngine::setGridResolution(void *nativePattern, int size) {
+    void AudioEngine::setPatternGridResolution(void *nativePattern, int size) {
         Pattern * pattern = static_cast<Pattern *>(nativePattern);
         pattern->pianoRoll.setResolution(size);
         pattern->pianoRoll.updateGrid();
+    }
+
+    void AudioEngine::setTrackGridResolution(void *nativeTrack, int size) {
+        Track * track = static_cast<Track *>(nativeTrack);
+        track->pianoRoll.setResolution(size);
+        track->pianoRoll.updateGrid();
     }
 
     void AudioEngine::bindChannelToPattern(void *nativeChannel, void *nativePattern) {
@@ -479,11 +491,11 @@ namespace ARDOUR {
     }
 
     PatternList * AudioEngine::createPatternList() {
-        return channelRack.patternGroup.newPatternList();
+        return getPatternGroup()->newPatternList();
     }
 
     void AudioEngine::deletePatternList(void * patternList) {
-        return channelRack.patternGroup.removePatternList(static_cast<PatternList *>(patternList));
+        return getPatternGroup()->removePatternList(static_cast<PatternList *>(patternList));
     }
 
     Pattern * AudioEngine::createPattern(void * patternList) {
@@ -521,5 +533,9 @@ namespace ARDOUR {
 
     void AudioEngine::deleteTrack(void * trackList, void * track) {
         static_cast<TrackList *>(trackList)->removeTrack(static_cast<Track *>(track));
+    }
+
+    PatternGroup * AudioEngine::getPatternGroup() {
+        return PatternGroup::cast(hostInfo.patternGroup);
     }
 }

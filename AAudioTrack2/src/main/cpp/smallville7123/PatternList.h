@@ -19,6 +19,10 @@ public:
     void removePattern(Pattern * pattern) {
         rack.removeType(pattern);
     }
+
+    static PatternList * cast(void * pointer) {
+        return static_cast<PatternList *>(pointer);
+    }
 };
 
 

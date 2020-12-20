@@ -12,6 +12,8 @@ class HostInfo {
 public:
     TempoGrid tempoGrid = TempoGrid(120);
     uint64_t engineFrame = 0;
+    void * channelRack;
+    void * patternGroup;
 };
 
 #endif //AAUDIOTRACK_HOSTINFO_H

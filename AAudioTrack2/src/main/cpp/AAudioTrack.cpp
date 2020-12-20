@@ -89,6 +89,23 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_setNoteData(JNIEnv *env, jobject t
 }
 
 extern "C"
+JNIEXPORT void JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_setTrackData(JNIEnv *env, jobject thiz,
+                                                          jlong track, jbooleanArray booleanArray) {
+    jsize arrayLength = env->GetArrayLength(booleanArray);
+    if (arrayLength == 0) {
+        // clear note data
+    } else {
+        jboolean isCopy;
+        jboolean * ptr = env->GetBooleanArrayElements(booleanArray, &isCopy);
+        // set note data
+        reinterpret_cast<Track *>(track)->pianoRoll.setNoteData(reinterpret_cast<bool *>(ptr), arrayLength);
+        // free the buffer without copying back the possible changes
+        env->ReleaseBooleanArrayElements(booleanArray, ptr, JNI_ABORT);
+    }
+}
+
+extern "C"
 JNIEXPORT jint JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_getDSPLoad(JNIEnv *env, jobject thiz) {
     if (engine_exists()) {
@@ -102,10 +119,19 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_getDSPLoad(JNIEnv *env, jobject th
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_smallville7123_aaudiotrack2_AAudioTrack2_setGridResolution(JNIEnv *env, jobject thiz,
+Java_smallville7123_aaudiotrack2_AAudioTrack2_setPatternGridResolution(JNIEnv *env, jobject thiz,
                                                                    jlong pattern, jint size) {
     if (engine_exists()) {
-        engine->setGridResolution(makeVoidPtr(pattern), size);
+        engine->setPatternGridResolution(makeVoidPtr(pattern), size);
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_setTrackGridResolution(JNIEnv *env, jobject thiz,
+                                                                       jlong track, jint size) {
+    if (engine_exists()) {
+        engine->setTrackGridResolution(makeVoidPtr(track), size);
     }
 }
 
@@ -114,8 +140,8 @@ JNIEXPORT jboolean JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_isNotePlaying(JNIEnv *env, jobject thiz,
                                                             jint note_data_index) {
     if (engine_exists()) {
-        for (int i = 0; i < engine->channelRack.patternGroup.rack.typeList.size(); ++i) {
-            PatternList *patternList = engine->channelRack.patternGroup.rack.typeList[i];
+        for (int i = 0; i < engine->getPatternGroup()->rack.typeList.size(); ++i) {
+            PatternList *patternList = engine->getPatternGroup()->rack.typeList[i];
             if (patternList != nullptr) {
                 for (int i = 0; i < patternList->rack.typeList.size(); ++i) {
                     Pattern *pattern = patternList->rack.typeList[i];

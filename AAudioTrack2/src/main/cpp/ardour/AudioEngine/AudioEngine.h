@@ -134,9 +134,10 @@ namespace ARDOUR {
 
         sample_position_t sample_time();
 
-        void setGridResolution(void *nativePattern, int size);
-
         void setPlugin(void *pVoid, void *pVoid1);
+
+        void setPatternGridResolution(void *nativePattern, int size);
+        void setTrackGridResolution(void *nativeTrack, int size);
 
         void bindChannelToPattern(void *nativeChannel, void *nativePattern);
 
@@ -157,6 +158,8 @@ namespace ARDOUR {
         Track *createTrack(void *trackList);
 
         void deleteTrack(void *trackList, void *track);
+
+        PatternGroup *getPatternGroup();
     };
 }
 

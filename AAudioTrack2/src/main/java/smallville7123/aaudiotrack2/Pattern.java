@@ -25,7 +25,7 @@ public class Pattern {
 
     public void setNativeResolution(int size) {
         if (currentNativeResolution != size) {
-            DAWReference.setGridResolution(nativePattern, size);
+            DAWReference.setPatternGridResolution(nativePattern, size);
             currentNativeResolution = size;
         }
     }

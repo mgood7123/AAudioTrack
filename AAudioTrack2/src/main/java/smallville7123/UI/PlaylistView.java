@@ -109,11 +109,11 @@ public class PlaylistView extends FrameLayout {
 //            fitNotesToView = attributes.getBoolean(R.styleable.sequencer_fitNotesToView, true);
 //            attributes.recycle();
 //        } else {
-            channels = 4;
+            channels = 1;
             channelHeight = Float.NaN;
             fitChannelsToView = true;
-            nativeNoteResolution = 8;
-            UINoteResolution = 4;
+            nativeNoteResolution = 2;
+            UINoteResolution = 2;
             noteWidth = Float.NaN;
             fitNotesToView = true;
 //        }
@@ -124,9 +124,6 @@ public class PlaylistView extends FrameLayout {
         if (isInEditMode()) {
             TrackList list = newTrackList(null);
             addRow(list, "1");
-            addRow(list, "2");
-            addRow(list, "3");
-            addRow(list, "4");
         }
     }
 
@@ -272,7 +269,7 @@ public class PlaylistView extends FrameLayout {
                         return true;
                     });
                     note.setOnCheckedChangeListener((b0, b1) -> {
-                        setNoteData();
+                        setTrackData();
                     });
                     compoundButtons.add(note);
                     if (fitNotesToView || noteWidth == Float.NaN) {

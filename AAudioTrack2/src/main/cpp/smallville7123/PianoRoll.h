@@ -8,6 +8,7 @@
 #include "TempoGrid.h"
 #include "../ringbuffer/ringbuffer.hpp"
 #include <cstdarg>
+#include <vector>
 
 class PianoRoll {
 public:

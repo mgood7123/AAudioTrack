@@ -19,6 +19,10 @@ public:
     bool hasNote(uint64_t frame) {
         return pianoRoll.hasNote(frame);
     }
+
+    static Pattern * cast(void * pointer) {
+        return static_cast<Pattern *>(pointer);
+    }
 };
 
 
