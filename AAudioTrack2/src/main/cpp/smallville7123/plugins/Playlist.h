@@ -234,6 +234,76 @@ public:
         finalizeMixer(hostInfo, mixer);
     }
 
+    bool playing = false;
+
+    int play(Track * track, HostInfo * hostInfo, PortUtils2 *in, Plugin_Base *mixer,
+                     PortUtils2 *out, unsigned int samples) {
+        if (track->patternListReference != nullptr) {
+            for (int i = 0;
+                 i < track->patternListReference->rack.typeList.size(); ++i) {
+                Pattern *pattern = track->patternListReference->rack.typeList[i];
+                if (pattern != nullptr) {
+                    Channel_Generator *channel = pattern->channelReference;
+                    if (channel != nullptr) {
+                        channel->out->allocatePorts<ENGINE_FORMAT>(out);
+                        channel->out->fillPortBuffer<ENGINE_FORMAT>(0);
+                        if (playing) {
+                            hostInfo->fillMidiEvents(
+                                    hostInfo->midiInputBuffer,
+                                    pattern->pianoRoll.grid,
+                                    pattern->pianoRoll.noteData,
+                                    samples,
+                                    hostInfo->engineFrame
+                            );
+                            if (channel->plugin != nullptr) {
+                                channel->plugin->write(hostInfo, in, mixer,
+                                                       channel->out, samples);
+                            }
+                            if (channel->effectRack != nullptr) {
+                                channel->effectRack->write(hostInfo, in, mixer,
+                                                           channel->out, samples);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return PLUGIN_CONTINUE;
+    }
+
+    int p = PLUGIN_STOP;
+    uint64_t sample;
+
+    void process(Track * track, HostInfo * hostInfo, PortUtils2 *in, Plugin_Base *mixer,
+                 PortUtils2 *out, unsigned int samples) {
+        size_t size = hostInfo->midiPlaylistInputBuffer.readAvailable();
+        if (p == PLUGIN_CONTINUE) {
+            playing = true;
+            p = play(track, hostInfo, in, mixer, out, samples);
+        }
+        for (int i = 0; i < size; ++i) {
+            smf::MidiEvent *midiEvent = hostInfo->midiPlaylistInputBuffer.at(i);
+            LOGE("PROC size = %zu, midiEvent->tick = %d, midiEvent->play = %s", size, midiEvent->tick, midiEvent->isNoteOn() ? "playing" : "paused");
+            if (midiEvent->isNoteOn()) {
+//                stopPlayback(hostInfo);
+                playing = true;
+                p = play(track, hostInfo, in, mixer, out, samples);
+            } else if (midiEvent->isNoteOff()) {
+                stopPlayback(hostInfo);
+                play(track, hostInfo, in, mixer, out, samples);
+                p = PLUGIN_STOP;
+            }
+        }
+        if (playing) hostInfo->engineFrame += samples;
+    }
+
+    void stopPlayback(HostInfo * hostInfo) {
+        hostInfo->engineFrame = 0;
+        playing = false;
+    }
+
+    smf::MidiEvent * lastMidiEvent = nullptr;
+
     void processPatterns(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
                        unsigned int samples) {
         for (int i = 0; i < trackGroup.rack.typeList.size(); ++i) {
@@ -241,41 +311,23 @@ public:
             if (trackList != nullptr) {
                 for (int i = 0; i < trackList->rack.typeList.size(); ++i) {
                     Track *track = trackList->rack.typeList[i];
-                    if (track->hasNote(hostInfo->engineFrame)) {
-                        if (track->patternListReference != nullptr) {
-//                            for (int i = 0; i < track->patternListReference->rack.typeList.size(); ++i) {
-//                                Pattern *pattern = track->patternListReference->rack.typeList[i];
-//                                if (pattern != nullptr) {
-//                                    if (pattern->hasNote(hostInfo->engineFrame)) {
-//                                        Channel_Generator *channel = pattern->channelReference;
-//                                        if (channel != nullptr) {
-//                                            channel->out->allocatePorts<ENGINE_FORMAT>(out);
-//                                            channel->out->fillPortBuffer<ENGINE_FORMAT>(0);
-//                                            if (channel->plugin != nullptr) {
-//                                                channel->plugin->stopPlayback();
-//                                                writePlugin(channel->plugin, hostInfo, in,
-//                                                            mixer,
-//                                                            channel->out, samples);
-//                                            }
-//                                            if (channel->effectRack != nullptr) {
-//                                                writeEffectRack(channel->effectRack,
-//                                                                hostInfo, in, mixer,
-//                                                                channel->out, samples);
-//                                            }
-//                                        }
-//                                    }
-//                                }
-//                            }
-                        }
-                    }
+                    hostInfo->fillMidiEvents(
+                            hostInfo->midiPlaylistInputBuffer,
+                            track->pianoRoll.grid,
+                            track->pianoRoll.noteData,
+                            samples,
+                            sample
+                    );
+                    process(track, hostInfo, in, mixer, out, samples);
                 }
             }
         }
+        sample += samples;
     }
 
     int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
           unsigned int samples) override {
-//        processPatterns(hostInfo, in, mixer, out, samples);
+        processPatterns(hostInfo, in, mixer, out, samples);
         mixChannels(hostInfo, in, reinterpret_cast<Plugin_Type_Mixer*>(mixer), out, samples);
         return PLUGIN_CONTINUE;
     }

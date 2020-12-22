@@ -20,27 +20,46 @@ public:
     void * midiFile;
     smf::MidiEventList midiEventList;
 
-    jnk0le::Ringbuffer<smf::MidiEvent, 1048576> midiInputBuffer;
-
     typedef jnk0le::Ringbuffer<smf::MidiEvent, 1048576> PianoRollRingBuffer;
+
+    PianoRollRingBuffer midiInputBuffer;
+    PianoRollRingBuffer midiPlaylistInputBuffer;
 
     template <typename T> T wrap(T frame, T min, T max) {
         return min + ((frame-min) % (max - min));
     }
 
-    void fillMidiEvents(TempoGrid & grid, PianoRollRingBuffer & noteData, unsigned int samples) {
+    void fillMidiEvents(PianoRollRingBuffer &midiInputBuffer, TempoGrid &grid,
+                        PianoRollRingBuffer &noteData,
+                        unsigned int samples, uint64_t &engineFrame) {
         midiInputBuffer.consumerClear();
         if (noteData.isEmpty()) return;
         int size = noteData.readAvailable();
-        uint64_t wrappedFrame = wrap<uint64_t>(engineFrame, 0, grid.samples_per_bar);
-        auto endSample = (wrappedFrame + samples);
+        uint64_t wrappedStart = wrap<uint64_t>(engineFrame, 0, grid.samples_per_bar);
+        uint64_t wrappedEnd = wrap<uint64_t>(engineFrame + samples, 0, grid.samples_per_bar);
         for (int i = 0; i < size; ++i) {
             smf::MidiEvent * midiEvent = noteData.at(i);
             if (midiEvent != nullptr) {
-                if (midiEvent->tick >= wrappedFrame) {
-                    if (midiEvent->tick < endSample) {
+                if (wrappedEnd < wrappedStart) {
+                    if (midiEvent->tick < wrappedEnd) {
+                        if (size != 16) LOGE("OVER (valid) size = %zu, midiEvent->tick = %d, wrappedStart = %llu, wrappedEnd = %llu", size, midiEvent->tick, wrappedStart, wrappedEnd);
                         midiInputBuffer.insert(midiEvent);
-                    } else break;
+                    } else {
+//                        if (size != 16) LOGE("OVER (invalid) size = %zu, midiEvent->tick = %d, wrappedStart = %llu, wrappedEnd = %llu", size, midiEvent->tick, wrappedStart, wrappedEnd);
+                        break;
+                    }
+                } else {
+                    if (midiEvent->tick >= wrappedStart) {
+                        if (midiEvent->tick < wrappedEnd) {
+                            if (size != 16) LOGE("FILL (valid) size = %zu, midiEvent->tick = %d, wrappedStart = %llu, wrappedEnd = %llu", size, midiEvent->tick, wrappedStart, wrappedEnd);
+                            midiInputBuffer.insert(midiEvent);
+                        } else {
+//                            if (size != 16) LOGE("FILL (invalid) size = %zu, midiEvent->tick = %d, wrappedStart = %llu, wrappedEnd = %llu", size, midiEvent->tick, wrappedStart, wrappedEnd);
+                            break;
+                        }
+                    } else {
+//                        if (size != 16) LOGE("FILL (invalid) size = %zu, midiEvent->tick = %d, wrappedStart = %llu, wrappedEnd = %llu", size, midiEvent->tick, wrappedStart, wrappedEnd);
+                    }
                 }
             }
         }

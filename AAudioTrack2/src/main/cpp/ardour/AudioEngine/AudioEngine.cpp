@@ -451,8 +451,8 @@ namespace ARDOUR {
 
         auto start = std::chrono::high_resolution_clock::now();
 
-        channelRack.write(&hostInfo, in, &mixer, out, out->ports.samplesPerChannel);
-//        playlist.write(&hostInfo, in, &mixer, out, out->ports.samplesPerChannel);
+//        channelRack.write(&hostInfo, in, &mixer, out, out->ports.samplesPerChannel);
+        playlist.write(&hostInfo, in, &mixer, out, out->ports.samplesPerChannel);
 
         auto end = std::chrono::high_resolution_clock::now();
         processingTime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
@@ -527,7 +527,7 @@ namespace ARDOUR {
 
     Track * AudioEngine::createTrack(void * trackList) {
         Track * track = static_cast<TrackList *>(trackList)->newTrack();
-        track->pianoRoll.setBPM(240);
+        track->pianoRoll.setBPM(120);
         track->pianoRoll.setResolution(16);
         track->pianoRoll.updateGrid();
         return track;

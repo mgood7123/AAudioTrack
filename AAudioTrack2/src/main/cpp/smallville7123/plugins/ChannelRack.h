@@ -103,9 +103,11 @@ public:
                         Channel_Generator * channel = pattern->channelReference;
                         if (channel != nullptr) {
                             hostInfo->fillMidiEvents(
+                                    hostInfo->midiInputBuffer,
                                     pattern->pianoRoll.grid,
                                     pattern->pianoRoll.noteData,
-                                    samples
+                                    samples,
+                                    hostInfo->engineFrame
                             );
                             channel->out->allocatePorts<ENGINE_FORMAT>(out);
                             channel->out->fillPortBuffer<ENGINE_FORMAT>(0);

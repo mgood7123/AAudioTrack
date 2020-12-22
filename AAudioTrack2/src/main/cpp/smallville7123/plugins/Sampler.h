@@ -99,41 +99,25 @@ public:
         }
     }
 
-    bool hasLastEvent;
-    bool lastEvent;
-
     int p = PLUGIN_STOP;
 
     int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
               unsigned int samples) override {
         size_t size = hostInfo->midiInputBuffer.readAvailable();
-//        if (size == 0) {
-//            if (hasLastEvent) {
-//                if (lastEvent) {
-                    if (p == PLUGIN_CONTINUE) {
-                        p = play(hostInfo, in, out, samples);
-                    }
-//                } else {
-//                    stopPlayback();
-//                }
-//            }
-//        } else {
-            for (int i = 0; i < size; ++i) {
-                smf::MidiEvent *midiEvent = hostInfo->midiInputBuffer.at(i);
-                LOGE("size = %zu, midiEvent->tick = %d, midiEvent->play = %s", size, midiEvent->tick, midiEvent->isNoteOn() ? "playing" : "paused");
-                if (midiEvent->isNoteOn()) {
-//                    hasLastEvent = true;
-//                    lastEvent = true;
-                    stopPlayback();
-                    p = play(hostInfo, in, out, samples);
-                } else if (midiEvent->isNoteOff()) {
-//                    hasLastEvent = true;
-//                    lastEvent = false;
-                    stopPlayback();
-                    p = PLUGIN_STOP;
-                }
+        if (p == PLUGIN_CONTINUE) {
+            p = play(hostInfo, in, out, samples);
+        }
+        for (int i = 0; i < size; ++i) {
+            smf::MidiEvent *midiEvent = hostInfo->midiInputBuffer.at(i);
+//            LOGE("size = %zu, midiEvent->tick = %d, midiEvent->play = %s", size, midiEvent->tick, midiEvent->isNoteOn() ? "playing" : "paused");
+            if (midiEvent->isNoteOn()) {
+                stopPlayback();
+                p = play(hostInfo, in, out, samples);
+            } else if (midiEvent->isNoteOff()) {
+                stopPlayback();
+                p = PLUGIN_STOP;
             }
-//        }
+        }
         return 0;
     }
 };
