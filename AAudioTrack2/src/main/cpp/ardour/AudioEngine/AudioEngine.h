@@ -162,6 +162,10 @@ namespace ARDOUR {
         PatternGroup *getPatternGroup();
 
         smf::MidiFile *getMidiFile();
+
+        void changeToPatternMode();
+
+        void changeToSongMode();
     };
 }
 

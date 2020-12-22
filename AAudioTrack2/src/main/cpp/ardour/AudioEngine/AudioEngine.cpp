@@ -414,6 +414,13 @@ namespace ARDOUR {
 //        }
     }
 
+    enum Mode {
+        pattern,
+        song
+    };
+
+    int mode = Mode::pattern;
+
     void AudioEngine::renderAudio(PortUtils2 * in, PortUtils2 * out) {
 
         // the sample counter is used to synchronise events with frames
@@ -451,8 +458,8 @@ namespace ARDOUR {
 
         auto start = std::chrono::high_resolution_clock::now();
 
-//        channelRack.write(&hostInfo, in, &mixer, out, out->ports.samplesPerChannel);
-        playlist.write(&hostInfo, in, &mixer, out, out->ports.samplesPerChannel);
+        if (mode == Mode::pattern) channelRack.write(&hostInfo, in, &mixer, out, out->ports.samplesPerChannel);
+        else if (mode == Mode::song) playlist.write(&hostInfo, in, &mixer, out, out->ports.samplesPerChannel);
 
         auto end = std::chrono::high_resolution_clock::now();
         processingTime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
@@ -543,5 +550,13 @@ namespace ARDOUR {
 
     smf::MidiFile * AudioEngine::getMidiFile() {
         return static_cast<smf::MidiFile *>(hostInfo.midiFile);
+    }
+
+    void AudioEngine::changeToPatternMode() {
+        mode = Mode::pattern;
+    }
+
+    void AudioEngine::changeToSongMode() {
+        mode = Mode::song;
     }
 }

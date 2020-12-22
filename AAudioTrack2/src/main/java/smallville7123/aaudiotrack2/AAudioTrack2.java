@@ -46,6 +46,9 @@ public class AAudioTrack2 {
     public native void setTrackData(long track, boolean[] array);
     public native int getDSPLoad();
 
+    public native void changeToPatternMode();
+    public native void changeToSongMode();
+
     public native void bindChannelToPattern(long channel, long pattern);
     public native long createPatternList();
     public native void deletePatternList(long patternList);

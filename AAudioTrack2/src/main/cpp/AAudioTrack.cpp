@@ -114,6 +114,18 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_getDSPLoad(JNIEnv *env, jobject th
     } else return 0;
 }
 
+extern "C"
+JNIEXPORT void JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_changeToPatternMode(JNIEnv *env, jobject thiz) {
+    if (engine_exists()) engine->changeToPatternMode();
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_changeToSongMode(JNIEnv *env, jobject thiz) {
+    if (engine_exists()) engine->changeToSongMode();
+}
+
 #define makeVoidPtr(what) reinterpret_cast<void*>(what)
 #define makejlong(what) reinterpret_cast<jlong>(what)
 

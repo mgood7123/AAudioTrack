@@ -2,6 +2,7 @@ package smallville7123.aaudiotrack.application;
 
 import android.os.Bundle;
 import android.widget.LinearLayout;
+import android.widget.RadioGroup;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -45,6 +46,21 @@ public class MainActivity extends AppCompatActivity {
         updatingTextView.addOnDrawAction(() -> u(updatingTextView));
 
         audioTrack.deleteTemporaryFiles(this);
+
+        // configure mode change
+
+        ((RadioGroup)findViewById(R.id.mode)).setOnCheckedChangeListener((group, checkedId) -> {
+            switch (checkedId) {
+                case R.id.mode_pattern:
+                    audioTrack.changeToPatternMode();
+                    break;
+                case R.id.mode_song:
+                    audioTrack.changeToSongMode();
+                    break;
+                default:
+                    break;
+            }
+        });
 
         // configure the Playlist
         PlaylistView playlistView = findViewById(R.id.playlist);
