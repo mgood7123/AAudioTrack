@@ -16,6 +16,7 @@
 #include "../Pattern.h"
 #include "../PatternList.h"
 #include "../PatternGroup.h"
+#include "../../midifile/include/MidiFile.h"
 
 class ChannelRack : Plugin_Base {
 public:
@@ -81,14 +82,13 @@ public:
 
     void writePlugin(Plugin_Base * plugin, HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer,
                      PortUtils2 *out, unsigned int samples) {
-        plugin->is_writing = plugin->write(hostInfo, in, mixer,
-                                           out, samples);
+        plugin->write(hostInfo, in, mixer, out, samples);
     }
 
     void writeEffectRack(EffectRack * effectRack, HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer,
                          PortUtils2 *out, unsigned int samples) {
-        effectRack->is_writing = effectRack->write(hostInfo, in, mixer,
-                                                   out, samples);
+        effectRack->write(hostInfo, in, mixer, out, samples);
+        effectRack->is_writing = true;
     }
 
     void writeChannels(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
@@ -100,58 +100,29 @@ public:
                 for (int i = 0; i < patternList->rack.typeList.size(); ++i) {
                     Pattern *pattern = patternList->rack.typeList[i];
                     if (pattern != nullptr) {
-                        Channel_Generator *channel = pattern->channelReference;
+                        Channel_Generator * channel = pattern->channelReference;
                         if (channel != nullptr) {
+                            hostInfo->fillMidiEvents(
+                                    pattern->pianoRoll.grid,
+                                    pattern->pianoRoll.noteData,
+                                    samples
+                            );
                             channel->out->allocatePorts<ENGINE_FORMAT>(out);
                             channel->out->fillPortBuffer<ENGINE_FORMAT>(0);
                             if (channel->plugin != nullptr) {
-                                if (channel->plugin->is_writing == PLUGIN_CONTINUE) {
-                                    writePlugin(channel->plugin, hostInfo, in, mixer,
-                                                channel->out, samples);
-                                }
+                                channel->plugin->write(hostInfo, in, mixer,
+                                                       channel->out, samples);
                             }
                             if (channel->effectRack != nullptr) {
-                                if (channel->effectRack->is_writing == PLUGIN_CONTINUE) {
-                                    writeEffectRack(channel->effectRack, hostInfo, in,
-                                                    mixer,
-                                                    channel->out, samples);
-                                }
+                                channel->effectRack->write(hostInfo, in, mixer,
+                                                           channel->out, samples);
                             }
                         }
                     }
                 }
             }
         }
-        for (int32_t i = 0; i < samples; i ++) {
-            for (int i = 0; i < PatternGroup::cast(hostInfo->patternGroup)->rack.typeList.size(); ++i) {
-                PatternList *patternList = PatternGroup::cast(hostInfo->patternGroup)->rack.typeList[i];
-                if (patternList != nullptr) {
-                    for (int i = 0; i < patternList->rack.typeList.size(); ++i) {
-                        Pattern *pattern = patternList->rack.typeList[i];
-                        if (pattern != nullptr) {
-                            if (pattern->hasNote(hostInfo->engineFrame)) {
-                                Channel_Generator * channel = pattern->channelReference;
-                                if (channel != nullptr) {
-                                    channel->out->allocatePorts<ENGINE_FORMAT>(out);
-                                    channel->out->fillPortBuffer<ENGINE_FORMAT>(0);
-                                    if (channel->plugin != nullptr) {
-                                        channel->plugin->stopPlayback();
-                                        writePlugin(channel->plugin, hostInfo, in, mixer,
-                                                    channel->out, samples);
-                                    }
-                                    if (channel->effectRack != nullptr) {
-                                        writeEffectRack(channel->effectRack, hostInfo, in, mixer,
-                                                        channel->out, samples);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            hostInfo->engineFrame++;
-            // return from the audio loop
-        }
+        hostInfo->engineFrame += samples;
         // LOGE("wrote channels");
     }
 

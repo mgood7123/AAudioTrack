@@ -1,0 +1,3 @@
+[submodule "AAudioTrack2/src/main/cpp/midifile"]
+	path = AAudioTrack2/src/main/cpp/midifile
+	url = https://github.com/craigsapp/midifile

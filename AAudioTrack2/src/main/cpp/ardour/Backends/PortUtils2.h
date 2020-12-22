@@ -137,23 +137,28 @@ public:
     }
 
     template <typename type> void fillPortBuffer(type value) {
-        for (int i = 0; i < ports.samplesPerChannel; i++) {
-            reinterpret_cast<type*>(ports.outputStereo->l->buf)[i] = value;
-            reinterpret_cast<type*>(ports.outputStereo->r->buf)[i] = value;
-        }
+        memset(ports.outputStereo->l->buf, value, ports.samplesPerChannel*sizeof(type));
+        memset(ports.outputStereo->r->buf, value, ports.samplesPerChannel*sizeof(type));
+//        for (int i = 0; i < ports.samplesPerChannel; i++) {
+//            reinterpret_cast<type*>(ports.outputStereo->l->buf)[i] = value;
+//            reinterpret_cast<type*>(ports.outputStereo->r->buf)[i] = value;
+//        }
     }
 
     template <typename type> void fillPortBuffer(type value, unsigned int samples) {
-        for (unsigned int i = 0; i < samples; i += 2) {
-            reinterpret_cast<type*>(ports.outputStereo->l->buf)[i] = value;
-            reinterpret_cast<type*>(ports.outputStereo->r->buf)[i] = value;
-        }
+        memset(ports.outputStereo->l->buf, value, samples*sizeof(type));
+        memset(ports.outputStereo->r->buf, value, samples*sizeof(type));
+//        for (unsigned int i = 0; i < samples; i ++) {
+//            reinterpret_cast<type*>(ports.outputStereo->l->buf)[i] = value;
+//            reinterpret_cast<type*>(ports.outputStereo->r->buf)[i] = value;
+//        }
     }
 
     template <typename type> void setPortBufferIndex(int index, type value) {
         reinterpret_cast<type *>(ports.outputStereo->l->buf)[index] = value;
         reinterpret_cast<type *>(ports.outputStereo->r->buf)[index] = value;
     }
+
     template <typename type> void setPortBufferIndex(int index, PortUtils2 & port) {
         reinterpret_cast<type *>(ports.outputStereo->l->buf)[index] = reinterpret_cast<type*>(ports.outputStereo->l->buf)[index];;
         reinterpret_cast<type *>(ports.outputStereo->r->buf)[index] = reinterpret_cast<type*>(ports.outputStereo->r->buf)[index];

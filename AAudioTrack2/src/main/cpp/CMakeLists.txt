@@ -7,6 +7,8 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} --optimize -Ofast -g0")
 
 # https://developer.android.com/ndk/guides/asan#cmake
 
+add_subdirectory(midifile)
+
 add_library(engine SHARED
         ardour/AudioEngine/AudioBackend.cpp
         ardour/AudioEngine/AudioEngine.cpp
@@ -16,7 +18,7 @@ add_library(engine SHARED
         smallville7123/TempoGrid.cpp
 )
 
-target_link_libraries(engine log aaudio)
+target_link_libraries(engine log aaudio midifile)
 
 add_library(AAudioTrack2 SHARED
         AAudioTrack.cpp other/JniHelpers.cpp

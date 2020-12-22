@@ -68,6 +68,17 @@ public:
                        unsigned int samples) {
         // LOGE("writing channels");
 
+        // how does a timeline play a midi track
+        // like would the timeline send MIDI ON and MIDI OFF messages to the midi track?
+        // in which when the MIDI track recieves MIDI ON,
+        // it starts playing its midi data,
+        // and when it recieves MIDI OFF, it stops playing its midi data?
+
+        // welp imma just assume that the timeline uses a MIDI based approach,
+        // and that, it sends MIDI note on/off messages to MIDI tracks when
+        // appropriate similar to how a piano roll sends MIDI note on/off messages
+        // to its associated plugin
+
         // this causes the current pattern list
         // in the step sequencer's channel rack
         // to partially play
@@ -130,7 +141,7 @@ public:
                                     for (int i = 0; i < patternList->rack.typeList.size(); ++i) {
                                         Pattern *pattern = patternList->rack.typeList[i];
                                         if (pattern != nullptr) {
-                                            if (pattern->hasNote(hostInfo->engineFrame)) {
+                                            if (false) {
                                                 Channel_Generator *channel = pattern->channelReference;
                                                 if (channel != nullptr) {
                                                     channel->out->allocatePorts<ENGINE_FORMAT>(out);
@@ -223,15 +234,50 @@ public:
         finalizeMixer(hostInfo, mixer);
     }
 
-    int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
-              unsigned int samples) override {
-        writeChannels(hostInfo, in, mixer, out, samples);
-        mixChannels(hostInfo, in, reinterpret_cast<Plugin_Type_Mixer*>(mixer), out, samples);
-        return PLUGIN_CONTINUE;
+    void processPatterns(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
+                       unsigned int samples) {
+        for (int i = 0; i < trackGroup.rack.typeList.size(); ++i) {
+            TrackList *trackList = trackGroup.rack.typeList[i];
+            if (trackList != nullptr) {
+                for (int i = 0; i < trackList->rack.typeList.size(); ++i) {
+                    Track *track = trackList->rack.typeList[i];
+                    if (track->hasNote(hostInfo->engineFrame)) {
+                        if (track->patternListReference != nullptr) {
+//                            for (int i = 0; i < track->patternListReference->rack.typeList.size(); ++i) {
+//                                Pattern *pattern = track->patternListReference->rack.typeList[i];
+//                                if (pattern != nullptr) {
+//                                    if (pattern->hasNote(hostInfo->engineFrame)) {
+//                                        Channel_Generator *channel = pattern->channelReference;
+//                                        if (channel != nullptr) {
+//                                            channel->out->allocatePorts<ENGINE_FORMAT>(out);
+//                                            channel->out->fillPortBuffer<ENGINE_FORMAT>(0);
+//                                            if (channel->plugin != nullptr) {
+//                                                channel->plugin->stopPlayback();
+//                                                writePlugin(channel->plugin, hostInfo, in,
+//                                                            mixer,
+//                                                            channel->out, samples);
+//                                            }
+//                                            if (channel->effectRack != nullptr) {
+//                                                writeEffectRack(channel->effectRack,
+//                                                                hostInfo, in, mixer,
+//                                                                channel->out, samples);
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    void bindChannelToTrack(void *nativeChannel, void *nativeTrack) {
-//        static_cast<Track*>(nativeTrack)->channelReference = static_cast<Channel_Generator *>(nativeChannel);
+    int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
+          unsigned int samples) override {
+//        processPatterns(hostInfo, in, mixer, out, samples);
+        mixChannels(hostInfo, in, reinterpret_cast<Plugin_Type_Mixer*>(mixer), out, samples);
+        return PLUGIN_CONTINUE;
     }
 
     void setPlugin(void *nativeChannel, void *nativePlugin) {

@@ -11,10 +11,10 @@
 class Track {
 public:
     PianoRoll pianoRoll;
-    PatternList * patternListReference;
+    PatternList * patternListReference = nullptr;
 
     bool hasNote(uint64_t frame) {
-        return pianoRoll.hasNote(frame);
+        return false;
     }
 };
 

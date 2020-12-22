@@ -32,6 +32,7 @@ namespace ARDOUR {
     HostInfo hostInfo;
 
     PatternGroup patternGroup;
+    smf::MidiFile midifile;
 
     AudioEngine::AudioEngine ()
             :// session_remove_pending (false)
@@ -70,6 +71,7 @@ namespace ARDOUR {
 //        reset_silence_countdown ();
 //        start_hw_event_processing();
         hostInfo.patternGroup = &patternGroup;
+        hostInfo.midiFile = &midifile;
         discover_backends ();
     }
 
@@ -449,8 +451,8 @@ namespace ARDOUR {
 
         auto start = std::chrono::high_resolution_clock::now();
 
-//        channelRack.write(&hostInfo, in, &mixer, out, out->ports.samplesPerChannel);
-        playlist.write(&hostInfo, in, &mixer, out, out->ports.samplesPerChannel);
+        channelRack.write(&hostInfo, in, &mixer, out, out->ports.samplesPerChannel);
+//        playlist.write(&hostInfo, in, &mixer, out, out->ports.samplesPerChannel);
 
         auto end = std::chrono::high_resolution_clock::now();
         processingTime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
@@ -511,8 +513,8 @@ namespace ARDOUR {
     }
 
 
-    void AudioEngine::bindChannelToTrack(void *nativeChannel, void *nativeTrack) {
-        playlist.bindChannelToTrack(nativeChannel, nativeTrack);
+    void AudioEngine::bindPatternListToTrack(void *nativePatternList, void *nativeTrack) {
+        static_cast<Track*>(nativeTrack)->patternListReference = static_cast<PatternList *>(nativePatternList);
     }
 
     TrackList * AudioEngine::createTrackList() {
@@ -537,5 +539,9 @@ namespace ARDOUR {
 
     PatternGroup * AudioEngine::getPatternGroup() {
         return PatternGroup::cast(hostInfo.patternGroup);
+    }
+
+    smf::MidiFile * AudioEngine::getMidiFile() {
+        return static_cast<smf::MidiFile *>(hostInfo.midiFile);
     }
 }

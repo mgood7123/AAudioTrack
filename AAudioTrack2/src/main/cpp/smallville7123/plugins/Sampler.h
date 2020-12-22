@@ -8,6 +8,8 @@
 #include <cstdint>
 #include "../../ardour/Backends/PortUtils2.h"
 #include "../Plugin.h"
+#include "../../midifile/include/MidiEvent.h"
+#include "../../midifile/include/MidiEventList.h"
 
 using namespace ARDOUR_TYPEDEFS;
 
@@ -28,8 +30,7 @@ public:
         mIsLooping = false;
     }
 
-    int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
-              unsigned int samples) override {
+    int play(HostInfo *hostInfo, PortUtils2 *in, PortUtils2 *out, unsigned int samples) {
         ENGINE_FORMAT * data = reinterpret_cast<ENGINE_FORMAT *>(audioData);
         ENGINE_FORMAT * left = reinterpret_cast<ENGINE_FORMAT *>(out->ports.outputStereo->l->buf);
         ENGINE_FORMAT * right = reinterpret_cast<ENGINE_FORMAT *>(out->ports.outputStereo->r->buf);
@@ -96,6 +97,44 @@ public:
             out->fillPortBuffer<ENGINE_FORMAT>(0);
             return PLUGIN_STOP;
         }
+    }
+
+    bool hasLastEvent;
+    bool lastEvent;
+
+    int p = PLUGIN_STOP;
+
+    int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
+              unsigned int samples) override {
+        size_t size = hostInfo->midiInputBuffer.readAvailable();
+//        if (size == 0) {
+//            if (hasLastEvent) {
+//                if (lastEvent) {
+                    if (p == PLUGIN_CONTINUE) {
+                        p = play(hostInfo, in, out, samples);
+                    }
+//                } else {
+//                    stopPlayback();
+//                }
+//            }
+//        } else {
+            for (int i = 0; i < size; ++i) {
+                smf::MidiEvent *midiEvent = hostInfo->midiInputBuffer.at(i);
+                LOGE("size = %zu, midiEvent->tick = %d, midiEvent->play = %s", size, midiEvent->tick, midiEvent->isNoteOn() ? "playing" : "paused");
+                if (midiEvent->isNoteOn()) {
+//                    hasLastEvent = true;
+//                    lastEvent = true;
+                    stopPlayback();
+                    p = play(hostInfo, in, out, samples);
+                } else if (midiEvent->isNoteOff()) {
+//                    hasLastEvent = true;
+//                    lastEvent = false;
+                    stopPlayback();
+                    p = PLUGIN_STOP;
+                }
+            }
+//        }
+        return 0;
     }
 };
 

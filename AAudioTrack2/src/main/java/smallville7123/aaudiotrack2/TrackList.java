@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class TrackList<P extends Track> {
     public ArrayList<P> trackArrayList = new ArrayList<>();
     AAudioTrack2 DAWReference;
-    public long nativeTrackList;
+    public long nativeTrackList = 0;
 
     public P newTrack(P track) {
         track.DAWReference = DAWReference;

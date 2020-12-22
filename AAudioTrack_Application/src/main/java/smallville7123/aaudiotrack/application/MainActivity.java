@@ -47,16 +47,16 @@ public class MainActivity extends AppCompatActivity {
         audioTrack.deleteTemporaryFiles(this);
 
         // configure the Playlist
-        PlaylistView playlistView = findViewById(R.id.playlist);
-        PlaylistView.TrackList playlist = playlistView.newTrackList(audioTrack);
-        playlistView.addRow(playlist, "1");
-//        playlistView.addRow(playlist, "2");
-//        playlistView.addRow(playlist, "3");
-//        playlistView.addRow(playlist, "4");
+//        PlaylistView playlistView = findViewById(R.id.playlist);
+//        PlaylistView.TrackList playlist = playlistView.newTrackList(audioTrack);
 
         // configure the Sequencer
         SequencerView sequencerView = findViewById(R.id.sequencer);
         SequencerView.PatternList list = sequencerView.newPatternList(audioTrack);
+
+        // bind
+//        playlistView.addRow(playlist, "1").bindPatternListToTrack(list);
+
         audioTrack.load(
                 sequencerView.addRow(list, "Kick").newSamplerChannel(),
                 this, R.raw.kick, "wav"

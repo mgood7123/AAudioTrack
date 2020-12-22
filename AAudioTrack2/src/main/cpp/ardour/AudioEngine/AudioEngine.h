@@ -149,7 +149,7 @@ namespace ARDOUR {
 
         void deletePattern(void *patternList, void *pattern);
 
-        void bindChannelToTrack(void *nativeChannel, void *nativeTrack);
+        void bindPatternListToTrack(void *patternList, void *nativeTrack);
 
         TrackList * createTrackList();
 
@@ -160,6 +160,8 @@ namespace ARDOUR {
         void deleteTrack(void *trackList, void *track);
 
         PatternGroup *getPatternGroup();
+
+        smf::MidiFile *getMidiFile();
     };
 }
 

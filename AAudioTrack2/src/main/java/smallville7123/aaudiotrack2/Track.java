@@ -1,26 +1,15 @@
 package smallville7123.aaudiotrack2;
 
+import smallville7123.UI.SequencerView;
+
 public class Track {
     AAudioTrack2 DAWReference = null;
-    public long nativeChannel = 0;
     public long nativeTrack = 0;
     public int currentNativeResolution = 0;
     public int currentViewResolution = 0;
 
     public boolean[] getData() {
         return new boolean[1];
-    }
-
-    public long newChannel() {
-        nativeChannel = DAWReference.newChannel();
-        DAWReference.bindChannelToTrack(nativeChannel, nativeTrack);
-        return nativeChannel;
-    }
-
-    public long newSamplerChannel() {
-        nativeChannel = DAWReference.newSamplerChannel();
-        DAWReference.bindChannelToTrack(nativeChannel, nativeTrack);
-        return nativeChannel;
     }
 
     public void setNativeResolution(int size) {
@@ -38,5 +27,9 @@ public class Track {
 
     public void setTrackData() {
         DAWReference.setTrackData(nativeTrack, getData());
+    }
+
+    public void bindPatternListToTrack(PatternList patternList) {
+        DAWReference.bindPatternListToTrack(patternList.nativePatternList, nativeTrack);
     }
 }

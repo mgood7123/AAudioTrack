@@ -7,6 +7,7 @@
 
 #include "TempoGrid.h"
 #include "../ringbuffer/ringbuffer.hpp"
+#include "../midifile/include/MidiEvent.h"
 #include <cstdarg>
 #include <vector>
 
@@ -18,7 +19,6 @@ public:
         grid.notes_per_bar = notes_per_bar;
     }
 
-
     void setBPM(uint64_t beats_per_minute) {
         grid.beats_per_minute = beats_per_minute;
     }
@@ -29,25 +29,39 @@ public:
 
     // lock free, wait free ring buffer, 20 to the power of 2
     // frame index, should this note be played
-    jnk0le::Ringbuffer<std::pair<uint64_t, bool>, 1048576> noteData;
+    HostInfo::PianoRollRingBuffer noteData;
 
     int noteindex = -1;
 
     //what would happen if two notes sit side by side?
     //as a frame CANNOT occupy both an ON and an OFF for the same note data
     //
-    //i would assume thet either:
+    //i would assume that either:
     //
     //we ignore this, merging both notes into a single note with some kind of RESET/MIDI_PANIC marker located at where the second note begins
     //
     //or, that we put an OFF note exactly 1 frame before the ON note's frame (seems more realistic given MIDI, since a MIDI PANIC would, i think, stop all audio for the target device untill it recieves an ON note again (or is told to process data))
 
     void setNoteData(bool * noteData, int size) {
-        uint64_t frame = 0;
+        uint64_t sample = 0;
         this->noteData.consumerClear();
         for (int i = 0; i < size; ++i) {
-            this->noteData.insert({frame, noteData[i]});
-            frame += grid.samples_per_note;
+            smf::MidiEvent midiEvent;
+            if (noteData[i]) {
+                midiEvent.makeNoteOn(0, 0, 64);
+                midiEvent.tick = sample;
+                this->noteData.insert(midiEvent);
+                sample += grid.samples_per_note;
+//                smf::MidiEvent midiEventEnd;
+//                midiEventEnd.makeNoteOff(0, 0, 0);
+//                midiEventEnd.tick = sample-1;
+//                this->noteData.insert(midiEventEnd);
+            } else {
+                midiEvent.makeNoteOff(0, 0, 0);
+                midiEvent.tick = sample;
+                this->noteData.insert(midiEvent);
+                sample += grid.samples_per_note;
+            }
         }
     }
 
@@ -55,32 +69,15 @@ public:
         uint64_t frame = 0;
         this->noteData.consumerClear();
         for(int & data : noteData) {
-            this->noteData.insert({frame, data == 0 ? false : true});
+            smf::MidiEvent midiEvent;
+            if (data == 1) midiEvent.makeNoteOn(0, 0, 64);
+            else midiEvent.makeNoteOff(0, 0, 0);
+            midiEvent.tick = frame;
+            this->noteData.insert(midiEvent);
             frame += grid.samples_per_note;
         }
     }
 
-    uint64_t wrap(uint64_t frame, uint64_t min, uint64_t max) {
-        return min + ((frame-min) % (max - min));
-    }
-
-    bool hasNote(uint64_t frame) {
-        if (noteData.isEmpty()) return false;
-        uint64_t wrappedFrame = wrap(frame, 0, grid.samples_per_bar);
-        for (int i = 0; i < noteData.readAvailable(); ++i) {
-            auto * pair = noteData.at(i);
-            if (pair != nullptr) {
-                auto &sampleToPlayNoteOn = pair->first;
-                if (wrappedFrame == sampleToPlayNoteOn) {
-                    noteindex = i;
-                    if (pair->second == true) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
 };
 
 #endif //AAUDIOTRACK_PIANOROLL_H

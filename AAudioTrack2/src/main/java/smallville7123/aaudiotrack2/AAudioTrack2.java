@@ -52,7 +52,7 @@ public class AAudioTrack2 {
     public native long createPattern(long patternList);
     public native void deletePattern(long patternList, long pattern);
 
-    public native void bindChannelToTrack(long channel, long track);
+    public native void bindPatternListToTrack(long patternList, long track);
     public native long createTrackList();
     public native void deleteTrackList(long trackList);
     public native long createTrack(long trackList);

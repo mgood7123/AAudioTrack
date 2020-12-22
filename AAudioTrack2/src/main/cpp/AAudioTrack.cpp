@@ -321,10 +321,10 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_deletePattern(JNIEnv *env, jobject
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_smallville7123_aaudiotrack2_AAudioTrack2_bindChannelToTrack(JNIEnv *env, jobject thiz,
-                                                                   jlong channel, jlong track) {
+Java_smallville7123_aaudiotrack2_AAudioTrack2_bindPatternListToTrack(JNIEnv *env, jobject thiz,
+                                                                   jlong patternList, jlong track) {
     if (engine_exists()) {
-        engine->bindChannelToTrack(makeVoidPtr(channel), makeVoidPtr(track));
+        engine->bindPatternListToTrack(makeVoidPtr(patternList), makeVoidPtr(track));
     }
 }
 
