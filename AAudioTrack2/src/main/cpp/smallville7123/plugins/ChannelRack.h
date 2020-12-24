@@ -5,7 +5,7 @@
 #ifndef AAUDIOTRACK_CHANNELRACK_H
 #define AAUDIOTRACK_CHANNELRACK_H
 
-#include "../../ardour/Backends/PortUtils2.h"
+#include "../PortUtils2.h"
 #include "Mixer.h"
 #include "Sampler.h"
 #include "Delay.h"

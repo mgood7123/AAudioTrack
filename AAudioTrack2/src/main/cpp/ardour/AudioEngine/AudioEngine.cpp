@@ -8,7 +8,6 @@
 #include "../pdb/i18n.h"
 #include "AudioBackend.h"
 #include "../Backends/AAudio.h"
-#include "PortEngine/port_manager.h"
 #include <thread>
 #include <fcntl.h>
 #include <unistd.h>
@@ -215,7 +214,7 @@ namespace ARDOUR {
 //
 //        }
 
-        midi_info_dirty = true;
+//        midi_info_dirty = true;
 
         if (!for_latency) {
             /* Call the library-wide ::init_post_engine() before emitting
@@ -292,8 +291,8 @@ namespace ARDOUR {
         }
         _processed_samples = 0;
         _measuring_latency = MeasureNone;
-        _latency_output_port.reset ();
-        _latency_input_port.reset ();
+//        _latency_output_port.reset ();
+//        _latency_input_port.reset ();
 
         if (stop_engine) {
 //            Port::PortDrop ();

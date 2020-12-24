@@ -9,7 +9,7 @@
 // port utilities, created by me (Matthew Good), for interacting with port buffers
 // this should not be in ardour since it is not from ardour
 // but I can't be bothered moving it to a suitable location
-#include "../../ardour/Backends/PortUtils2.h"
+#include "../PortUtils2.h"
 
 // delay line implementation
 #include "DelayLine.h"

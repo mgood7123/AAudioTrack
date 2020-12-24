@@ -16,7 +16,7 @@
 
 #include <cstdint>
 #include <vector>
-#include "../../ardour/Backends/PortUtils2.h"
+#include "../PortUtils2.h"
 #include "../Plugin.h"
 
 using namespace ARDOUR_TYPEDEFS;

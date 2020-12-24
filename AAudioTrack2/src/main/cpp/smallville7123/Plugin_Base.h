@@ -5,7 +5,7 @@
 #ifndef AAUDIOTRACK_PLUGIN_BASE_H
 #define AAUDIOTRACK_PLUGIN_BASE_H
 
-#include "../ardour/Backends/PortUtils2.h"
+#include "PortUtils2.h"
 #include "HostInfo.h"
 #include <fcntl.h>
 #include <unistd.h>

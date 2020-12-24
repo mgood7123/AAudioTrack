@@ -6,13 +6,22 @@
 #define AAUDIOTRACK_PORTUTILS2_H
 
 
-#include "../../zrythm/audio/port.h"
 #include <cstdint>
-#include "../../soapySDR/ConverterPrimitives.h"
+#include "../soapySDR/ConverterPrimitives.h"
+#include "../other/log.h"
 
 class PortUtils2 {
 
 public:
+
+    struct Port {
+        void * buf;
+    };
+
+    struct StereoPorts {
+        struct Port * l;
+        struct Port * r;
+    };
 
     struct Ports {
         Port *outputMono = nullptr;

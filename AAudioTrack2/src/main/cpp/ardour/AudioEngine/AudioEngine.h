@@ -11,8 +11,7 @@
 #include <optional>
 #include <map>
 #include "typedefs.h"
-#include "PortEngine/port_engine.h"
-#include "../Backends/PortUtils2.h"
+#include "../../smallville7123/PortUtils2.h"
 #include "../../smallville7123/plugins/Mixer.h"
 #include "../../smallville7123/plugins/ChannelRack.h"
 #include "../../smallville7123/plugins/EffectRack.h"
@@ -74,8 +73,6 @@ namespace ARDOUR {
         MTDM*                     _mtdm;
         MIDIDM*                   _mididm;
         LatencyMeasurement        _measuring_latency;
-        PortEngine::PortPtr       _latency_input_port;
-        PortEngine::PortPtr       _latency_output_port;
         sample_count_t            _latency_flush_samples;
         std::string               _latency_input_name;
         std::string               _latency_output_name;

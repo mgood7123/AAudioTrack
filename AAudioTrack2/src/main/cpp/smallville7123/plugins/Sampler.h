@@ -6,7 +6,7 @@
 #define AAUDIOTRACK_SAMPLER_H
 
 #include <cstdint>
-#include "../../ardour/Backends/PortUtils2.h"
+#include "../PortUtils2.h"
 #include "../Plugin.h"
 #include "../../midifile/include/MidiEvent.h"
 #include "../../midifile/include/MidiEventList.h"

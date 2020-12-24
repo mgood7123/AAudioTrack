@@ -8,5 +8,6 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/AAudioTrack2/VstSystem/libOverview" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/AAudioTrack2/src/main/cpp/midifile" vcs="Git" />
   </component>
 </project>
