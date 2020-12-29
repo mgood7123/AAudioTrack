@@ -163,6 +163,10 @@ public class VstView extends RelativeLayout {
                                 window.setY(y - window.offsetTop);
                             }
                             window.randomized = true;
+                            if (window.isMaximizedWidth && window.isMaximizedHeight) {
+                                window.maximize();
+                            } else if (window.isMaximizedWidth) window.setMaximizeWidth();
+                            else if (window.isMaximizedHeight) window.setMaximizeHeight();
                         }
                     }
                 }
@@ -176,14 +180,30 @@ public class VstView extends RelativeLayout {
         else if (child instanceof WindowView) {
             Log.d(TAG, "addView() called with WINDOW: child = [" + child + "], index = [" + index + "], params = [" + params + "]");
             WindowView window = (WindowView) child;
-            window.setTitle(mContext.getPackageName());
             window.setDrag(this);
+            switch (params.width) {
+                case ViewGroup.LayoutParams.MATCH_PARENT:
+                    params.width = defaultWindowWidth;
+                    window.isMaximizedWidth = true;
+                    break;
+                case ViewGroup.LayoutParams.WRAP_CONTENT:
+                    params.width = defaultWindowWidth;
+                    break;
+            }
+            switch (params.height) {
+                case ViewGroup.LayoutParams.MATCH_PARENT:
+                    params.height = defaultWindowHeight;
+                    window.isMaximizedHeight = true;
+                    break;
+                case ViewGroup.LayoutParams.WRAP_CONTENT:
+                    params.height = defaultWindowHeight;
+                    break;
+            }
             super.addView(window, index, params);
         } else {
             Log.d(TAG, "addView() called with NON WINDOW: child = [" + child + "], index = [" + index + "], params = [" + params + "]");
             // wrap view in WindowView
             WindowView window = requestNewWindow();
-            window.setTitle(mContext.getPackageName());
             window.addView(child, params);
         }
     }

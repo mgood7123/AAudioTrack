@@ -4,7 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
-import android.view.View;
+import android.util.Pair;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout;
@@ -68,6 +68,7 @@ public class SequencerView extends FrameLayout {
 
     GridView channelGrid;
     Context mContext;
+    AttributeSet mAttrs;
     int channels;
     float channelHeight;
     boolean fitChannelsToView;
@@ -87,6 +88,7 @@ public class SequencerView extends FrameLayout {
 
     private void init(Context context, AttributeSet attrs) {
         mContext = context;
+        mAttrs = attrs;
         setupChannelContextMenu();
         if (attrs != null) {
             TypedArray attributes = context.getTheme().obtainStyledAttributes(attrs, R.styleable.sequencer, 0, 0);
@@ -107,7 +109,7 @@ public class SequencerView extends FrameLayout {
             noteWidth = Float.NaN;
             fitNotesToView = true;
         }
-        channelGrid = new GridView(context);
+        channelGrid = new GridView(context, attrs);
         channelGrid.setOrientation(VERTICAL);
         channelGrid.setRows(channels);
         addView(channelGrid);
@@ -140,7 +142,7 @@ public class SequencerView extends FrameLayout {
     }
 
     public Pattern addRow(PatternList patternList, String label) {
-        Pattern pattern = patternList.newPattern(mContext, label);
+        Pattern pattern = patternList.newPattern(mContext, mAttrs, label);
         if (!isInEditMode()) {
             pattern.setNativeResolution(nativeNoteResolution);
         }
@@ -150,11 +152,11 @@ public class SequencerView extends FrameLayout {
     }
 
     public class PatternList extends smallville7123.aaudiotrack2.PatternList<Pattern> {
-        Pattern newPattern(Context context, String label) {
+        Pattern newPattern(Context context, AttributeSet attrs, String label) {
             Pattern pattern = newPattern(new Pattern());
 
             pattern.mContext = context;
-            pattern.noteGrid = new GridView(context) {
+            pattern.noteGrid = new GridView(context, attrs) {
                 @Override
                 public void onScrolled(int dx, int dy) {
                     super.onScrolled(dx, dy);
@@ -201,7 +203,7 @@ public class SequencerView extends FrameLayout {
                 channelGrid.autoSizeRow = false;
                 channelGrid.rowHeight = (int) channelHeight;
             }
-            channelGrid.data.add(row);
+            channelGrid.data.add(new Pair(row, null));
             channelGrid.adapter.notifyDataSetChanged();
             return pattern;
         }
@@ -211,19 +213,14 @@ public class SequencerView extends FrameLayout {
         Button button = new Button(mContext) {
             {
                 setText(label);
+                setOnClickListener(view -> {
+                    if (channelContextMenu != null) {
+                        channelContextMenu.setAnchorView(view);
+                        channelContextMenu.show();
+                    }
+                });
             }
         };
-        button.setOnClickListener(new OnClickListener() {
-            boolean showing = false;
-            @Override
-            public void onClick(View unused) {
-                if (!showing) {
-                    showing = true;
-                }
-                channelContextMenu.setAnchorView(button);
-                channelContextMenu.show();
-            }
-        });
         return button;
     }
 
@@ -273,7 +270,7 @@ public class SequencerView extends FrameLayout {
                         noteGrid.autoSizeColumn = false;
                         noteGrid.columnWidth = (int) noteWidth;
                     }
-                    noteGrid.data.add(note);
+                    noteGrid.data.add(new Pair(note, null));
                     maxLength++;
                 }
             } else {

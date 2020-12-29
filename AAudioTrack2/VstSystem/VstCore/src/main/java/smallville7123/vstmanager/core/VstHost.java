@@ -90,7 +90,6 @@ public class VstHost {
                     View child = contentRoot.getChildAt(count);
                     if (child instanceof WindowView) {
                         WindowView window = ((WindowView) child);
-                        window.setTitle(mPackageManager.getApplicationLabel(mApplicationInfo));
                         window.setIcon(mPackageManager.getApplicationIcon(mApplicationInfo));
                     }
                 }

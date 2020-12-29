@@ -2,54 +2,36 @@ package smallville7123.UI;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.res.TypedArray;
+import android.content.res.Resources;
+import android.graphics.Color;
 import android.util.AttributeSet;
-import android.view.View;
-import android.widget.Button;
+import android.util.Log;
+import android.util.Pair;
+import android.view.Gravity;
+import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import android.widget.ToggleButton;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 
 import smallville7123.aaudiotrack2.AAudioTrack2;
-import smallville7123.aaudiotrack2.TrackGroup;
 import smallville7123.aaudiotrack2.R;
+import smallville7123.aaudiotrack2.TrackGroup;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 import static android.widget.LinearLayout.HORIZONTAL;
 import static android.widget.LinearLayout.VERTICAL;
 
-/*
-TODO:
-
-implementing the enable/disable channel button
-
-implementing a file picker for the sampler plugin
-
-implementing a scroll bar
-
-implementing a visual sequence playback position indicator
-
-implementing resolution pickers
-
-implementing Solo/Mute buttons (maybe?)
-
-implementing L/R channel audio level meters
-
-implementing a BPM picker
-
- */
-
 @SuppressLint("AppCompatCustomView")
 public class PlaylistView extends FrameLayout {
-    public PlaylistView(Context context) {
-        super(context);
-        init(context, null);
-    }
+
+    int FL_GREY;
+    int bright_orange;
 
     public PlaylistView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -66,15 +48,22 @@ public class PlaylistView extends FrameLayout {
         init(context, attrs);
     }
 
+    LinearLayout linearLayoutVertical;
+    LinearLayout scrollBarTop;
+    LinearLayout picker;
+    LinearLayout focusAndColor;
+    LinearLayout scrollBarAndTimeLine;
+    LinearLayout scrollBarRightTop;
+    LinearLayout linearLayoutHorizontal;
+    LinearLayout patternView;
     GridView trackGrid;
+    LinearLayout scrollBarRightBottom;
+
     Context mContext;
+    AttributeSet mAttr;
     int channels;
     float channelHeight;
     boolean fitChannelsToView;
-    int nativeNoteResolution;
-    int UINoteResolution;
-    float noteWidth;
-    boolean fitNotesToView;
     WindowsContextMenu channelContextMenu;
     WindowsContextMenu trackContextMenu;
 
@@ -96,7 +85,8 @@ public class PlaylistView extends FrameLayout {
 
     private void init(Context context, AttributeSet attrs) {
         mContext = context;
-        setupTrackContextMenu();
+        mAttr = attrs;
+        setupChannelContextMenu();
         setupTrackContextMenu();
 //        if (attrs != null) {
 //            TypedArray attributes = context.getTheme().obtainStyledAttributes(attrs, R.styleable.sequencer, 0, 0);
@@ -109,21 +99,80 @@ public class PlaylistView extends FrameLayout {
 //            fitNotesToView = attributes.getBoolean(R.styleable.sequencer_fitNotesToView, true);
 //            attributes.recycle();
 //        } else {
-            channels = 1;
+            channels = 2;
             channelHeight = Float.NaN;
             fitChannelsToView = true;
-            nativeNoteResolution = 2;
-            UINoteResolution = 2;
-            noteWidth = Float.NaN;
-            fitNotesToView = true;
 //        }
-        trackGrid = new GridView(context);
+        trackGrid = new GridView(context, attrs);
         trackGrid.setOrientation(VERTICAL);
         trackGrid.setRows(channels);
-        addView(trackGrid);
+
+        scrollBarTop = new LinearLayout(context, attrs);
+        picker = new LinearLayout(context, attrs);
+        focusAndColor = new LinearLayout(context, attrs);
+        scrollBarAndTimeLine = new LinearLayout(context, attrs);
+
+        Resources res = getResources();
+        Resources.Theme theme = context.getTheme();
+
+        FL_GREY = res.getColor(R.color.FL_GREY, theme);
+        bright_orange = res.getColor(R.color.bright_orange, theme);
+
+        scrollBarTop.setBackgroundColor(Color.DKGRAY);
+        picker.setBackgroundColor(Color.GREEN);
+        focusAndColor.setBackgroundColor(FL_GREY);
+        scrollBarAndTimeLine.setBackgroundColor(bright_orange);
+
+
+        scrollBarRightTop = new LinearLayout(context, attrs);
+        scrollBarRightTop.setBackgroundColor(Color.YELLOW);
+        scrollBarRightBottom = new LinearLayout(context, attrs);
+        scrollBarRightBottom.setBackgroundColor(Color.YELLOW);
+
+        trackGrid.setBackgroundColor(Color.DKGRAY);
+
+        linearLayoutHorizontal = new LinearLayout(context, attrs);
+        linearLayoutHorizontal.setOrientation(HORIZONTAL);
+        linearLayoutVertical = new LinearLayout(context, attrs);
+        linearLayoutVertical.setOrientation(VERTICAL);
+
+        addView(linearLayoutVertical);
+
+        scrollBarTop.addView(picker, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        scrollBarTop.addView(focusAndColor, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        scrollBarTop.addView(scrollBarAndTimeLine, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        scrollBarTop.addView(scrollBarRightTop, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        linearLayoutVertical.addView(scrollBarTop, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        linearLayoutVertical.addView(linearLayoutHorizontal, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+
+        patternView = new LinearLayout(context, attrs);
+        patternView.setOrientation(VERTICAL);
+        patternView.setBackgroundColor(Color.DKGRAY);
+
+        linearLayoutHorizontal.addView(patternView, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        linearLayoutHorizontal.addView(trackGrid, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        linearLayoutHorizontal.addView(scrollBarRightBottom, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+
+
         if (isInEditMode()) {
             TrackList list = newTrackList(null);
-            addRow(list, "1");
+            addRow(list, "Track 1");
+            addRow(list, "Track 2");
+            addRow(list, "Track 3");
+            addRow(list, "Track 4");
+            addRow(list, "Track 5");
+        }
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        int measuredWidth = getMeasuredWidth();
+        int measuredHeight = getMeasuredHeight();
+        Log.d(TAG, "measuredWidth = [ " + (measuredWidth) + "]");
+        Log.d(TAG, "measuredHeight = [ " + (measuredHeight) + "]");
+        if (measuredWidth != 0 && measuredHeight != 0) {
+            resizeUI(measuredWidth, measuredHeight);
         }
     }
 
@@ -147,30 +196,35 @@ public class PlaylistView extends FrameLayout {
     }
 
     public Track addRow(TrackList trackList, String label) {
-        Track track = trackList.newTrack(mContext, label);
-        if (!isInEditMode()) {
-            track.setNativeResolution(nativeNoteResolution);
-        }
-        track.setViewResolution(UINoteResolution);
-        track.setMaxLength(nativeNoteResolution);
-        return track;
+        return trackList.newTrack(mContext, label);
     }
+
+    private static final String TAG = "PlaylistView";
+
+    class TrackUI {
+        LinearLayout channelButton;
+        TextView textView;
+        ToggleRadioButton toggleRadioButton;
+        ClipView clipView;
+    }
+
+    ArrayList<TrackUI> trackUIArrayList = new ArrayList<>();
 
     public class TrackList extends smallville7123.aaudiotrack2.TrackList<Track> {
         Track newTrack(Context context, String label) {
             Track track = newTrack(new Track());
 
             track.mContext = context;
-            track.trackGrid = new GridView(context) {
+            track.clipView = new ClipView(context) {
                 @Override
-                public void onScrolled(int dx, int dy) {
-                    super.onScrolled(dx, dy);
+                protected void onOverScrolled(int scrollX, int scrollY, boolean clampedX, boolean clampedY) {
+                    super.onOverScrolled(scrollX, scrollY, clampedX, clampedY);
                     if (!track.scrolling) {
                         track.scrolling = true;
                         for (Track track1 : trackArrayList) {
                             if (!track1.scrolling) {
                                 track1.scrolling = true;
-                                track1.trackGrid.scrollBy(dx, dy);
+                                track1.clipView.scrollTo(scrollX, scrollY);
                                 track1.scrolling = false;
                             }
                         }
@@ -178,29 +232,21 @@ public class PlaylistView extends FrameLayout {
                     }
                 }
             };
-            track.trackGrid.setOrientation(GridView.HORIZONTAL);
-            track.trackGrid.setRows(1);
             LinearLayout row = new LinearLayout(mContext);
             row.setOrientation(HORIZONTAL);
-            row.addView(new ToggleRadioButton(mContext) {
-                {
-                    setChecked(true);
-                    setTooltipText("Tap to disable this channel");
-                    setOnCheckedChangeListener((unused, checked) -> {
-                        setTooltipText(
-                                "Tap to " +
-                                        (checked ? "disable" : "enable") +
-                                        " this channel"
-                        );
-                    });
-                }
-            }, Constants.wrapContent);
+
+            TrackUI trackUI = new TrackUI();
+
+            newChannelButton(trackUI, label);
+            trackUI.clipView = track.clipView;
+
+            trackUIArrayList.add(trackUI);
             row.addView(
-                    newChannelButton(label),
-                    new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 3f)
+                    trackUI.channelButton,
+                    new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
             );
 
-            row.addView(track.trackGrid, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 1f));
+            row.addView(trackUI.clipView, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
 
             if (fitChannelsToView || channelHeight == Float.NaN) {
                 trackGrid.autoSizeRow = true;
@@ -208,87 +254,135 @@ public class PlaylistView extends FrameLayout {
                 trackGrid.autoSizeRow = false;
                 trackGrid.rowHeight = (int) channelHeight;
             }
-            trackGrid.data.add(row);
+            trackGrid.data.add(new Pair(row, trackUI));
             trackGrid.adapter.notifyDataSetChanged();
             return track;
         }
     }
 
-    Button newChannelButton(CharSequence label) {
-        Button button = new Button(mContext) {
+    void newChannelButton(TrackUI trackUI, CharSequence label) {
+        trackUI.channelButton = new LinearLayout(mContext, mAttr) {
+            {
+                setOnClickListener(view -> {
+                    if (channelContextMenu != null) {
+                        channelContextMenu.setAnchorView(view);
+                        channelContextMenu.show();
+                    }
+                });
+            }
+        };
+        trackUI.channelButton.setOrientation(VERTICAL);
+
+        trackUI.textView = new TextView(mContext, mAttr) {
             {
                 setText(label);
             }
         };
-        button.setOnClickListener(unused -> {
-            channelContextMenu.setAnchorView(button);
-            channelContextMenu.show();
-        });
-        return button;
+
+        trackUI.toggleRadioButton = new ToggleRadioButton(mContext, mAttr) {
+            {
+                setChecked(true);
+                setTooltipText("Tap to disable this channel");
+                setOnCheckedChangeListener((unused, checked) -> {
+                    setTooltipText(
+                            "Tap to " +
+                                    (checked ? "disable" : "enable") +
+                                    " this channel"
+                    );
+                });
+            }
+        };
+
+        trackUI.channelButton.addView(
+                trackUI.textView,
+                new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT) {
+                    {
+                        gravity = Gravity.LEFT|Gravity.TOP;
+                    }
+                }
+        );
+
+        trackUI.channelButton.addView(
+                trackUI.toggleRadioButton,
+                new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT) {
+                    {
+                        gravity = Gravity.RIGHT|Gravity.BOTTOM;
+                    }
+                }
+        );
+
+        trackUI.channelButton.setBackgroundColor(FL_GREY);
     }
 
     public class Track extends smallville7123.aaudiotrack2.Track {
         ArrayList<CompoundButton> compoundButtons = new ArrayList<>();
         public boolean scrolling = false;
-        GridView trackGrid;
+        ClipView clipView;
         int maxLength;
         Context mContext;
+    }
 
-        @Override
-        public boolean[] getData() {
-            boolean[] data = new boolean[compoundButtons.size()];
-            for (int i = 0; i < compoundButtons.size(); i++) {
-                data[i] = compoundButtons.get(i).isChecked();
-            }
-            return data;
-        }
+    void resizeUI(int width, int height) {
 
-        @Override
-        public void setViewResolution(int size) {
-            if (currentViewResolution != size) {
-                // change this value to set the actual number
-                // of displayed notes before the user will need
-                // to scroll
-                trackGrid.setColumns(size);
-                currentViewResolution = size;
-            }
-        }
+        ViewGroup.LayoutParams p;
 
-        public void setMaxLength(int size) {
-            if (size == maxLength) return;
-            if (size > maxLength) {
-                for (int i = maxLength; i < size; i++) {
-                    ToggleButton note = new ToggleButton(mContext);
-                    note.setBackgroundResource(R.drawable.toggle);
-                    note.setTextOn("");
-                    note.setTextOff("");
-                    note.setText("");
-                    note.setOnLongClickListener(v -> {
-                        trackContextMenu.setAnchorView(note);
-                        trackContextMenu.show();
-                        return true;
-                    });
-                    note.setOnCheckedChangeListener((b0, b1) -> {
-                        setTrackData();
-                    });
-                    compoundButtons.add(note);
-                    if (fitNotesToView || noteWidth == Float.NaN) {
-                        trackGrid.autoSizeColumn = true;
-                    } else {
-                        trackGrid.autoSizeColumn = false;
-                        trackGrid.columnWidth = (int) noteWidth;
-                    }
-                    trackGrid.data.add(note);
-                    maxLength++;
-                }
-            } else {
-                for (int i = (maxLength-1); i > (size-1); i--) {
-                    compoundButtons.remove(i);
-                    trackGrid.data.remove(trackGrid.data.size()-1);
-                    maxLength--;
-                }
-            }
-            trackGrid.adapter.notifyDataSetChanged();
-        }
+        p = scrollBarTop.getLayoutParams();
+        p.height = 160;
+        scrollBarTop.setLayoutParams(p);
+
+        p = linearLayoutHorizontal.getLayoutParams();
+        int trackGridHeight = height - 160;
+        p.height = trackGridHeight;
+        linearLayoutHorizontal.setLayoutParams(p);
+
+        p = picker.getLayoutParams();
+        p.width = 200;
+        picker.setLayoutParams(p);
+
+        p = patternView.getLayoutParams();
+        p.width = 200;
+        patternView.setLayoutParams(p);
+
+        p = trackGrid.getLayoutParams();
+        int trackGridWidth = width - 200 - 80;
+        p.width = trackGridWidth;
+        trackGrid.setLayoutParams(p);
+
+        p = focusAndColor.getLayoutParams();
+        p.width = 300;
+        focusAndColor.setLayoutParams(p);
+
+        p = scrollBarAndTimeLine.getLayoutParams();
+        p.width = width - 300 - 200 - 80;
+        scrollBarAndTimeLine.setLayoutParams(p);
+
+        trackGrid.setResizeUI((trackWidth, trackHeight, data) -> {
+            Log.d(TAG, "trackWidth = [ " + (trackWidth) + "]");
+            Log.d(TAG, "trackHeight = [ " + (trackHeight) + "]");
+            TrackUI trackUI = (TrackUI) data.second;
+            ViewGroup.LayoutParams trackUIParams = trackUI.channelButton.getLayoutParams();
+            trackUIParams.width = 300;
+            trackUI.channelButton.setLayoutParams(trackUIParams);
+
+            trackUIParams = trackUI.textView.getLayoutParams();
+            trackUIParams.height = trackHeight - 80;
+            trackUI.textView.setLayoutParams(trackUIParams);
+
+            trackUIParams = trackUI.toggleRadioButton.getLayoutParams();
+            trackUIParams.height = 80;
+            trackUI.toggleRadioButton.setLayoutParams(trackUIParams);
+
+            trackUIParams = trackUI.clipView.getLayoutParams();
+            trackUIParams.width = trackWidth - 300;
+            trackUI.clipView.setLayoutParams(trackUIParams);
+        });
+
+        p = scrollBarRightTop.getLayoutParams();
+        p.width = 80;
+        scrollBarRightTop.setLayoutParams(p);
+
+        p = scrollBarRightBottom.getLayoutParams();
+        p.width = 80;
+        scrollBarRightBottom.setLayoutParams(p);
     }
 }

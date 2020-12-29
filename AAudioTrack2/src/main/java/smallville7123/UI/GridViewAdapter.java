@@ -1,5 +1,6 @@
 package smallville7123.UI;
 
+import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -42,19 +43,24 @@ public class GridViewAdapter extends RecyclerView.Adapter<GridViewAdapter.ViewHo
             root = itemView;
         }
 
-        public void adjustDimensions() {
+        public void adjustDimensions(Pair<View, Object> viewObjectPair) {
             ViewGroup.LayoutParams p = new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT);
+            int width = gridview.getWidth();
+            int height = gridview.getHeight();
             if (manager.getOrientation() == RecyclerView.VERTICAL) {
-                p.height = Math.round(gridview.getHeight() / gridview.rowCount);
+                p.width = width;
+                p.height = Math.round(height / gridview.rowCount);
             } else {
-                p.width = Math.round(gridview.getWidth() / gridview.rowCount);
+                p.width = Math.round(width / gridview.rowCount);
+                p.height = height;
             }
             root.setLayoutParams(p);
+            gridview.resizeUI.run(p.width, p.height, viewObjectPair);
         }
 
-        public void setItem(int position) {
+        public void setItem(Pair<View, Object> position) {
             root.setVisibility(View.VISIBLE);
-            root.addView(gridview.data.get(position));
+            root.addView(position.first);
         }
 
         public void setEmptyItem() {
@@ -99,13 +105,15 @@ public class GridViewAdapter extends RecyclerView.Adapter<GridViewAdapter.ViewHo
     // Involves populating data into the item through holder
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        holder.adjustDimensions();
         holder.setEmptyOnClickListener();
         if (position < gridview.data.size()) {
-            holder.setItem(position);
+            Pair<View, Object> viewObjectPair = gridview.data.get(position);
+            holder.setItem(viewObjectPair);
+            holder.adjustDimensions(viewObjectPair);
             holder.setOnClickListener();
         } else {
             holder.setEmptyItem();
+            holder.adjustDimensions(null);
         }
     }
 

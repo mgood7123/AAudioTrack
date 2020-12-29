@@ -7,6 +7,7 @@
 
 #include "PortUtils2.h"
 #include "HostInfo.h"
+#include "../ardour/AudioEngine/typedefs.h"
 #include <fcntl.h>
 #include <unistd.h>
 

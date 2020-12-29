@@ -23,5 +23,10 @@
     <color name="shader_color">#9b9b9b</color>
     <color name="progress_color">#1DE9B6</color>
     <color name="background_color">#B0BEC5</color>
+    <color name="FL_GREY">#485156</color>
+    <color name="bright_orange">#FFFF5722</color>
+    <color name="orange">#FFC83F12</color>
+    <color name="dark_orange">#952E0C</color>
+    <color name="transparent">#00000000</color>
 
 </resources>

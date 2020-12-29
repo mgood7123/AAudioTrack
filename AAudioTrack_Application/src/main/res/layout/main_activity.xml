@@ -107,21 +107,33 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="6">
-        <smallville7123.UI.SequencerView
-            android:id="@+id/sequencer"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            app:channels="4"
-            app:fitChannelsToView="true"
-            app:nativeNotes="16"
-            app:fitNotesToView="true"
-            />
-        <smallville7123.UI.PlaylistView
-            android:id="@+id/playlist"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            />
+        <smallville7123.vstmanager.core.Views.WindowView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sequencer"
+            >
+            <smallville7123.UI.SequencerView
+                android:id="@+id/sequencer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                app:channels="4"
+                app:fitChannelsToView="true"
+                app:nativeNotes="16"
+                app:fitNotesToView="true"
+                />
+        </smallville7123.vstmanager.core.Views.WindowView>
+        <smallville7123.vstmanager.core.Views.WindowView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Playlist"
+            >
+            <smallville7123.UI.PlaylistView
+                android:id="@+id/playlist"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                />
+        </smallville7123.vstmanager.core.Views.WindowView>
     </smallville7123.vstmanager.core.Views.VstView>
 
     <smallville7123.UI.UpdatingTextView

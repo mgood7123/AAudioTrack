@@ -2,11 +2,13 @@ package smallville7123.vstmanager.core.Views;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -81,6 +83,8 @@ public class WindowView extends FrameLayout {
     }
 
     public void setTitle(CharSequence title) {
+        if (title == null) title = mContext.getPackageName();
+        Log.d(TAG, "title = [ " + (title) + "]");
         this.title = title;
         if (titleBarContent != null)
             ((TextView) titleBarContent.findViewById(R.id.title)).setText(title);
@@ -184,6 +188,8 @@ public class WindowView extends FrameLayout {
     int savedHeight;
 
     boolean minimized = false;
+    View restore;
+    View maximize;
 
     private void init(Context context, AttributeSet attrs) {
         getRootLayout(context);
@@ -192,52 +198,106 @@ public class WindowView extends FrameLayout {
 
         titleBarContent = setupTitleBarContent(root);
         View titleBar = inflate(context, R.layout.titlebar, null);
-        View restore = titleBar.findViewById(R.id.restore);
-        View maximize = titleBar.findViewById(R.id.maximize);
-        titleBar.findViewById(R.id.minimize).setOnClickListener(v -> {
-            setVisibility(GONE);
-            minimized = true;
-        });
+        restore = titleBar.findViewById(R.id.restore);
+        maximize = titleBar.findViewById(R.id.maximize);
         restore.setVisibility(GONE);
-        maximize.setOnClickListener(v -> {
-            ViewGroup.LayoutParams layoutParams = getLayoutParams();
-            savedX = getX();
-            savedY = getY();
-            savedWidth = layoutParams.width;
-            savedHeight = layoutParams.height;
-
-            setX(-offsetLeft);
-            setY(-offsetTop);
-            int width = ((ViewGroup) getParent()).getWidth();
-            int height = ((ViewGroup) getParent()).getHeight();
-
-            layoutParams.width = (int) (width - widthRight - (touchZoneWidthRight - offsetRight));
-            layoutParams.height = (int) (height - heightBottom - (touchZoneHeightBottom - offsetBottom));
-            setLayoutParams(layoutParams);
-            restore.setVisibility(VISIBLE);
-            maximize.setVisibility(GONE);
-
-            maximized = true;
-        });
-        restore.setOnClickListener(v -> {
-            ViewGroup.LayoutParams layoutParams = getLayoutParams();
-            setX(savedX);
-            setY(savedY);
-
-            layoutParams.width = savedWidth;
-            layoutParams.height = savedHeight;
-            setLayoutParams(layoutParams);
-
-            restore.setVisibility(GONE);
-            maximize.setVisibility(VISIBLE);
-            maximized = false;
-        });
-        setTitleBar(titleBar);
+        maximize.setOnClickListener(v -> maximize());
+        restore.setOnClickListener(v -> restore());
+        titleBar.findViewById(R.id.minimize).setOnClickListener(v -> minimize());
+        Log.d(TAG, "attrs = [ " + (attrs) + "]");
+        if (attrs != null) {
+            TypedArray attributes = context.getTheme().obtainStyledAttributes(attrs, R.styleable.WindowView, 0, 0);
+            CharSequence text = attributes.getString(R.styleable.WindowView_android_text);
+            Log.d(TAG, "text = [ " + (text) + "]");
+            setTitleBar(titleBar, text);
+            attributes.recycle();
+        } else setTitleBar(titleBar);
         setWindowContent(root);
         setPaint();
 
         // we could do:
         // toolkit.currentFrame().provideCustomCloseButton(new myCloseButton(myResources));
+    }
+
+    boolean isMaximizedWidth = false;
+    boolean isMaximizedHeight = false;
+
+    void setMaximizeWidth() {
+        if (isMaximizedHeight) {
+            isMaximizedHeight = false;
+            maximize();
+        } else {
+            ViewGroup.LayoutParams layoutParams = getLayoutParams();
+            savedX = getX();
+
+            setX(-offsetLeft);
+            int width = ((ViewGroup) getParent()).getWidth();
+
+            layoutParams.width = (int) (width - widthRight - (touchZoneWidthRight - offsetRight));
+            setLayoutParams(layoutParams);
+            isMaximizedWidth = true;
+        }
+    }
+
+    void setMaximizeHeight() {
+        if (isMaximizedWidth) {
+            isMaximizedWidth = false;
+            maximize();
+        } else {
+            ViewGroup.LayoutParams layoutParams = getLayoutParams();
+            savedY = getY();
+
+            setY(-offsetTop);
+            int height = ((ViewGroup) getParent()).getHeight();
+
+            layoutParams.height = (int) (height - heightBottom - (touchZoneHeightBottom - offsetBottom));
+            setLayoutParams(layoutParams);
+            isMaximizedHeight = true;
+        }
+    }
+
+    void maximize() {
+        isMaximizedWidth = false;
+        isMaximizedHeight = false;
+        ViewGroup.LayoutParams layoutParams = getLayoutParams();
+        savedX = getX();
+        savedY = getY();
+        savedWidth = layoutParams.width;
+        savedHeight = layoutParams.height;
+
+        setX(-offsetLeft);
+        setY(-offsetTop);
+        int width = ((ViewGroup) getParent()).getWidth();
+        int height = ((ViewGroup) getParent()).getHeight();
+
+        layoutParams.width = (int) (width - widthRight - (touchZoneWidthRight - offsetRight));
+        layoutParams.height = (int) (height - heightBottom - (touchZoneHeightBottom - offsetBottom));
+        setLayoutParams(layoutParams);
+        restore.setVisibility(VISIBLE);
+        maximize.setVisibility(GONE);
+
+        maximized = true;
+    }
+
+    void restore() {
+        isMaximizedWidth = false;
+        isMaximizedHeight = false;
+        ViewGroup.LayoutParams layoutParams = getLayoutParams();
+        setX(savedX);
+        setY(savedY);
+
+        layoutParams.width = savedWidth;
+        layoutParams.height = savedHeight;
+        setLayoutParams(layoutParams);
+
+        restore.setVisibility(GONE);
+        maximize.setVisibility(VISIBLE);
+        maximized = false;
+    }
+
+    void minimize() {
+        setVisibility(GONE);
+        minimized = true;
     }
 
     private void setPaint() {
@@ -280,12 +340,18 @@ public class WindowView extends FrameLayout {
         offsetRight = touchZoneWidthRight-widthRight;
     }
 
-    private void setTitleBar(View titleBar) {
+    private void setTitleBar(View titleBar, CharSequence title) {
+        Log.d(TAG, "title = [ " + (title) + "]");
         titleBar.setBackgroundColor(Color.BLUE);
         if (titleBarContent.getChildAt(0) != null) {
             titleBarContent.removeViewAt(0);
         }
         titleBarContent.addView(titleBar);
+        setTitle(title);
+    }
+
+    private void setTitleBar(View titleBar) {
+        setTitleBar(titleBar, title);
     }
 
     private FrameLayout setupTitleBarContent(ConstraintLayout root) {
@@ -369,7 +435,12 @@ public class WindowView extends FrameLayout {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (broughtToFront) {
-            if (!maximized) draggable.onTouch(event);
+            if (!maximized) {
+                // lazy
+                isMaximizedWidth = false;
+                isMaximizedHeight = false;
+                draggable.onTouch(event);
+            }
             return true;
         }
         return false;

@@ -71,7 +71,11 @@ public class MainActivity extends AppCompatActivity {
         SequencerView.PatternList list = sequencerView.newPatternList(audioTrack);
 
         // bind
-        playlistView.addRow(playlist, "1").bindPatternListToTrack(list);
+        playlistView.addRow(playlist, "Track 1").bindPatternListToTrack(list);
+        playlistView.addRow(playlist, "Track 2").bindPatternListToTrack(list);
+        playlistView.addRow(playlist, "Track 3").bindPatternListToTrack(list);
+        playlistView.addRow(playlist, "Track 4").bindPatternListToTrack(list);
+        playlistView.addRow(playlist, "Track 5").bindPatternListToTrack(list);
 
         audioTrack.load(
                 sequencerView.addRow(list, "Kick").newSamplerChannel(),

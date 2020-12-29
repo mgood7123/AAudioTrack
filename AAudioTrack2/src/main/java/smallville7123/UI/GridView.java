@@ -2,6 +2,7 @@ package smallville7123.UI;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Pair;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -21,7 +22,7 @@ public class GridView extends RecyclerView {
     OnClickListener onClickListener;
     int rowCount;
     int columnCount;
-    ArrayList<View> data;
+    ArrayList<Pair<View, Object>> data;
     static int VERTICAL = RecyclerView.VERTICAL;
     static int HORIZONTAL = RecyclerView.HORIZONTAL;
     int mOrientation;
@@ -31,7 +32,6 @@ public class GridView extends RecyclerView {
 
     public interface ItemClickListener {
         void onClick(Object data);
-
     }
 
     public void setOnItemClick(ItemClickListener listener) {
@@ -42,12 +42,6 @@ public class GridView extends RecyclerView {
     public GridView(@NonNull Context context) {
         super(context);
         init(context);
-    }
-
-    @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
-        if (adapter != null) adapter.notifyDataSetChanged();
     }
 
     public GridView(@NonNull Context context, @Nullable AttributeSet attrs) {
@@ -70,12 +64,28 @@ public class GridView extends RecyclerView {
         setAdapter(adapter);
     }
 
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        if (adapter != null) adapter.notifyDataSetChanged();
+    }
+
     public void setOrientation(int orientation) {
         if (mOrientation == orientation) return;
         mOrientation = orientation;
         adapter.manager.setOrientation(orientation);
         setRows(rowCount);
         setColumns(columnCount);
+    }
+
+    public interface ResizeUIRunnable {
+        void run(int width, int Height, Pair<View, Object> data);
+    }
+
+    ResizeUIRunnable resizeUI = (width, height, data) -> {};
+
+    public void setResizeUI(ResizeUIRunnable resizeUIRunnable) {
+        resizeUI = resizeUIRunnable;
     }
 
     @Override
