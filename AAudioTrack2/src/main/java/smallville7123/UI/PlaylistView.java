@@ -330,63 +330,93 @@ public class PlaylistView extends FrameLayout {
 
         ViewGroup.LayoutParams p;
 
+        // separator
+
         p = scrollBarTop.getLayoutParams();
         p.height = 160;
         scrollBarTop.setLayoutParams(p);
 
+        // separator
+
         p = linearLayoutHorizontal.getLayoutParams();
-        int trackGridHeight = height - 160;
-        p.height = trackGridHeight;
+        p.height = height - 160;
         linearLayoutHorizontal.setLayoutParams(p);
+
+        // separator
 
         p = picker.getLayoutParams();
         p.width = 200;
         picker.setLayoutParams(p);
 
-        p = patternView.getLayoutParams();
-        p.width = 200;
-        patternView.setLayoutParams(p);
-
-        p = trackGrid.getLayoutParams();
-        int trackGridWidth = width - 200 - 80;
-        p.width = trackGridWidth;
-        trackGrid.setLayoutParams(p);
+        // separator
 
         p = focusAndColor.getLayoutParams();
         p.width = 300;
         focusAndColor.setLayoutParams(p);
 
-        p = scrollBarAndTimeLine.getLayoutParams();
-        p.width = width - 300 - 200 - 80;
-        scrollBarAndTimeLine.setLayoutParams(p);
-
-        trackGrid.setResizeUI((trackWidth, trackHeight, data) -> {
-            Log.d(TAG, "trackWidth = [ " + (trackWidth) + "]");
-            Log.d(TAG, "trackHeight = [ " + (trackHeight) + "]");
-            TrackUI trackUI = (TrackUI) data.second;
-            ViewGroup.LayoutParams trackUIParams = trackUI.channelButton.getLayoutParams();
-            trackUIParams.width = 300;
-            trackUI.channelButton.setLayoutParams(trackUIParams);
-
-            trackUIParams = trackUI.textView.getLayoutParams();
-            trackUIParams.height = trackHeight - 80;
-            trackUI.textView.setLayoutParams(trackUIParams);
-
-            trackUIParams = trackUI.toggleRadioButton.getLayoutParams();
-            trackUIParams.height = 80;
-            trackUI.toggleRadioButton.setLayoutParams(trackUIParams);
-
-            trackUIParams = trackUI.clipView.getLayoutParams();
-            trackUIParams.width = trackWidth - 300;
-            trackUI.clipView.setLayoutParams(trackUIParams);
-        });
+        // separator
 
         p = scrollBarRightTop.getLayoutParams();
         p.width = 80;
         scrollBarRightTop.setLayoutParams(p);
 
+        // separator
+
+        p = scrollBarAndTimeLine.getLayoutParams();
+        p.width = width - 300 - 200 - 80;
+        scrollBarAndTimeLine.setLayoutParams(p);
+
+        // separator
+
+        p = patternView.getLayoutParams();
+        p.width = 200;
+        patternView.setLayoutParams(p);
+
+        // separator
+
         p = scrollBarRightBottom.getLayoutParams();
         p.width = 80;
         scrollBarRightBottom.setLayoutParams(p);
+
+        // separator
+
+        p = trackGrid.getLayoutParams();
+        p.width = width - 200 - 80;
+        trackGrid.setLayoutParams(p);
+
+        // separator
+
+        trackGrid.setResizeUI((trackWidth, trackHeight, data) -> {
+            Log.d(TAG, "trackWidth = [ " + (trackWidth) + "]");
+            Log.d(TAG, "trackHeight = [ " + (trackHeight) + "]");
+            TrackUI trackUI = (TrackUI) data.second;
+
+            // separator
+
+            ViewGroup.LayoutParams trackUIParams = trackUI.channelButton.getLayoutParams();
+            trackUIParams.width = 300;
+            trackUI.channelButton.setLayoutParams(trackUIParams);
+
+            // separator
+
+            trackUIParams = trackUI.clipView.getLayoutParams();
+            trackUIParams.width = trackWidth - 300;
+            trackUI.clipView.setLayoutParams(trackUIParams);
+
+            // separator
+
+            trackUIParams = trackUI.toggleRadioButton.getLayoutParams();
+            trackUIParams.height = 80;
+            trackUI.toggleRadioButton.setLayoutParams(trackUIParams);
+
+            // separator
+
+            trackUIParams = trackUI.textView.getLayoutParams();
+            trackUIParams.height = trackHeight - 80;
+            trackUI.textView.setLayoutParams(trackUIParams);
+
+            // separator
+
+        });
     }
 }
