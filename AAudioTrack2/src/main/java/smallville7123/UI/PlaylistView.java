@@ -18,6 +18,7 @@ import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 
+import smallville7123.UI.Style.Android.ToggleRadioButton;
 import smallville7123.aaudiotrack2.AAudioTrack2;
 import smallville7123.aaudiotrack2.R;
 import smallville7123.aaudiotrack2.TrackGroup;
@@ -110,6 +111,9 @@ public class PlaylistView extends FrameLayout {
         scrollBarTop = new LinearLayout(context, attrs);
         picker = new LinearLayout(context, attrs);
         focusAndColor = new LinearLayout(context, attrs);
+        // FL track header has a / that is the width of a button
+        // this requires two views
+
         scrollBarAndTimeLine = new LinearLayout(context, attrs);
 
         Resources res = getResources();
