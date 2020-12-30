@@ -8,7 +8,6 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.util.Pair;
 import android.view.Gravity;
-import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -328,95 +327,79 @@ public class PlaylistView extends FrameLayout {
 
     void resizeUI(int width, int height) {
 
-        ViewGroup.LayoutParams p;
+        LayoutEngine engine = new LayoutEngine();
+        LayoutEngine A = engine.newHeightRegion(height);
+        LayoutEngine B = engine.newWidthRegion(width);
+        LayoutEngine C = engine.newWidthRegion(width);
 
         // separator
 
-        p = scrollBarTop.getLayoutParams();
-        p.height = 160;
-        scrollBarTop.setLayoutParams(p);
+        A.height(scrollBarTop, 160);
 
         // separator
 
-        p = linearLayoutHorizontal.getLayoutParams();
-        p.height = height - 160;
-        linearLayoutHorizontal.setLayoutParams(p);
+        A.height(linearLayoutHorizontal, A.remainingHeight);
 
         // separator
 
-        p = picker.getLayoutParams();
-        p.width = 200;
-        picker.setLayoutParams(p);
+        B.width(picker, 200);
 
         // separator
 
-        p = focusAndColor.getLayoutParams();
-        p.width = 300;
-        focusAndColor.setLayoutParams(p);
+        B.width(focusAndColor, 300);
 
         // separator
 
-        p = scrollBarRightTop.getLayoutParams();
-        p.width = 80;
-        scrollBarRightTop.setLayoutParams(p);
+        B.width(scrollBarRightTop, 80);
 
         // separator
 
-        p = scrollBarAndTimeLine.getLayoutParams();
-        p.width = width - 300 - 200 - 80;
-        scrollBarAndTimeLine.setLayoutParams(p);
+        B.width(scrollBarAndTimeLine, B.remainingWidth);
 
         // separator
 
-        p = patternView.getLayoutParams();
-        p.width = 200;
-        patternView.setLayoutParams(p);
+        C.width(patternView, 200);
 
         // separator
 
-        p = scrollBarRightBottom.getLayoutParams();
-        p.width = 80;
-        scrollBarRightBottom.setLayoutParams(p);
+        C.width(scrollBarRightBottom, 80);
 
         // separator
 
-        p = trackGrid.getLayoutParams();
-        p.width = width - 200 - 80;
-        trackGrid.setLayoutParams(p);
+        C.width(trackGrid, C.remainingWidth);
 
         // separator
+
+        engine.execute();
 
         trackGrid.setResizeUI((trackWidth, trackHeight, data) -> {
             Log.d(TAG, "trackWidth = [ " + (trackWidth) + "]");
             Log.d(TAG, "trackHeight = [ " + (trackHeight) + "]");
             TrackUI trackUI = (TrackUI) data.second;
 
-            // separator
-
-            ViewGroup.LayoutParams trackUIParams = trackUI.channelButton.getLayoutParams();
-            trackUIParams.width = 300;
-            trackUI.channelButton.setLayoutParams(trackUIParams);
+            LayoutEngine engine_ = new LayoutEngine();
+            LayoutEngine A_ = engine_.newWidthRegion(trackWidth);
+            LayoutEngine B_ = engine_.newHeightRegion(trackHeight);
 
             // separator
 
-            trackUIParams = trackUI.clipView.getLayoutParams();
-            trackUIParams.width = trackWidth - 300;
-            trackUI.clipView.setLayoutParams(trackUIParams);
+            A_.width(trackUI.channelButton, 300);
 
             // separator
 
-            trackUIParams = trackUI.toggleRadioButton.getLayoutParams();
-            trackUIParams.height = 80;
-            trackUI.toggleRadioButton.setLayoutParams(trackUIParams);
+            A_.width(trackUI.clipView, A_.remainingWidth);
 
             // separator
 
-            trackUIParams = trackUI.textView.getLayoutParams();
-            trackUIParams.height = trackHeight - 80;
-            trackUI.textView.setLayoutParams(trackUIParams);
+            B_.height(trackUI.toggleRadioButton, 80);
 
             // separator
 
+            B_.height(trackUI.textView, B_.remainingHeight);
+
+            // separator
+
+            engine_.execute();
         });
     }
 }
