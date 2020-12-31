@@ -215,7 +215,14 @@ public class WindowView extends FrameLayout {
         setWindowContent(root);
         setPaint();
 
-        if (getVisibility() == GONE) minimize();
+        switch (getVisibility()) {
+            case INVISIBLE:
+            case GONE:
+                setVisibility(VISIBLE);
+                invalidate();
+                post(this::minimize);
+                break;
+        }
 
         // we could do:
         // toolkit.currentFrame().provideCustomCloseButton(new myCloseButton(myResources));
