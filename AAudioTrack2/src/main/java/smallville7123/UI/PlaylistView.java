@@ -99,13 +99,14 @@ public class PlaylistView extends FrameLayout {
 //            fitNotesToView = attributes.getBoolean(R.styleable.sequencer_fitNotesToView, true);
 //            attributes.recycle();
 //        } else {
-            channels = 2;
-            channelHeight = Float.NaN;
-            fitChannelsToView = true;
+            channels = 3;
+            channelHeight = 300.0f;
+            fitChannelsToView = false;
 //        }
         trackGrid = new GridView(context, attrs);
         trackGrid.setOrientation(VERTICAL);
         trackGrid.setRows(channels);
+        trackGrid.setColumns(1);
 
         scrollBarTop = new LinearLayout(context, attrs);
         picker = new LinearLayout(context, attrs);
@@ -255,7 +256,7 @@ public class PlaylistView extends FrameLayout {
                 trackGrid.autoSizeRow = true;
             } else {
                 trackGrid.autoSizeRow = false;
-                trackGrid.rowHeight = (int) channelHeight;
+                trackGrid.rowSize = (int) channelHeight;
             }
             trackGrid.data.add(new Pair(row, trackUI));
             trackGrid.adapter.notifyDataSetChanged();
@@ -264,37 +265,33 @@ public class PlaylistView extends FrameLayout {
     }
 
     void newChannelButton(TrackUI trackUI, CharSequence label) {
-        trackUI.channelButton = new LinearLayout(mContext, mAttr) {
-            {
-                setOnClickListener(view -> {
-                    if (channelContextMenu != null) {
-                        channelContextMenu.setAnchorView(view);
-                        channelContextMenu.show();
-                    }
-                });
+//        if (mAttr != null) {
+//            trackUI.channelButton = new LinearLayout(mContext, mAttr);
+//            trackUI.textView = new TextView(mContext, mAttr);
+//            trackUI.toggleRadioButton = new ToggleRadioButton(mContext, mAttr);
+//        } else {
+            trackUI.channelButton = new LinearLayout(mContext);
+            trackUI.textView = new TextView(mContext);
+            trackUI.toggleRadioButton = new ToggleRadioButton(mContext);
+//        }
+
+        trackUI.channelButton.setOnClickListener(view -> {
+            if (channelContextMenu != null) {
+                channelContextMenu.setAnchorView(view);
+                channelContextMenu.show();
             }
-        };
+        });
         trackUI.channelButton.setOrientation(VERTICAL);
-
-        trackUI.textView = new TextView(mContext, mAttr) {
-            {
-                setText(label);
-            }
-        };
-
-        trackUI.toggleRadioButton = new ToggleRadioButton(mContext, mAttr) {
-            {
-                setChecked(true);
-                setTooltipText("Tap to disable this channel");
-                setOnCheckedChangeListener((unused, checked) -> {
-                    setTooltipText(
-                            "Tap to " +
-                                    (checked ? "disable" : "enable") +
-                                    " this channel"
-                    );
-                });
-            }
-        };
+        trackUI.textView.setText(label);
+        trackUI.toggleRadioButton.setChecked(true);
+        trackUI.toggleRadioButton.setTooltipText("Tap to disable this channel");
+        trackUI.toggleRadioButton.setOnCheckedChangeListener((unused, checked) -> {
+            setTooltipText(
+                    "Tap to " +
+                            (checked ? "disable" : "enable") +
+                            " this channel"
+            );
+        });
 
         trackUI.channelButton.addView(
                 trackUI.textView,
@@ -329,46 +326,74 @@ public class PlaylistView extends FrameLayout {
 
         LayoutEngine engine = new LayoutEngine();
         LayoutEngine A = engine.newHeightRegion(height);
-        LayoutEngine B = engine.newWidthRegion(width);
-        LayoutEngine C = engine.newWidthRegion(width);
-
-        // separator
-
         A.height(scrollBarTop, 160);
-
-        // separator
-
         A.height(linearLayoutHorizontal, A.remainingHeight);
 
-        // separator
+        LayoutEngine B = engine.newWidthRegion(width);
+        if (width > 280) {
+            if (width < 580) {
+                B.width(picker, 200);
+                if (B.remainingWidth < 80) {
+                    B.width(scrollBarRightTop, B.remainingWidth);
+                    B.width(focusAndColor, 0);
+                    B.width(scrollBarAndTimeLine, 0);
+                } else {
+                    B.width(scrollBarRightTop, 80);
+                    B.width(focusAndColor, B.remainingWidth);
+                    B.width(scrollBarAndTimeLine, 0);
+                }
+            } else if (width == 580) {
+                B.width(picker, 200);
+                B.width(focusAndColor, 300);
+                B.width(scrollBarAndTimeLine, 0);
+                B.width(scrollBarRightTop, 80);
+            } else if (width > 580) {
+                B.width(picker, 200);
+                B.width(focusAndColor, 300);
+                B.width(scrollBarRightTop, 80);
+                B.width(scrollBarAndTimeLine, B.remainingWidth);
+            }
+        } else if (width == 280) {
+            B.width(scrollBarRightTop, 80);
+            B.width(picker, 200);
+            B.width(focusAndColor, 0);
+            B.width(scrollBarAndTimeLine, 0);
+        } else if (width < 280) {
+            B.width(scrollBarRightTop, 80);
+            B.width(picker, B.remainingWidth);
+            B.width(focusAndColor, 0);
+            B.width(scrollBarAndTimeLine, 0);
+        }
 
-        B.width(picker, 200);
-
-        // separator
-
-        B.width(focusAndColor, 300);
-
-        // separator
-
-        B.width(scrollBarRightTop, 80);
-
-        // separator
-
-        B.width(scrollBarAndTimeLine, B.remainingWidth);
-
-        // separator
-
-        C.width(patternView, 200);
-
-        // separator
-
-        C.width(scrollBarRightBottom, 80);
-
-        // separator
-
-        C.width(trackGrid, C.remainingWidth);
-
-        // separator
+        LayoutEngine C = engine.newWidthRegion(width);
+        if (width > 280) {
+            if (width < 580) {
+                C.width(patternView, 200);
+                if (C.remainingWidth < 80) {
+                    C.width(scrollBarRightBottom, C.remainingWidth);
+                    C.width(trackGrid, 0);
+                } else {
+                    C.width(scrollBarRightBottom, 80);
+                    C.width(trackGrid, C.remainingWidth);
+                }
+            } else if (width == 580) {
+                C.width(patternView, 200);
+                C.width(trackGrid, 300);
+                C.width(scrollBarRightBottom, 80);
+            } else if (width > 580) {
+                C.width(patternView, 200);
+                C.width(scrollBarRightBottom, 80);
+                C.width(trackGrid, C.remainingWidth);
+            }
+        } else if (width == 280) {
+            C.width(scrollBarRightBottom, 80);
+            C.width(patternView, 200);
+            C.width(trackGrid, 0);
+        } else if (width < 280) {
+            C.width(scrollBarRightBottom, 80);
+            C.width(patternView, C.remainingWidth);
+            C.width(trackGrid, 0);
+        }
 
         engine.execute();
 
@@ -380,25 +405,10 @@ public class PlaylistView extends FrameLayout {
             LayoutEngine engine_ = new LayoutEngine();
             LayoutEngine A_ = engine_.newWidthRegion(trackWidth);
             LayoutEngine B_ = engine_.newHeightRegion(trackHeight);
-
-            // separator
-
             A_.width(trackUI.channelButton, 300);
-
-            // separator
-
             A_.width(trackUI.clipView, A_.remainingWidth);
-
-            // separator
-
             B_.height(trackUI.toggleRadioButton, 80);
-
-            // separator
-
             B_.height(trackUI.textView, B_.remainingHeight);
-
-            // separator
-
             engine_.execute();
         });
     }

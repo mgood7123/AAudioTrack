@@ -202,7 +202,7 @@ public class SequencerView extends FrameLayout {
                 channelGrid.autoSizeRow = true;
             } else {
                 channelGrid.autoSizeRow = false;
-                channelGrid.rowHeight = (int) channelHeight;
+                channelGrid.rowSize = (int) channelHeight;
             }
             channelGrid.data.add(new Pair(row, null));
             channelGrid.adapter.notifyDataSetChanged();
@@ -269,7 +269,7 @@ public class SequencerView extends FrameLayout {
                         noteGrid.autoSizeColumn = true;
                     } else {
                         noteGrid.autoSizeColumn = false;
-                        noteGrid.columnWidth = (int) noteWidth;
+                        noteGrid.columnSize = (int) noteWidth;
                     }
                     noteGrid.data.add(new Pair(note, null));
                     maxLength++;

@@ -13,10 +13,10 @@ import java.util.ArrayList;
 
 public class GridView extends RecyclerView {
     private static final String TAG = "GridView";
-    public boolean autoSizeRow;
-    public boolean autoSizeColumn;
-    public int rowHeight;
-    public int columnWidth;
+    public boolean autoSizeRow = true;
+    public boolean autoSizeColumn = true;
+    public int rowSize;
+    public int columnSize;
     public Context mContext;
     GridViewAdapter adapter;
     OnClickListener onClickListener;
@@ -45,12 +45,12 @@ public class GridView extends RecyclerView {
     }
 
     public GridView(@NonNull Context context, @Nullable AttributeSet attrs) {
-        super(context, attrs);
+        super(context);
         init(context);
     }
 
     public GridView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
+        super(context);
         init(context);
     }
 

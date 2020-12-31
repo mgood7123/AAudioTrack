@@ -123,6 +123,8 @@ public class ViewCompositor {
         if (view == null) return null;
         int w = view.getWidth();
         int h = view.getHeight();
+        if (w == 0) w = 2;
+        if (h == 0) h = 2;
         Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         if (view instanceof ViewGroup) compositeInternalViewGroup((ViewGroup) view, canvas);

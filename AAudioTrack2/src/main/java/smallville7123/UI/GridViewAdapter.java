@@ -44,18 +44,34 @@ public class GridViewAdapter extends RecyclerView.Adapter<GridViewAdapter.ViewHo
         }
 
         public void adjustDimensions(Pair<View, Object> viewObjectPair) {
-            ViewGroup.LayoutParams p = new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT);
+            FrameLayout.LayoutParams p = new FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT);
             int width = gridview.getWidth();
             int height = gridview.getHeight();
             if (manager.getOrientation() == RecyclerView.VERTICAL) {
-                p.width = width;
-                p.height = Math.round(height / gridview.rowCount);
+                if (gridview.autoSizeColumn) {
+                    p.width = width;
+                } else {
+                    p.width = gridview.columnSize;
+                }
+                if (gridview.autoSizeRow) {
+                    p.height = Math.round(height / gridview.rowCount);
+                } else {
+                    p.height = gridview.rowSize;
+                }
             } else {
-                p.width = Math.round(width / gridview.rowCount);
-                p.height = height;
+                if (gridview.autoSizeRow) {
+                    p.width = Math.round(width / gridview.rowCount);
+                } else {
+                    p.width = gridview.rowSize;
+                }
+                if (gridview.autoSizeColumn) {
+                    p.height = height;
+                } else {
+                    p.height = gridview.columnSize;
+                }
             }
             root.setLayoutParams(p);
-            gridview.resizeUI.run(p.width, p.height, viewObjectPair);
+            if (viewObjectPair != null) gridview.resizeUI.run(p.width, p.height, viewObjectPair);
         }
 
         public void setItem(Pair<View, Object> position) {

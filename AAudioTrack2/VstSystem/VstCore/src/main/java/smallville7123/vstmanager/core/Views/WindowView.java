@@ -215,6 +215,8 @@ public class WindowView extends FrameLayout {
         setWindowContent(root);
         setPaint();
 
+        if (getVisibility() == GONE) minimize();
+
         // we could do:
         // toolkit.currentFrame().provideCustomCloseButton(new myCloseButton(myResources));
     }
@@ -404,7 +406,9 @@ public class WindowView extends FrameLayout {
                         || minimized || !vstView.childHasBeenBroughtToFront
         ) {
             if (minimized) {
-                vstView.currentTop.broughtToFront = false;
+                if (vstView.currentTop != null) {
+                    vstView.currentTop.broughtToFront = false;
+                }
                 setVisibility(VISIBLE);
             }
             bringToFront();
@@ -412,6 +416,7 @@ public class WindowView extends FrameLayout {
             vstView.childHasBeenBroughtToFront = true;
             vstView.currentTop = this;
             minimized = false;
+            invalidate();
             // process input
             return false;
         } else {
