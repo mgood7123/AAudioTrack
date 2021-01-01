@@ -51,12 +51,12 @@ public class PlaylistView extends FrameLayout {
     LinearLayout linearLayoutVertical;
     LinearLayout scrollBarTop;
     LinearLayout picker;
-    LinearLayout focusAndColor;
+    LinearLayout focus;
     LinearLayout scrollBarAndTimeLine;
     LinearLayout scrollBarRightTop;
     LinearLayout linearLayoutHorizontal;
     LinearLayout patternView;
-    GridView trackGrid;
+    GridView playlistView;
     LinearLayout scrollBarRightBottom;
 
     Context mContext;
@@ -103,18 +103,21 @@ public class PlaylistView extends FrameLayout {
             channelHeight = 300.0f;
             fitChannelsToView = false;
 //        }
-        trackGrid = new GridView(context, attrs);
-        trackGrid.setOrientation(VERTICAL);
-        trackGrid.setRows(channels);
-        trackGrid.setColumns(1);
+        playlistView = new GridView(context, attrs);
+        playlistView.setOrientation(VERTICAL);
+        playlistView.setRows(channels);
+        playlistView.setColumns(1);
 
         scrollBarTop = new LinearLayout(context, attrs);
         picker = new LinearLayout(context, attrs);
-        focusAndColor = new LinearLayout(context, attrs);
-        // FL track header has a / that is the width of a button
-        // this requires two views
+        focus = new LinearLayout(context, attrs);
+        // FL Focus has a / at the start of it that is the width of a button
+        // this will requires two views
 
         scrollBarAndTimeLine = new LinearLayout(context, attrs);
+        // scroll bar takes up 2 views
+        // the scroll bar, timeline, and Playlist resize themselves in accordance
+        // to the window's width
 
         Resources res = getResources();
         Resources.Theme theme = context.getTheme();
@@ -124,7 +127,7 @@ public class PlaylistView extends FrameLayout {
 
         scrollBarTop.setBackgroundColor(Color.DKGRAY);
         picker.setBackgroundColor(Color.GREEN);
-        focusAndColor.setBackgroundColor(FL_GREY);
+        focus.setBackgroundColor(FL_GREY);
         scrollBarAndTimeLine.setBackgroundColor(bright_orange);
 
 
@@ -133,7 +136,7 @@ public class PlaylistView extends FrameLayout {
         scrollBarRightBottom = new LinearLayout(context, attrs);
         scrollBarRightBottom.setBackgroundColor(Color.YELLOW);
 
-        trackGrid.setBackgroundColor(Color.DKGRAY);
+        playlistView.setBackgroundColor(Color.DKGRAY);
 
         linearLayoutHorizontal = new LinearLayout(context, attrs);
         linearLayoutHorizontal.setOrientation(HORIZONTAL);
@@ -143,7 +146,7 @@ public class PlaylistView extends FrameLayout {
         addView(linearLayoutVertical);
 
         scrollBarTop.addView(picker, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
-        scrollBarTop.addView(focusAndColor, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        scrollBarTop.addView(focus, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
         scrollBarTop.addView(scrollBarAndTimeLine, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
         scrollBarTop.addView(scrollBarRightTop, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
         linearLayoutVertical.addView(scrollBarTop, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
@@ -154,7 +157,20 @@ public class PlaylistView extends FrameLayout {
         patternView.setBackgroundColor(Color.DKGRAY);
 
         linearLayoutHorizontal.addView(patternView, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
-        linearLayoutHorizontal.addView(trackGrid, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+
+        linearLayoutHorizontal.addView(playlistView, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        // by default, the FL playlist is 18 bars long (1 to 17)
+        // with the 17th bar being visible, and the 18th being out of view
+        //
+        // |              WINDOW               |
+        // |VISIBLE     VISIBLE     VISIBLE    |INVISIBLE   INVISIBLE
+        // |1           ...         17         |18          ...
+        // ||  |  |  |  |  |  |  |  |  |  |  | ||  |  |  |  |
+        // |                                   |
+        //
+        // each pattern extends the grid by 18 (11 to 27)
+        // this extension is dependant on the position of the final pattern placement
+
         linearLayoutHorizontal.addView(scrollBarRightBottom, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
 
 
@@ -253,13 +269,13 @@ public class PlaylistView extends FrameLayout {
             row.addView(trackUI.clipView, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
 
             if (fitChannelsToView || channelHeight == Float.NaN) {
-                trackGrid.autoSizeRow = true;
+                playlistView.autoSizeRow = true;
             } else {
-                trackGrid.autoSizeRow = false;
-                trackGrid.rowSize = (int) channelHeight;
+                playlistView.autoSizeRow = false;
+                playlistView.rowSize = (int) channelHeight;
             }
-            trackGrid.data.add(new Pair(row, trackUI));
-            trackGrid.adapter.notifyDataSetChanged();
+            playlistView.data.add(new Pair(row, trackUI));
+            playlistView.adapter.notifyDataSetChanged();
             return track;
         }
     }
@@ -335,33 +351,33 @@ public class PlaylistView extends FrameLayout {
                 B.width(picker, 200);
                 if (B.remainingWidth < 80) {
                     B.width(scrollBarRightTop, B.remainingWidth);
-                    B.width(focusAndColor, 0);
+                    B.width(focus, 0);
                     B.width(scrollBarAndTimeLine, 0);
                 } else {
                     B.width(scrollBarRightTop, 80);
-                    B.width(focusAndColor, B.remainingWidth);
+                    B.width(focus, B.remainingWidth);
                     B.width(scrollBarAndTimeLine, 0);
                 }
             } else if (width == 580) {
                 B.width(picker, 200);
-                B.width(focusAndColor, 300);
+                B.width(focus, 300);
                 B.width(scrollBarAndTimeLine, 0);
                 B.width(scrollBarRightTop, 80);
             } else if (width > 580) {
                 B.width(picker, 200);
-                B.width(focusAndColor, 300);
+                B.width(focus, 300);
                 B.width(scrollBarRightTop, 80);
                 B.width(scrollBarAndTimeLine, B.remainingWidth);
             }
         } else if (width == 280) {
             B.width(scrollBarRightTop, 80);
             B.width(picker, 200);
-            B.width(focusAndColor, 0);
+            B.width(focus, 0);
             B.width(scrollBarAndTimeLine, 0);
         } else if (width < 280) {
             B.width(scrollBarRightTop, 80);
             B.width(picker, B.remainingWidth);
-            B.width(focusAndColor, 0);
+            B.width(focus, 0);
             B.width(scrollBarAndTimeLine, 0);
         }
 
@@ -371,33 +387,33 @@ public class PlaylistView extends FrameLayout {
                 C.width(patternView, 200);
                 if (C.remainingWidth < 80) {
                     C.width(scrollBarRightBottom, C.remainingWidth);
-                    C.width(trackGrid, 0);
+                    C.width(playlistView, 0);
                 } else {
                     C.width(scrollBarRightBottom, 80);
-                    C.width(trackGrid, C.remainingWidth);
+                    C.width(playlistView, C.remainingWidth);
                 }
             } else if (width == 580) {
                 C.width(patternView, 200);
-                C.width(trackGrid, 300);
+                C.width(playlistView, 300);
                 C.width(scrollBarRightBottom, 80);
             } else if (width > 580) {
                 C.width(patternView, 200);
                 C.width(scrollBarRightBottom, 80);
-                C.width(trackGrid, C.remainingWidth);
+                C.width(playlistView, C.remainingWidth);
             }
         } else if (width == 280) {
             C.width(scrollBarRightBottom, 80);
             C.width(patternView, 200);
-            C.width(trackGrid, 0);
+            C.width(playlistView, 0);
         } else if (width < 280) {
             C.width(scrollBarRightBottom, 80);
             C.width(patternView, C.remainingWidth);
-            C.width(trackGrid, 0);
+            C.width(playlistView, 0);
         }
 
         engine.execute();
 
-        trackGrid.setResizeUI((trackWidth, trackHeight, data) -> {
+        playlistView.setResizeUI((trackWidth, trackHeight, data) -> {
             Log.d(TAG, "trackWidth = [ " + (trackWidth) + "]");
             Log.d(TAG, "trackHeight = [ " + (trackHeight) + "]");
             TrackUI trackUI = (TrackUI) data.second;
