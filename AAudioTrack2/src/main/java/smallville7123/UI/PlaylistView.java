@@ -207,6 +207,7 @@ public class PlaylistView extends FrameLayout {
                 scrollBarRightScrollBar.updatePosition(dx, dy);
             }
         };
+        scrollBarRightScrollBar.attachTo(playlistView);
         playlistView.setOrientation(VERTICAL);
         playlistView.setRows(channels);
         playlistView.setColumns(1);
@@ -226,7 +227,6 @@ public class PlaylistView extends FrameLayout {
         // this extension is dependant on the position of the final pattern placement
         //
         linearLayoutHorizontal.addView(playlistView, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
-        scrollBarRightScrollBar.attachTo(playlistView);
 
         linearLayoutHorizontal.addView(scrollBarContainerRight, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
 
@@ -502,8 +502,8 @@ public class PlaylistView extends FrameLayout {
         engine.execute();
 
         playlistView.setResizeUI((trackWidth, trackHeight, data) -> {
-            Log.d(TAG, "trackWidth = [ " + (trackWidth) + "]");
-            Log.d(TAG, "trackHeight = [ " + (trackHeight) + "]");
+            Log.d(TAG, "trackWidth = [" + (trackWidth) + "]");
+            Log.d(TAG, "trackHeight = [" + (trackHeight) + "]");
             TrackUI trackUI = (TrackUI) data.second;
 
             LayoutEngine engine_ = new LayoutEngine();

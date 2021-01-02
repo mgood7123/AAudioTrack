@@ -14,6 +14,7 @@ import android.widget.FrameLayout;
 import android.widget.ScrollView;
 
 import androidx.annotation.ColorInt;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import java.util.function.Consumer;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
+import static androidx.recyclerview.widget.RecyclerView.NO_POSITION;
 
 public class ScrollBarView extends ScrollView {
     public ScrollBarView(Context context) {
@@ -68,6 +70,12 @@ public class ScrollBarView extends ScrollView {
     }
 
     View scrollable;
+    boolean layout = false;
+    int scrollableScrollX;
+    int scrollableScrollY;
+    float tmpScrollableScrollX;
+    float tmpScrollableScrollY;
+
 
     public void attachTo(View scrollable) {
         this.scrollable = scrollable;
@@ -75,17 +83,91 @@ public class ScrollBarView extends ScrollView {
 //        Consumer<ViewGroup.LayoutParams> a = scrollable::setLayoutParams;
     }
 
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-//        if (scrollable != null) {
-//            Log.d(TAG, "scrollable.getScrollY() = [ " + (scrollable.getScrollY()) + "]");
-//            Log.d(TAG, "scrollable.getHeight() = [ " + (scrollable.getHeight()) + "]");
-//        }
-    }
-
     public void updatePosition(int dx, int dy) {
         clip.setY(clip.getY() + dy);
+        scrollableScrollX += dx;
+        scrollableScrollY += dy;
+        Log.d(TAG, "scrollableScrollX = [" + (scrollableScrollX) + "]");
+        Log.d(TAG, "scrollableScrollY = [" + (scrollableScrollY) + "]");
+    }
+
+    public void updateScrollPosition(float dx, float dy) {
+        tmpScrollableScrollX += dx;
+        tmpScrollableScrollY += dy;
+        Log.d(TAG, "tmpScrollableScrollX = [" + (tmpScrollableScrollX) + "]");
+        Log.d(TAG, "tmpScrollableScrollY = [" + (tmpScrollableScrollY) + "]");
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        super.onLayout(changed, l, t, r, b);
+        Log.d(TAG, "onLayout() called with: changed = [" + changed + "], l = [" + l + "], t = [" + t + "], r = [" + r + "], b = [" + b + "]");
+        if (layout) {
+            layout = false;
+        } else {
+            if (scrollable != null) {
+                if (scrollable instanceof RecyclerView) {
+                    RecyclerView recyclerView = (RecyclerView) scrollable;
+                    RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
+                    if (layoutManager instanceof LinearLayoutManager) {
+                        LinearLayoutManager manager = (LinearLayoutManager) layoutManager;
+                        int firstVisibleItemPosition = manager.findFirstVisibleItemPosition();
+                        int firstCompletelyVisibleItemPosition = manager.findFirstCompletelyVisibleItemPosition();
+                        int lastVisibleItemPosition = manager.findLastVisibleItemPosition();
+                        int lastCompletelyVisibleItemPosition = manager.findLastCompletelyVisibleItemPosition();
+
+                        Log.d(TAG, "firstVisibleItemPosition = [" + (firstVisibleItemPosition) + "]");
+                        Log.d(TAG, "firstCompletelyVisibleItemPosition = [" + (firstCompletelyVisibleItemPosition) + "]");
+                        Log.d(TAG, "lastVisibleItemPosition = [" + (lastVisibleItemPosition) + "]");
+                        Log.d(TAG, "lastCompletelyVisibleItemPosition = [" + (lastCompletelyVisibleItemPosition) + "]");
+
+                        int height = 0;
+                        View lastCompletelyVisibleVisibleView;
+                        // scenarios:
+                        // 1. the first view and last view are partially visible
+                        // 2. the first view and last view are completely visible
+                        // 3. the first view is completely visible
+                        //    while the last view is partially visible
+                        // 4. the last view is completely visible
+                        //    while the first view is partially visible
+
+                        // for reasons, lets skip everything
+                        // and assume each item consumes the entire width:
+                        // |ITEM_A|
+                        // |ITEM_B|
+
+                        View view = manager.getChildAt(firstVisibleItemPosition);
+                        if (view != null) {
+                            int itemHeight = view.getHeight();
+
+                            Log.d(TAG, "itemHeight = [" + (itemHeight) + "]");
+                            // 2. compute the total height
+
+                            float documentHeight = itemHeight * manager.getItemCount();
+                            float windowHeight = scrollable.getHeight();
+                            float trackHeight = b;
+
+                            Log.d(TAG, "documentHeight = [" + (documentHeight) + "]");
+                            Log.d(TAG, "windowHeight = [" + (windowHeight) + "]");
+                            Log.d(TAG, "trackHeight = [" + (trackHeight) + "]");
+
+                            // 3. now that we have our total height...
+
+                            float documentHeightDivWindowHeight = documentHeight / windowHeight;
+
+                            Log.d(TAG, "documentHeightDivWindowHeight = [" + (documentHeightDivWindowHeight) + "]");
+
+                            float thumbHeight = trackHeight / documentHeightDivWindowHeight;
+
+                            Log.d(TAG, "thumbHeight = [" + (thumbHeight) + "]");
+
+                            layout = true;
+                            clip.setHeight((int) thumbHeight);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     class Clip {
@@ -277,18 +359,41 @@ public class ScrollBarView extends ScrollView {
                     return true;
                 }
                 return false;
-            case MotionEvent.ACTION_MOVE:
-                if (!isResizing && isDragging) {
-                    if (currentRawY + downDY >= 0) {
-                        float y1 = clip.getY();
-                        float y2 = currentRawY + downDY;
-                        float y3 = y1 - y2;
-                        clip.setY(y2);
-                        scrollable.scrollBy(0, (int) (-y3));
+        case MotionEvent.ACTION_MOVE:
+            if (!isResizing && isDragging) {
+                // scroll bar thumb
+                float y1 = clip.getY();
+
+                // current y location
+                float y2 = currentRawY + downDY;
+
+                // dont scroll past start
+                if (y2 <= 0) {
+                    clip.setY(0);
+                } else {
+                    // dont scroll past end
+                    float clipEnd = y2 + clipOriginalHeight;
+                    float viewEnd = getY() + getHeight();
+                    if (clipEnd > viewEnd) {
+                        clip.setY(y2 - (clipEnd - viewEnd));
                     } else {
-                        clip.setY(0);
+                        clip.setY(y2);
+                        // scroll our view
+                        // TODO: account for views
+                        //  that can use absolute positions
+                        //  and views that cannot use absolute
+                        //  positions
+                        //
+                        // in this case, our view cannot use absolute position
+
+                        // relative difference
+                        float y3 = -(y1 - y2);
+                        Log.d(TAG, "y3 = [" + (y3) + "]");
+                        updateScrollPosition(0, y3);
+                        scrollable.scrollBy(0, (int) y3);
                     }
-                    return true;
+                }
+                return true;
                 } else if (isResizing && !isDragging) {
                     MarginLayoutParams layoutParams = (MarginLayoutParams) clip.content.getLayoutParams();
                     if (resizingTop) {

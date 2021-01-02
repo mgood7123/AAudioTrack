@@ -84,7 +84,7 @@ public class WindowView extends FrameLayout {
 
     public void setTitle(CharSequence title) {
         if (title == null) title = mContext.getPackageName();
-        Log.d(TAG, "title = [ " + (title) + "]");
+        Log.d(TAG, "title = [" + (title) + "]");
         this.title = title;
         if (titleBarContent != null)
             ((TextView) titleBarContent.findViewById(R.id.title)).setText(title);
@@ -204,11 +204,11 @@ public class WindowView extends FrameLayout {
         maximize.setOnClickListener(v -> maximize());
         restore.setOnClickListener(v -> restore());
         titleBar.findViewById(R.id.minimize).setOnClickListener(v -> minimize());
-        Log.d(TAG, "attrs = [ " + (attrs) + "]");
+        Log.d(TAG, "attrs = [" + (attrs) + "]");
         if (attrs != null) {
             TypedArray attributes = context.getTheme().obtainStyledAttributes(attrs, R.styleable.WindowView, 0, 0);
             CharSequence text = attributes.getString(R.styleable.WindowView_android_text);
-            Log.d(TAG, "text = [ " + (text) + "]");
+            Log.d(TAG, "text = [" + (text) + "]");
             setTitleBar(titleBar, text);
             attributes.recycle();
         } else setTitleBar(titleBar);
@@ -350,7 +350,7 @@ public class WindowView extends FrameLayout {
     }
 
     private void setTitleBar(View titleBar, CharSequence title) {
-        Log.d(TAG, "title = [ " + (title) + "]");
+        Log.d(TAG, "title = [" + (title) + "]");
         titleBar.setBackgroundColor(Color.BLUE);
         if (titleBarContent.getChildAt(0) != null) {
             titleBarContent.removeViewAt(0);
