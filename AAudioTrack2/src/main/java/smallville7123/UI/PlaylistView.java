@@ -49,15 +49,24 @@ public class PlaylistView extends FrameLayout {
     }
 
     LinearLayout linearLayoutVertical;
-    LinearLayout scrollBarTop;
+    LinearLayout containerTop;
     LinearLayout picker;
     LinearLayout focus;
     LinearLayout scrollBarAndTimeLine;
-    LinearLayout scrollBarRightTop;
+    FrameLayout timeline;
+    LinearLayout scrollBarContainerTop;
+    FrameLayout scrollBarTopScrollLeft;
+    FrameLayout scrollBarTopScrollBar;
+    FrameLayout scrollBarTopScrollRight;
+    LinearLayout scrollBarContainerTopRight;
+    FrameLayout zoom;
+    FrameLayout scrollBarRightScrollUp;
+    LinearLayout scrollBarContainerRight;
+    FrameLayout scrollBarRightScrollBar;
+    FrameLayout scrollBarRightScrollDown;
     LinearLayout linearLayoutHorizontal;
     LinearLayout patternView;
     GridView playlistView;
-    LinearLayout scrollBarRightBottom;
 
     Context mContext;
     AttributeSet mAttr;
@@ -103,12 +112,8 @@ public class PlaylistView extends FrameLayout {
             channelHeight = 300.0f;
             fitChannelsToView = false;
 //        }
-        playlistView = new GridView(context, attrs);
-        playlistView.setOrientation(VERTICAL);
-        playlistView.setRows(channels);
-        playlistView.setColumns(1);
 
-        scrollBarTop = new LinearLayout(context, attrs);
+        containerTop = new LinearLayout(context, attrs);
         picker = new LinearLayout(context, attrs);
         focus = new LinearLayout(context, attrs);
         // FL Focus has a / at the start of it that is the width of a button
@@ -118,6 +123,7 @@ public class PlaylistView extends FrameLayout {
         // scroll bar takes up 2 views
         // the scroll bar, timeline, and Playlist resize themselves in accordance
         // to the window's width
+        timeline = new FrameLayout(context, attrs);
 
         Resources res = getResources();
         Resources.Theme theme = context.getTheme();
@@ -125,18 +131,34 @@ public class PlaylistView extends FrameLayout {
         FL_GREY = res.getColor(R.color.FL_GREY, theme);
         bright_orange = res.getColor(R.color.bright_orange, theme);
 
-        scrollBarTop.setBackgroundColor(Color.DKGRAY);
+        containerTop.setBackgroundColor(Color.DKGRAY);
         picker.setBackgroundColor(Color.GREEN);
         focus.setBackgroundColor(FL_GREY);
+
+        scrollBarAndTimeLine.setOrientation(VERTICAL);
+
         scrollBarAndTimeLine.setBackgroundColor(bright_orange);
+        timeline.setBackgroundColor(Color.BLUE);
 
 
-        scrollBarRightTop = new LinearLayout(context, attrs);
-        scrollBarRightTop.setBackgroundColor(Color.YELLOW);
-        scrollBarRightBottom = new LinearLayout(context, attrs);
-        scrollBarRightBottom.setBackgroundColor(Color.YELLOW);
 
-        playlistView.setBackgroundColor(Color.DKGRAY);
+        scrollBarContainerTop = new LinearLayout(context, attrs);
+        scrollBarContainerTop.setOrientation(HORIZONTAL);
+        scrollBarContainerTop.setBackgroundColor(Color.YELLOW);
+        scrollBarTopScrollLeft = new FrameLayout(context, attrs);
+        scrollBarTopScrollBar = new FrameLayout(context, attrs);
+        scrollBarTopScrollRight = new FrameLayout(context, attrs);
+
+        scrollBarContainerTopRight = new LinearLayout(context, attrs);
+        scrollBarContainerTopRight.setOrientation(VERTICAL);
+        scrollBarContainerTopRight.setBackgroundColor(Color.YELLOW);
+        zoom = new FrameLayout(context, attrs);
+        scrollBarRightScrollUp = new FrameLayout(context, attrs);
+        scrollBarContainerRight = new LinearLayout(context, attrs);
+        scrollBarContainerRight.setOrientation(VERTICAL);
+        scrollBarContainerRight.setBackgroundColor(Color.YELLOW);
+        scrollBarRightScrollBar = new FrameLayout(context, attrs);
+        scrollBarRightScrollDown = new FrameLayout(context, attrs);
 
         linearLayoutHorizontal = new LinearLayout(context, attrs);
         linearLayoutHorizontal.setOrientation(HORIZONTAL);
@@ -145,11 +167,31 @@ public class PlaylistView extends FrameLayout {
 
         addView(linearLayoutVertical);
 
-        scrollBarTop.addView(picker, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
-        scrollBarTop.addView(focus, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
-        scrollBarTop.addView(scrollBarAndTimeLine, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
-        scrollBarTop.addView(scrollBarRightTop, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
-        linearLayoutVertical.addView(scrollBarTop, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        scrollBarContainerTop.addView(scrollBarTopScrollLeft, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        scrollBarTopScrollLeft.setBackgroundColor(Color.RED);
+        scrollBarContainerTop.addView(scrollBarTopScrollBar, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        scrollBarTopScrollBar.setBackgroundColor(Color.GREEN);
+        scrollBarContainerTop.addView(scrollBarTopScrollRight, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        scrollBarTopScrollRight.setBackgroundColor(Color.MAGENTA);
+
+        scrollBarContainerTopRight.addView(zoom, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 1f));
+        zoom.setBackgroundColor(Color.GRAY);
+        scrollBarContainerTopRight.addView(scrollBarRightScrollUp, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 1f));
+        scrollBarRightScrollUp.setBackgroundColor(Color.RED);
+
+        scrollBarContainerRight.addView(scrollBarRightScrollBar, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        scrollBarRightScrollBar.setBackgroundColor(Color.GREEN);
+        scrollBarContainerRight.addView(scrollBarRightScrollDown, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        scrollBarRightScrollDown.setBackgroundColor(Color.MAGENTA);
+
+        scrollBarAndTimeLine.addView(scrollBarContainerTop, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 1f));
+        scrollBarAndTimeLine.addView(timeline, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 1f));
+
+        containerTop.addView(picker, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        containerTop.addView(focus, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        containerTop.addView(scrollBarAndTimeLine, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        containerTop.addView(scrollBarContainerTopRight, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        linearLayoutVertical.addView(containerTop, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
         linearLayoutVertical.addView(linearLayoutHorizontal, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
 
         patternView = new LinearLayout(context, attrs);
@@ -157,6 +199,12 @@ public class PlaylistView extends FrameLayout {
         patternView.setBackgroundColor(Color.DKGRAY);
 
         linearLayoutHorizontal.addView(patternView, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+
+        playlistView = new GridView(context, attrs);
+        playlistView.setOrientation(VERTICAL);
+        playlistView.setRows(channels);
+        playlistView.setColumns(1);
+        playlistView.setBackgroundColor(Color.DKGRAY);
 
         linearLayoutHorizontal.addView(playlistView, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
         // by default, the FL playlist is 18 bars long (1 to 17)
@@ -171,7 +219,7 @@ public class PlaylistView extends FrameLayout {
         // each pattern extends the grid by 18 (11 to 27)
         // this extension is dependant on the position of the final pattern placement
 
-        linearLayoutHorizontal.addView(scrollBarRightBottom, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        linearLayoutHorizontal.addView(scrollBarContainerRight, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
 
 
         if (isInEditMode()) {
@@ -341,74 +389,105 @@ public class PlaylistView extends FrameLayout {
     void resizeUI(int width, int height) {
 
         LayoutEngine engine = new LayoutEngine();
-        LayoutEngine A = engine.newHeightRegion(height);
-        A.height(scrollBarTop, 160);
-        A.height(linearLayoutHorizontal, A.remainingHeight);
+        LayoutEngine engineA = engine.newHeightRegion(height);
+        engineA.height(containerTop, 160);
+        LayoutEngine engineA_ = engine.newHeightRegion(engineA.remainingHeight);
+        if (engineA.remainingHeight > 80) {
+            engineA_.height(scrollBarRightScrollDown, 80);
+            engineA_.height(scrollBarRightScrollBar, engineA_.remainingHeight);
+        } else if (engineA.remainingHeight == 80) {
+            engineA_.height(scrollBarRightScrollDown, 80);
+            engineA_.height(scrollBarRightScrollBar, 0);
+        } else if (engineA.remainingHeight < 80) {
+            engineA_.height(scrollBarRightScrollDown, engineA.remainingHeight);
+            engineA_.height(scrollBarRightScrollBar, 0);
+        }
+        engineA.height(linearLayoutHorizontal, engineA.remainingHeight);
 
-        LayoutEngine B = engine.newWidthRegion(width);
+        LayoutEngine engineB = engine.newWidthRegion(width);
         if (width > 280) {
             if (width < 580) {
-                B.width(picker, 200);
-                if (B.remainingWidth < 80) {
-                    B.width(scrollBarRightTop, B.remainingWidth);
-                    B.width(focus, 0);
-                    B.width(scrollBarAndTimeLine, 0);
+                engineB.width(picker, 200);
+                if (engineB.remainingWidth < 80) {
+                    engineB.width(scrollBarContainerTopRight, engineB.remainingWidth);
+                    engineB.width(focus, 0);
+                    engineB.width(scrollBarAndTimeLine, 0);
                 } else {
-                    B.width(scrollBarRightTop, 80);
-                    B.width(focus, B.remainingWidth);
-                    B.width(scrollBarAndTimeLine, 0);
+                    engineB.width(scrollBarContainerTopRight, 80);
+                    engineB.width(focus, engineB.remainingWidth);
+                    engineB.width(scrollBarAndTimeLine, 0);
                 }
             } else if (width == 580) {
-                B.width(picker, 200);
-                B.width(focus, 300);
-                B.width(scrollBarAndTimeLine, 0);
-                B.width(scrollBarRightTop, 80);
+                engineB.width(picker, 200);
+                engineB.width(focus, 300);
+                engineB.width(scrollBarAndTimeLine, 0);
+                engineB.width(scrollBarContainerTopRight, 80);
             } else if (width > 580) {
-                B.width(picker, 200);
-                B.width(focus, 300);
-                B.width(scrollBarRightTop, 80);
-                B.width(scrollBarAndTimeLine, B.remainingWidth);
+                engineB.width(picker, 200);
+                engineB.width(focus, 300);
+                engineB.width(scrollBarContainerTopRight, 80);
+                LayoutEngine engineB_ = engine.newWidthRegion(engineB.remainingWidth);
+                if (engineB.remainingWidth > 160) {
+                    engineB_.width(scrollBarTopScrollLeft, 80);
+                    engineB_.width(scrollBarTopScrollRight, 80);
+                    engineB_.width(scrollBarTopScrollBar, engineB_.remainingWidth);
+                } else if (engineB.remainingWidth == 160) {
+                    engineB_.width(scrollBarTopScrollLeft, 80);
+                    engineB_.width(scrollBarTopScrollRight, 80);
+                    engineB_.width(scrollBarTopScrollBar, 0);
+                } else if (engineB.remainingWidth < 160) {
+                    if (engineB.remainingWidth < 80) {
+                        engineB_.width(scrollBarTopScrollLeft, engineB.remainingWidth);
+                        engineB_.width(scrollBarTopScrollRight, 0);
+                        engineB_.width(scrollBarTopScrollBar, 0);
+                    } else {
+                        engineB_.width(scrollBarTopScrollLeft, 80);
+                        engineB_.width(scrollBarTopScrollRight, engineB.remainingWidth);
+                        engineB_.width(scrollBarTopScrollBar, 0);
+                    }
+                }
+                engineB.width(scrollBarAndTimeLine, engineB.remainingWidth);
             }
         } else if (width == 280) {
-            B.width(scrollBarRightTop, 80);
-            B.width(picker, 200);
-            B.width(focus, 0);
-            B.width(scrollBarAndTimeLine, 0);
+            engineB.width(scrollBarContainerTopRight, 80);
+            engineB.width(picker, 200);
+            engineB.width(focus, 0);
+            engineB.width(scrollBarAndTimeLine, 0);
         } else if (width < 280) {
-            B.width(scrollBarRightTop, 80);
-            B.width(picker, B.remainingWidth);
-            B.width(focus, 0);
-            B.width(scrollBarAndTimeLine, 0);
+            engineB.width(scrollBarContainerTopRight, 80);
+            engineB.width(picker, engineB.remainingWidth);
+            engineB.width(focus, 0);
+            engineB.width(scrollBarAndTimeLine, 0);
         }
 
-        LayoutEngine C = engine.newWidthRegion(width);
+        LayoutEngine engineC = engine.newWidthRegion(width);
         if (width > 280) {
             if (width < 580) {
-                C.width(patternView, 200);
-                if (C.remainingWidth < 80) {
-                    C.width(scrollBarRightBottom, C.remainingWidth);
-                    C.width(playlistView, 0);
+                engineC.width(patternView, 200);
+                if (engineC.remainingWidth < 80) {
+                    engineC.width(scrollBarContainerRight, engineC.remainingWidth);
+                    engineC.width(playlistView, 0);
                 } else {
-                    C.width(scrollBarRightBottom, 80);
-                    C.width(playlistView, C.remainingWidth);
+                    engineC.width(scrollBarContainerRight, 80);
+                    engineC.width(playlistView, engineC.remainingWidth);
                 }
             } else if (width == 580) {
-                C.width(patternView, 200);
-                C.width(playlistView, 300);
-                C.width(scrollBarRightBottom, 80);
+                engineC.width(patternView, 200);
+                engineC.width(playlistView, 300);
+                engineC.width(scrollBarContainerRight, 80);
             } else if (width > 580) {
-                C.width(patternView, 200);
-                C.width(scrollBarRightBottom, 80);
-                C.width(playlistView, C.remainingWidth);
+                engineC.width(patternView, 200);
+                engineC.width(scrollBarContainerRight, 80);
+                engineC.width(playlistView, engineC.remainingWidth);
             }
         } else if (width == 280) {
-            C.width(scrollBarRightBottom, 80);
-            C.width(patternView, 200);
-            C.width(playlistView, 0);
+            engineC.width(scrollBarContainerRight, 80);
+            engineC.width(patternView, 200);
+            engineC.width(playlistView, 0);
         } else if (width < 280) {
-            C.width(scrollBarRightBottom, 80);
-            C.width(patternView, C.remainingWidth);
-            C.width(playlistView, 0);
+            engineC.width(scrollBarContainerRight, 80);
+            engineC.width(patternView, engineC.remainingWidth);
+            engineC.width(playlistView, 0);
         }
 
         engine.execute();
@@ -419,12 +498,12 @@ public class PlaylistView extends FrameLayout {
             TrackUI trackUI = (TrackUI) data.second;
 
             LayoutEngine engine_ = new LayoutEngine();
-            LayoutEngine A_ = engine_.newWidthRegion(trackWidth);
-            LayoutEngine B_ = engine_.newHeightRegion(trackHeight);
-            A_.width(trackUI.channelButton, 300);
-            A_.width(trackUI.clipView, A_.remainingWidth);
-            B_.height(trackUI.toggleRadioButton, 80);
-            B_.height(trackUI.textView, B_.remainingHeight);
+            LayoutEngine engine_A = engine_.newWidthRegion(trackWidth);
+            LayoutEngine engine_B = engine_.newHeightRegion(trackHeight);
+            engine_A.width(trackUI.channelButton, 300);
+            engine_A.width(trackUI.clipView, engine_A.remainingWidth);
+            engine_B.height(trackUI.toggleRadioButton, 80);
+            engine_B.height(trackUI.textView, engine_B.remainingHeight);
             engine_.execute();
         });
     }
