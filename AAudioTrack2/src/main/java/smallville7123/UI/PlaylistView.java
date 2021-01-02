@@ -200,13 +200,19 @@ public class PlaylistView extends FrameLayout {
 
         linearLayoutHorizontal.addView(patternView, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
 
-        playlistView = new GridView(context, attrs);
+        playlistView = new GridView(context, attrs) {
+            @Override
+            public void onScrolled(int dx, int dy) {
+                super.onScrolled(dx, dy);
+                scrollBarRightScrollBar.updatePosition(dx, dy);
+            }
+        };
         playlistView.setOrientation(VERTICAL);
         playlistView.setRows(channels);
         playlistView.setColumns(1);
         playlistView.setBackgroundColor(Color.DKGRAY);
 
-        linearLayoutHorizontal.addView(playlistView, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        //
         // by default, the FL playlist is 18 bars long (1 to 17)
         // with the 17th bar being visible, and the 18th being out of view
         //
@@ -218,6 +224,9 @@ public class PlaylistView extends FrameLayout {
         //
         // each pattern extends the grid by 18 (11 to 27)
         // this extension is dependant on the position of the final pattern placement
+        //
+        linearLayoutHorizontal.addView(playlistView, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        scrollBarRightScrollBar.attachTo(playlistView);
 
         linearLayoutHorizontal.addView(scrollBarContainerRight, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
 
@@ -237,8 +246,6 @@ public class PlaylistView extends FrameLayout {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         int measuredWidth = getMeasuredWidth();
         int measuredHeight = getMeasuredHeight();
-        Log.d(TAG, "measuredWidth = [ " + (measuredWidth) + "]");
-        Log.d(TAG, "measuredHeight = [ " + (measuredHeight) + "]");
         if (measuredWidth != 0 && measuredHeight != 0) {
             resizeUI(measuredWidth, measuredHeight);
         }
@@ -300,6 +307,8 @@ public class PlaylistView extends FrameLayout {
                     }
                 }
             };
+            // this will be tricky
+//            scrollBarTopScrollBar.attachTo(track.clipView);
             LinearLayout row = new LinearLayout(mContext);
             row.setOrientation(HORIZONTAL);
 

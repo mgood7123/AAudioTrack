@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,8 +14,10 @@ import android.widget.FrameLayout;
 import android.widget.ScrollView;
 
 import androidx.annotation.ColorInt;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.function.Consumer;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
@@ -56,12 +59,33 @@ public class ScrollBarView extends ScrollView {
         );
         frame.setTag(Internal);
         addView(frame);
-        Clip A = newClip();
-        A.setColor(Color.LTGRAY);
-        A.setY(0);
-        A.setHeight(100);
-        addClip(A);
+        clip = newClip();
+        clip.setColor(Color.LTGRAY);
+        clip.setY(0);
+        clip.setHeight(100);
+        content.addView(clip.content);
         setPaint();
+    }
+
+    View scrollable;
+
+    public void attachTo(View scrollable) {
+        this.scrollable = scrollable;
+        invalidate();
+//        Consumer<ViewGroup.LayoutParams> a = scrollable::setLayoutParams;
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+//        if (scrollable != null) {
+//            Log.d(TAG, "scrollable.getScrollY() = [ " + (scrollable.getScrollY()) + "]");
+//            Log.d(TAG, "scrollable.getHeight() = [ " + (scrollable.getHeight()) + "]");
+//        }
+    }
+
+    public void updatePosition(int dx, int dy) {
+        clip.setY(clip.getY() + dy);
     }
 
     class Clip {
@@ -142,14 +166,9 @@ public class ScrollBarView extends ScrollView {
 
     private static class Internal {}
     Internal Internal = new Internal();
-    ArrayList<Clip> clips = new ArrayList<>();
+    Clip clip;
 
-    public void addClip(Clip clip) {
-        clips.add(clip);
-        content.addView(clip.content);
-    }
-
-    private static final String TAG = "ClipView";
+    private static final String TAG = "ScrollBarView";
 
     private float relativeToViewY;
 
@@ -164,7 +183,7 @@ public class ScrollBarView extends ScrollView {
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                for (Clip clip : clips) {
+                if (clip != null) {
                     boolean ret = onClipTouchEvent(clip, event);
                     if (ret) {
                         clipTouch = true;
@@ -224,7 +243,7 @@ public class ScrollBarView extends ScrollView {
     }
 
     void drawTouchZones(Canvas canvas, int width, int height, Paint paint) {
-        for (Clip clip : clips) {
+        if (clip != null) {
             float clipStart = clip.getY();
             float clipHeight = clip.getHeight();
             float clipEnd = clipStart + clipHeight;
@@ -261,7 +280,11 @@ public class ScrollBarView extends ScrollView {
             case MotionEvent.ACTION_MOVE:
                 if (!isResizing && isDragging) {
                     if (currentRawY + downDY >= 0) {
-                        clip.setY(currentRawY + downDY);
+                        float y1 = clip.getY();
+                        float y2 = currentRawY + downDY;
+                        float y3 = y1 - y2;
+                        clip.setY(y2);
+                        scrollable.scrollBy(0, (int) (-y3));
                     } else {
                         clip.setY(0);
                     }
@@ -322,108 +345,5 @@ public class ScrollBarView extends ScrollView {
 
     boolean within(float point, float start, float end) {
         return point >= start && point <= end;
-    }
-
-
-
-
-
-
-
-
-    /**
-     * <p>Adds a child view. If no layout parameters are already set on the child, the
-     * default parameters for this ViewGroup are set on the child.</p>
-     *
-     * <p><strong>Note:</strong> do not invoke this method from
-     * {@link #draw(Canvas)}, {@link #onDraw(Canvas)},
-     * {@link #dispatchDraw(Canvas)} or any related method.</p>
-     *
-     * @param child the child view to add
-     *
-     * @see #generateDefaultLayoutParams()
-     */
-    @Override
-    public void addView(View child) {
-        addView(child, -1);
-    }
-
-    /**
-     * Adds a child view. If no layout parameters are already set on the child, the
-     * default parameters for this ViewGroup are set on the child.
-     *
-     * <p><strong>Note:</strong> do not invoke this method from
-     * {@link #draw(Canvas)}, {@link #onDraw(Canvas)},
-     * {@link #dispatchDraw(Canvas)} or any related method.</p>
-     *
-     * @param child the child view to add
-     * @param indey the position at which to add the child
-     *
-     * @see #generateDefaultLayoutParams()
-     */
-    @Override
-    public void addView(View child, int indey) {
-        if (child == null) {
-            throw new IllegalArgumentException("Cannot add a null child view to a ViewGroup");
-        }
-        ViewGroup.LayoutParams params = child.getLayoutParams();
-        if (params == null) {
-            params = generateDefaultLayoutParams();
-            if (params == null) {
-                throw new IllegalArgumentException("generateDefaultLayoutParams() cannot return null");
-            }
-        }
-        addView(child, indey, params);
-    }
-
-    /**
-     * Adds a child view with this ViewGroup's default layout parameters and the
-     * specified height and height.
-     *
-     * <p><strong>Note:</strong> do not invoke this method from
-     * {@link #draw(Canvas)}, {@link #onDraw(Canvas)},
-     * {@link #dispatchDraw(Canvas)} or any related method.</p>
-     *
-     * @param child the child view to add
-     */
-    @Override
-    public void addView(View child, int width, int height) {
-        final ViewGroup.LayoutParams params = generateDefaultLayoutParams();
-        params.height = height;
-        params.height = height;
-        addView(child, -1, params);
-    }
-
-    /**
-     * Adds a child view with the specified layout parameters.
-     *
-     * <p><strong>Note:</strong> do not invoke this method from
-     * {@link #draw(Canvas)}, {@link #onDraw(Canvas)},
-     * {@link #dispatchDraw(Canvas)} or any related method.</p>
-     *
-     * @param child the child view to add
-     * @param params the layout parameters to set on the child
-     */
-    @Override
-    public void addView(View child, ViewGroup.LayoutParams params) {
-        addView(child, -1, params);
-    }
-
-    /**
-     * Adds a child view with the specified layout parameters.
-     *
-     * <p><strong>Note:</strong> do not invoke this method from
-     * {@link #draw(Canvas)}, {@link #onDraw(Canvas)},
-     * {@link #dispatchDraw(Canvas)} or any related method.</p>
-     *
-     * @param child the child view to add
-     * @param indey the position at which to add the child or -1 to add last
-     * @param params the layout parameters to set on the child
-     */
-    @Override
-    public void addView(View child, int indey, ViewGroup.LayoutParams params) {
-        Object tag = child.getTag();
-        if (tag instanceof Internal) super.addView(child, indey, params);
-        else addClip(new Clip(child));
     }
 }

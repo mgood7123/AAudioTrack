@@ -65,6 +65,12 @@ public class HorizontalScrollBarView extends HorizontalScrollView {
         setPaint();
     }
 
+    View scrollable;
+
+    public void attachTo(View scrollable) {
+        this.scrollable = scrollable;
+    }
+
     class Clip {
         View content;
 
@@ -147,7 +153,7 @@ public class HorizontalScrollBarView extends HorizontalScrollView {
 
     public void addClip(Clip clip) {
         clips.add(clip);
-        content.addView(clip.content);
+//        content.addView(clip.content);
     }
 
     private static final String TAG = "ClipView";
