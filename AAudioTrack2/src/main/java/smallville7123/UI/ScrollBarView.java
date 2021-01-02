@@ -75,6 +75,7 @@ public class ScrollBarView extends ScrollView {
     int scrollableScrollY;
     float tmpScrollableScrollX;
     float tmpScrollableScrollY;
+    float documentHeightDivWindowHeight;
 
 
     public void attachTo(View scrollable) {
@@ -83,10 +84,13 @@ public class ScrollBarView extends ScrollView {
 //        Consumer<ViewGroup.LayoutParams> a = scrollable::setLayoutParams;
     }
 
+    boolean scrolling = false;
     public void updatePosition(int dx, int dy) {
-        clip.setY(clip.getY() + dy);
+        if (!scrolling) {
+            clip.setY(clip.getY() + (dy / documentHeightDivWindowHeight));
+        }
         scrollableScrollX += dx;
-        scrollableScrollY += dy;
+        scrollableScrollY += dy / documentHeightDivWindowHeight;
         Log.d(TAG, "scrollableScrollX = [" + (scrollableScrollX) + "]");
         Log.d(TAG, "scrollableScrollY = [" + (scrollableScrollY) + "]");
     }
@@ -153,7 +157,7 @@ public class ScrollBarView extends ScrollView {
 
                             // 3. now that we have our total height...
 
-                            float documentHeightDivWindowHeight = documentHeight / windowHeight;
+                            documentHeightDivWindowHeight = documentHeight / windowHeight;
 
                             Log.d(TAG, "documentHeightDivWindowHeight = [" + (documentHeightDivWindowHeight) + "]");
 
@@ -254,7 +258,6 @@ public class ScrollBarView extends ScrollView {
 
     private float relativeToViewY;
 
-    boolean scrolling = false;
     boolean clipTouch = false;
     Clip touchedClip;
     float downDY;
@@ -387,10 +390,12 @@ public class ScrollBarView extends ScrollView {
                         // in this case, our view cannot use absolute position
 
                         // relative difference
-                        float y3 = -(y1 - y2);
+                        float y3 = (-(y1 - y2)) * documentHeightDivWindowHeight;
                         Log.d(TAG, "y3 = [" + (y3) + "]");
                         updateScrollPosition(0, y3);
+                        scrolling = true;
                         scrollable.scrollBy(0, (int) y3);
+                        scrolling = false;
                     }
                 }
                 return true;
