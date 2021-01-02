@@ -17,19 +17,21 @@ import androidx.annotation.ColorInt;
 import java.util.ArrayList;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
-public class ClipView extends HorizontalScrollView {
-    public ClipView(Context context) {
+
+public class HorizontalScrollBarView extends HorizontalScrollView {
+    public HorizontalScrollBarView(Context context) {
         super(context);
         init(context, null);
     }
 
-    public ClipView(Context context, AttributeSet attrs) {
+    public HorizontalScrollBarView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(context, attrs);
     }
 
-    public ClipView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public HorizontalScrollBarView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(context, attrs);
     }
@@ -49,8 +51,8 @@ public class ClipView extends HorizontalScrollView {
         content = frame;
         frame.setLayoutParams(
                 new ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
+                        WRAP_CONTENT,
+                        MATCH_PARENT
                 )
         );
         frame.setTag(Internal);

@@ -10,26 +10,27 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewPropertyAnimator;
 import android.widget.FrameLayout;
-import android.widget.HorizontalScrollView;
+import android.widget.ScrollView;
 
 import androidx.annotation.ColorInt;
 
 import java.util.ArrayList;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
-public class ClipView extends HorizontalScrollView {
-    public ClipView(Context context) {
+public class ScrollBarView extends ScrollView {
+    public ScrollBarView(Context context) {
         super(context);
         init(context, null);
     }
 
-    public ClipView(Context context, AttributeSet attrs) {
+    public ScrollBarView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(context, attrs);
     }
 
-    public ClipView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public ScrollBarView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(context, attrs);
     }
@@ -42,23 +43,23 @@ public class ClipView extends HorizontalScrollView {
         mContext = context;
         mAttrs = attrs;
 
-        // make scroll view match parent width
+        // make scroll view match parent height
         setFillViewport(true);
 
         FrameLayout frame = new FrameLayout(context, attrs);
         content = frame;
         frame.setLayoutParams(
                 new ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
+                        MATCH_PARENT,
+                        WRAP_CONTENT
                 )
         );
         frame.setTag(Internal);
         addView(frame);
         Clip A = newClip();
         A.setColor(Color.LTGRAY);
-        A.setX(0);
-        A.setWidth(100);
+        A.setY(0);
+        A.setHeight(100);
         addClip(A);
         setPaint();
     }
@@ -68,12 +69,12 @@ public class ClipView extends HorizontalScrollView {
 
         Clip(Context context) {
             content = new FrameLayout(context);
-            setWidth(100);
+            setHeight(100);
         }
 
         Clip(Context context, AttributeSet attrs) {
             content = new FrameLayout(context, attrs);
-            setWidth(100);
+            setHeight(100);
         }
 
         public Clip(View content) {
@@ -84,11 +85,11 @@ public class ClipView extends HorizontalScrollView {
             content.setBackgroundColor(color);
         }
 
-        public void setX(float x) {
+        public void setY(float y) {
             ViewGroup.LayoutParams p = content.getLayoutParams();
             if (p != null) {
                 if (p instanceof MarginLayoutParams) {
-                    ((MarginLayoutParams) p).leftMargin = (int) x;
+                    ((MarginLayoutParams) p).topMargin = (int) y;
                     content.setLayoutParams(p);
                 } else {
                     throw new RuntimeException("layout is not an instance of MarginLayoutParams");
@@ -100,34 +101,34 @@ public class ClipView extends HorizontalScrollView {
                                 MATCH_PARENT
                         ) {
                             {
-                                leftMargin = (int) x;
+                                topMargin = (int) y;
                             }
                         }
                 );
             }
         }
 
-        public float getX() {
-            return content.getX();
+        public float getY() {
+            return content.getY();
         }
 
-        public void setWidth(int width) {
+        public void setHeight(int height) {
             ViewGroup.LayoutParams p = content.getLayoutParams();
             if (p != null) {
-                p.width = width;
+                p.height = height;
                 content.setLayoutParams(p);
             } else {
                 content.setLayoutParams(
                         new MarginLayoutParams(
-                                width,
-                                MATCH_PARENT
+                                MATCH_PARENT,
+                                height
                         )
                 );
             }
         }
 
-        public int getWidth() {
-            return content.getWidth();
+        public int getHeight() {
+            return content.getHeight();
         }
 
         public ViewPropertyAnimator animate() {
@@ -150,14 +151,14 @@ public class ClipView extends HorizontalScrollView {
 
     private static final String TAG = "ClipView";
 
-    private float relativeToViewX;
+    private float relativeToViewY;
 
     boolean scrolling = false;
     boolean clipTouch = false;
     Clip touchedClip;
-    float downDX;
-    float downRawX;
-    float currentRawX;
+    float downDY;
+    float downRawY;
+    float currentRawY;
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -188,10 +189,10 @@ public class ClipView extends HorizontalScrollView {
         return super.onTouchEvent(event);
     }
 
-    public float touchZoneWidthLeft = 80.0f;
-    public float touchZoneWidthLeftOffset = 80.0f;
-    public float touchZoneWidthRight = 80.0f;
-    public float touchZoneWidthRightOffset = 80.0f;
+    public float touchZoneHeightTop = 80.0f;
+    public float touchZoneHeightTopOffset = 80.0f;
+    public float touchZoneHeightBottom = 80.0f;
+    public float touchZoneHeightBottomOffset = 80.0f;
 
     Paint highlightPaint;
     Paint touchZonePaint;
@@ -207,8 +208,8 @@ public class ClipView extends HorizontalScrollView {
     @Override
     public void onDrawForeground(Canvas canvas) {
         super.onDrawForeground(canvas);
-        int width = getWidth();
         int height = getHeight();
+        int width = getWidth();
         if (isResizing) {
             drawHighlight(canvas, width, height, highlightPaint);
         }
@@ -216,35 +217,35 @@ public class ClipView extends HorizontalScrollView {
     }
 
     void drawHighlight(Canvas canvas, int width, int height, Paint paint) {
-        float clipStart = touchedClip.getX();
-        float clipWidth = touchedClip.getWidth();
-        float clipEnd = clipStart + clipWidth;
-        canvas.drawRect(clipStart, 0, clipEnd, height, paint);
+        float clipStart = touchedClip.getY();
+        float clipHeight = touchedClip.getHeight();
+        float clipEnd = clipStart + clipHeight;
+        canvas.drawRect(0, clipStart, width, clipEnd, paint);
     }
 
     void drawTouchZones(Canvas canvas, int width, int height, Paint paint) {
         for (Clip clip : clips) {
-            float clipStart = clip.getX();
-            float clipWidth = clip.getWidth();
-            float clipEnd = clipStart + clipWidth;
-            // left
-            canvas.drawRect(clipStart - touchZoneWidthLeftOffset, 0, (clipStart + touchZoneWidthLeft) - touchZoneWidthLeftOffset, height, paint);
-            // right
-            canvas.drawRect((clipEnd - touchZoneWidthRight) + touchZoneWidthRightOffset, 0, clipEnd + touchZoneWidthRightOffset, height, paint);
+            float clipStart = clip.getY();
+            float clipHeight = clip.getHeight();
+            float clipEnd = clipStart + clipHeight;
+            // top
+            canvas.drawRect(0, clipStart - touchZoneHeightTopOffset, width, (clipStart + touchZoneHeightTop) - touchZoneHeightTopOffset, paint);
+            // bottom
+            canvas.drawRect(0, (clipEnd - touchZoneHeightBottom) + touchZoneHeightBottomOffset, width, clipEnd + touchZoneHeightBottomOffset, paint);
         }
     }
 
     boolean isResizing;
     boolean isDragging;
     float clipOriginalStart;
-    float clipOriginalWidth;
+    float clipOriginalHeight;
     float clipOriginalEnd;
-    boolean resizingLeft;
-    boolean resizingRight;
+    boolean resizingTop;
+    boolean resizingBottom;
 
     public boolean onClipTouchEvent(Clip clip, MotionEvent event) {
-        currentRawX = event.getRawX();
-        relativeToViewX = event.getX() + getScrollX();
+        currentRawY = event.getRawY();
+        relativeToViewY = event.getY() + getScrollY();
         switch (event.getAction()) {
             case MotionEvent.ACTION_CANCEL:
             case MotionEvent.ACTION_UP:
@@ -259,29 +260,29 @@ public class ClipView extends HorizontalScrollView {
                 return false;
             case MotionEvent.ACTION_MOVE:
                 if (!isResizing && isDragging) {
-                    if (currentRawX + downDX >= 0) {
-                        clip.setX(currentRawX + downDX);
+                    if (currentRawY + downDY >= 0) {
+                        clip.setY(currentRawY + downDY);
                     } else {
-                        clip.setX(0);
+                        clip.setY(0);
                     }
                     return true;
                 } else if (isResizing && !isDragging) {
                     MarginLayoutParams layoutParams = (MarginLayoutParams) clip.content.getLayoutParams();
-                    if (resizingLeft) {
-                        float bounds = currentRawX + downDX;
-                        if (layoutParams.width > 0) {
+                    if (resizingTop) {
+                        float bounds = currentRawY + downDY;
+                        if (layoutParams.height > 0) {
                             if (bounds > clipOriginalEnd) bounds = clipOriginalEnd;
-                            float newWidth = clipOriginalWidth - (bounds - clipOriginalStart);
-                            if (newWidth < 1.0f) newWidth = 1.0f;
-                            clip.setX(bounds);
-                            clip.setWidth((int) newWidth);
+                            float newHeight = clipOriginalHeight - (bounds - clipOriginalStart);
+                            if (newHeight < 1.0f) newHeight = 1.0f;
+                            clip.setY(bounds);
+                            clip.setHeight((int) newHeight);
                         }
-                    } else if (resizingRight) {
-                        float bounds = currentRawX + downDX;
-                        if (layoutParams.width > 0) {
-                            float newWidth = clipOriginalWidth + (bounds - clipOriginalStart);
-                            if (newWidth < 1.0f) newWidth = 1.0f;
-                            clip.setWidth((int) newWidth);
+                    } else if (resizingBottom) {
+                        float bounds = currentRawY + downDY;
+                        if (layoutParams.height > 0) {
+                            float newHeight = clipOriginalHeight + (bounds - clipOriginalStart);
+                            if (newHeight < 1.0f) newHeight = 1.0f;
+                            clip.setHeight((int) newHeight);
                         }
                     }
                     return true;
@@ -290,28 +291,28 @@ public class ClipView extends HorizontalScrollView {
             case MotionEvent.ACTION_DOWN:
                 isDragging = false;
                 isResizing = false;
-                clipOriginalStart = clip.getX();
-                clipOriginalWidth = clip.getWidth();
-                clipOriginalEnd = clipOriginalStart + clipOriginalWidth;
-                downRawX = currentRawX;
-                resizingLeft = false;
-                resizingRight = false;
-                float leftStart = clipOriginalStart - touchZoneWidthLeftOffset;
-                float leftEnd = (clipOriginalStart + touchZoneWidthLeft) - touchZoneWidthLeftOffset;
-                float rightStart = (clipOriginalEnd - touchZoneWidthRight) + touchZoneWidthRightOffset;
-                float rightEnd = clipOriginalEnd + touchZoneWidthRightOffset;
-                if (within(relativeToViewX, leftStart, leftEnd)) {
-                    resizingLeft = true;
+                clipOriginalStart = clip.getY();
+                clipOriginalHeight = clip.getHeight();
+                clipOriginalEnd = clipOriginalStart + clipOriginalHeight;
+                downRawY = currentRawY;
+                resizingTop = false;
+                resizingBottom = false;
+                float topStart = clipOriginalStart - touchZoneHeightTopOffset;
+                float topEnd = (clipOriginalStart + touchZoneHeightTop) - touchZoneHeightTopOffset;
+                float bottomStart = (clipOriginalEnd - touchZoneHeightBottom) + touchZoneHeightBottomOffset;
+                float bottomEnd = clipOriginalEnd + touchZoneHeightBottomOffset;
+                if (within(relativeToViewY, topStart, topEnd)) {
+                    resizingTop = true;
                     isResizing = true;
-                } else if (within(relativeToViewX, rightStart, rightEnd)) {
-                    resizingRight = true;
+                } else if (within(relativeToViewY, bottomStart, bottomEnd)) {
+                    resizingBottom = true;
                     isResizing = true;
-                } else if (within(relativeToViewX, clipOriginalStart, clipOriginalEnd)) {
+                } else if (within(relativeToViewY, clipOriginalStart, clipOriginalEnd)) {
                     isDragging = true;
                 }
                 if (isResizing || isDragging) {
                     invalidate();
-                    downDX = clipOriginalStart - downRawX;
+                    downDY = clipOriginalStart - downRawY;
                     return true;
                 }
             default:
@@ -356,12 +357,12 @@ public class ClipView extends HorizontalScrollView {
      * {@link #dispatchDraw(Canvas)} or any related method.</p>
      *
      * @param child the child view to add
-     * @param index the position at which to add the child
+     * @param indey the position at which to add the child
      *
      * @see #generateDefaultLayoutParams()
      */
     @Override
-    public void addView(View child, int index) {
+    public void addView(View child, int indey) {
         if (child == null) {
             throw new IllegalArgumentException("Cannot add a null child view to a ViewGroup");
         }
@@ -372,12 +373,12 @@ public class ClipView extends HorizontalScrollView {
                 throw new IllegalArgumentException("generateDefaultLayoutParams() cannot return null");
             }
         }
-        addView(child, index, params);
+        addView(child, indey, params);
     }
 
     /**
      * Adds a child view with this ViewGroup's default layout parameters and the
-     * specified width and height.
+     * specified height and height.
      *
      * <p><strong>Note:</strong> do not invoke this method from
      * {@link #draw(Canvas)}, {@link #onDraw(Canvas)},
@@ -388,7 +389,7 @@ public class ClipView extends HorizontalScrollView {
     @Override
     public void addView(View child, int width, int height) {
         final ViewGroup.LayoutParams params = generateDefaultLayoutParams();
-        params.width = width;
+        params.height = height;
         params.height = height;
         addView(child, -1, params);
     }
@@ -416,13 +417,13 @@ public class ClipView extends HorizontalScrollView {
      * {@link #dispatchDraw(Canvas)} or any related method.</p>
      *
      * @param child the child view to add
-     * @param index the position at which to add the child or -1 to add last
+     * @param indey the position at which to add the child or -1 to add last
      * @param params the layout parameters to set on the child
      */
     @Override
-    public void addView(View child, int index, ViewGroup.LayoutParams params) {
+    public void addView(View child, int indey, ViewGroup.LayoutParams params) {
         Object tag = child.getTag();
-        if (tag instanceof Internal) super.addView(child, index, params);
+        if (tag instanceof Internal) super.addView(child, indey, params);
         else addClip(new Clip(child));
     }
 }

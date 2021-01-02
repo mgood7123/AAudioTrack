@@ -56,13 +56,13 @@ public class PlaylistView extends FrameLayout {
     FrameLayout timeline;
     LinearLayout scrollBarContainerTop;
     FrameLayout scrollBarTopScrollLeft;
-    FrameLayout scrollBarTopScrollBar;
+    HorizontalScrollBarView scrollBarTopScrollBar;
     FrameLayout scrollBarTopScrollRight;
     LinearLayout scrollBarContainerTopRight;
     FrameLayout zoom;
     FrameLayout scrollBarRightScrollUp;
     LinearLayout scrollBarContainerRight;
-    FrameLayout scrollBarRightScrollBar;
+    ScrollBarView scrollBarRightScrollBar;
     FrameLayout scrollBarRightScrollDown;
     LinearLayout linearLayoutHorizontal;
     LinearLayout patternView;
@@ -146,7 +146,7 @@ public class PlaylistView extends FrameLayout {
         scrollBarContainerTop.setOrientation(HORIZONTAL);
         scrollBarContainerTop.setBackgroundColor(Color.YELLOW);
         scrollBarTopScrollLeft = new FrameLayout(context, attrs);
-        scrollBarTopScrollBar = new FrameLayout(context, attrs);
+        scrollBarTopScrollBar = new HorizontalScrollBarView(context, attrs);
         scrollBarTopScrollRight = new FrameLayout(context, attrs);
 
         scrollBarContainerTopRight = new LinearLayout(context, attrs);
@@ -157,7 +157,7 @@ public class PlaylistView extends FrameLayout {
         scrollBarContainerRight = new LinearLayout(context, attrs);
         scrollBarContainerRight.setOrientation(VERTICAL);
         scrollBarContainerRight.setBackgroundColor(Color.YELLOW);
-        scrollBarRightScrollBar = new FrameLayout(context, attrs);
+        scrollBarRightScrollBar = new ScrollBarView(context, attrs);
         scrollBarRightScrollDown = new FrameLayout(context, attrs);
 
         linearLayoutHorizontal = new LinearLayout(context, attrs);
