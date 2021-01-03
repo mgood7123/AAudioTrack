@@ -56,7 +56,7 @@ public class PlaylistView extends FrameLayout {
     FrameLayout timeline;
     LinearLayout scrollBarContainerTop;
     FrameLayout scrollBarTopScrollLeft;
-    HorizontalScrollBarView scrollBarTopScrollBar;
+    ScrollBarView scrollBarTopScrollBar;
     FrameLayout scrollBarTopScrollRight;
     LinearLayout scrollBarContainerTopRight;
     FrameLayout zoom;
@@ -146,7 +146,8 @@ public class PlaylistView extends FrameLayout {
         scrollBarContainerTop.setOrientation(HORIZONTAL);
         scrollBarContainerTop.setBackgroundColor(Color.YELLOW);
         scrollBarTopScrollLeft = new FrameLayout(context, attrs);
-        scrollBarTopScrollBar = new HorizontalScrollBarView(context, attrs);
+        scrollBarTopScrollBar = new ScrollBarView(context, attrs);
+        scrollBarTopScrollBar.setOrientation(HORIZONTAL);
         scrollBarTopScrollRight = new FrameLayout(context, attrs);
 
         scrollBarContainerTopRight = new LinearLayout(context, attrs);
@@ -158,6 +159,7 @@ public class PlaylistView extends FrameLayout {
         scrollBarContainerRight.setOrientation(VERTICAL);
         scrollBarContainerRight.setBackgroundColor(Color.YELLOW);
         scrollBarRightScrollBar = new ScrollBarView(context, attrs);
+        scrollBarRightScrollBar.setOrientation(VERTICAL);
         scrollBarRightScrollDown = new FrameLayout(context, attrs);
 
         linearLayoutHorizontal = new LinearLayout(context, attrs);
@@ -290,10 +292,19 @@ public class PlaylistView extends FrameLayout {
             Track track = newTrack(new Track());
 
             track.mContext = context;
+            // this will be tricky
+//            playlistView = new GridView(context, attrs) {
+//                @Override
+//                public void onScrolled(int dx, int dy) {
+//                    super.onScrolled(dx, dy);
+//                    scrollBarTopScrollBar.updatePosition(dx, dy);
+//                }
+//            };
             track.clipView = new ClipView(context) {
                 @Override
                 protected void onOverScrolled(int scrollX, int scrollY, boolean clampedX, boolean clampedY) {
                     super.onOverScrolled(scrollX, scrollY, clampedX, clampedY);
+                    Log.d(TAG, "onOverScrolled() called with: scrollX = [" + scrollX + "], scrollY = [" + scrollY + "], clampedX = [" + clampedX + "], clampedY = [" + clampedY + "]");
                     if (!track.scrolling) {
                         track.scrolling = true;
                         for (Track track1 : trackArrayList) {
@@ -307,7 +318,6 @@ public class PlaylistView extends FrameLayout {
                     }
                 }
             };
-            // this will be tricky
 //            scrollBarTopScrollBar.attachTo(track.clipView);
             LinearLayout row = new LinearLayout(mContext);
             row.setOrientation(HORIZONTAL);

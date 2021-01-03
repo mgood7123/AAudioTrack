@@ -8,13 +8,19 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewDebug;
 import android.view.ViewGroup;
 import android.view.ViewPropertyAnimator;
 import android.widget.FrameLayout;
 
 import androidx.annotation.ColorInt;
+import androidx.annotation.InspectableProperty;
+import androidx.annotation.IntDef;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
@@ -26,15 +32,17 @@ public class ScrollBarView extends FrameLayout {
         init(context, null);
     }
 
-    int orientation = VERTICAL;
+    @IntDef({HORIZONTAL, VERTICAL})
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface OrientationMode {}
 
-    public void setOrientation(int orientation) {
-        this.orientation = orientation;
-    }
+    public static final int HORIZONTAL = 0;
+    public static final int VERTICAL = 1;
 
-    public int getOrientation() {
-        return orientation;
-    }
+    static final int DEFAULT_ORIENTATION = VERTICAL;
+
+    @ViewDebug.ExportedProperty(category = "measurement")
+    private int mOrientation = DEFAULT_ORIENTATION;
 
     public ScrollBarView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -60,53 +68,92 @@ public class ScrollBarView extends FrameLayout {
         FrameLayout frame = new FrameLayout(context, attrs);
         content = frame;
         frame.setLayoutParams(
-                new ViewGroup.LayoutParams(
-                        MATCH_PARENT,
-                        WRAP_CONTENT
-                )
+                new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
         );
         frame.setTag(Internal);
         addView(frame);
         clip = newClip();
         clip.setColor(Color.LTGRAY);
-        clip.setY(0);
-        clip.setHeight(100);
+        if (mOrientation == VERTICAL) {
+            clip.setY(0);
+            clip.setHeight(100);
+        } else {
+            clip.setX(0);
+            clip.setWidth(100);
+        }
         content.addView(clip.content);
         setPaint();
+    }
+
+    /**
+     * Should the scroll bar be horizontal (scrolling left and right)
+     * or vertical (scrolling up and down).
+     * @param orientation Pass {@link #HORIZONTAL} or {@link #VERTICAL}. Default
+     * value is {@link #VERTICAL}.
+     */
+    public void setOrientation(@OrientationMode int orientation) {
+        if (mOrientation != orientation) {
+            mOrientation = orientation;
+            if (mOrientation == VERTICAL) {
+                clip.setY(clip.getX());
+                clip.setX(0);
+                clip.setHeight(100);
+            } else {
+                clip.setX(clip.getY());
+                clip.setY(0);
+                clip.setWidth(100);
+            }
+            requestLayout();
+        }
+    }
+
+    /**
+     * Returns the current orientation.
+     *
+     * @return either {@link #HORIZONTAL} or {@link #VERTICAL}
+     */
+    @OrientationMode
+    @InspectableProperty(enumMapping = {
+            @InspectableProperty.EnumEntry(value = HORIZONTAL, name = "horizontal"),
+            @InspectableProperty.EnumEntry(value = VERTICAL, name = "vertical")
+    })
+    public int getOrientation() {
+        return mOrientation;
     }
 
     View document;
     boolean layout = false;
     int documentScrollX;
     int documentScrollY;
-    float tmpDocumentScrollX;
-    float tmpDocumentScrollY;
+    float documentWidthDivWindowWidth;
     float documentHeightDivWindowHeight;
 
 
     public void attachTo(View document) {
         this.document = document;
         invalidate();
-//        Consumer<ViewGroup.LayoutParams> a = document::setLayoutParams;
     }
 
-    public void updateScrollPosition(float dx, float dy) {
-        tmpDocumentScrollX += dx;
-        tmpDocumentScrollY += dy;
-        Log.d(TAG, "tmpDocumentScrollX = [" + (tmpDocumentScrollX) + "]");
-        Log.d(TAG, "tmpDocumentScrollY = [" + (tmpDocumentScrollY) + "]");
-    }
-
+    float documentWidth;
+    float windowWidth;
     float documentHeight;
     float windowHeight;
+    
+    static boolean DEBUG = false;
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         super.onLayout(changed, l, t, r, b);
-        Log.d(TAG, "onLayout() called with: changed = [" + changed + "], l = [" + l + "], t = [" + t + "], r = [" + r + "], b = [" + b + "]");
+        if (DEBUG) Log.d(TAG, "onLayout() called with: changed = [" + changed + "], l = [" + l + "], t = [" + t + "], r = [" + r + "], b = [" + b + "]");
         if (layout) {
             layout = false;
         } else {
+            layout = true;
+            if (mOrientation == VERTICAL) {
+                clip.setWidth(r);
+            } else {
+                clip.setHeight(b);
+            }
             if (document != null) {
                 if (document instanceof RecyclerView) {
                     RecyclerView recyclerView = (RecyclerView) document;
@@ -118,13 +165,10 @@ public class ScrollBarView extends FrameLayout {
                         int lastVisibleItemPosition = manager.findLastVisibleItemPosition();
                         int lastCompletelyVisibleItemPosition = manager.findLastCompletelyVisibleItemPosition();
 
-                        Log.d(TAG, "firstVisibleItemPosition = [" + (firstVisibleItemPosition) + "]");
-                        Log.d(TAG, "firstCompletelyVisibleItemPosition = [" + (firstCompletelyVisibleItemPosition) + "]");
-                        Log.d(TAG, "lastVisibleItemPosition = [" + (lastVisibleItemPosition) + "]");
-                        Log.d(TAG, "lastCompletelyVisibleItemPosition = [" + (lastCompletelyVisibleItemPosition) + "]");
-
-                        int height = 0;
-                        View lastCompletelyVisibleVisibleView;
+                        if (DEBUG) Log.d(TAG, "firstVisibleItemPosition = [" + (firstVisibleItemPosition) + "]");
+                        if (DEBUG) Log.d(TAG, "firstCompletelyVisibleItemPosition = [" + (firstCompletelyVisibleItemPosition) + "]");
+                        if (DEBUG) Log.d(TAG, "lastVisibleItemPosition = [" + (lastVisibleItemPosition) + "]");
+                        if (DEBUG) Log.d(TAG, "lastCompletelyVisibleItemPosition = [" + (lastCompletelyVisibleItemPosition) + "]");
                         // scenarios:
                         // 1. the first view and last view are partially visible
                         // 2. the first view and last view are completely visible
@@ -140,31 +184,61 @@ public class ScrollBarView extends FrameLayout {
 
                         View view = manager.getChildAt(firstVisibleItemPosition);
                         if (view != null) {
-                            int itemHeight = view.getHeight();
+                            if (mOrientation == VERTICAL) {
+                                int itemHeight = view.getHeight();
 
-                            Log.d(TAG, "itemHeight = [" + (itemHeight) + "]");
-                            // 2. compute the total height
+                                if (DEBUG) Log.d(TAG, "itemHeight = [" + (itemHeight) + "]");
+                                // 2. compute the total height
 
-                            documentHeight = itemHeight * manager.getItemCount();
-                            windowHeight = document.getHeight();
-                            float trackHeight = b;
+                                documentHeight = itemHeight * manager.getItemCount();
+                                windowHeight = document.getHeight();
+                                float trackHeight = b;
 
-                            Log.d(TAG, "documentHeight = [" + (documentHeight) + "]");
-                            Log.d(TAG, "windowHeight = [" + (windowHeight) + "]");
-                            Log.d(TAG, "trackHeight = [" + (trackHeight) + "]");
+                                if (DEBUG)
+                                    Log.d(TAG, "documentHeight = [" + (documentHeight) + "]");
+                                if (DEBUG) Log.d(TAG, "windowHeight = [" + (windowHeight) + "]");
+                                if (DEBUG) Log.d(TAG, "trackHeight = [" + (trackHeight) + "]");
 
-                            // 3. now that we have our total height...
+                                // 3. now that we have our total height...
 
-                            documentHeightDivWindowHeight = documentHeight / windowHeight;
+                                documentHeightDivWindowHeight = documentHeight / windowHeight;
 
-                            Log.d(TAG, "documentHeightDivWindowHeight = [" + (documentHeightDivWindowHeight) + "]");
+                                if (DEBUG)
+                                    Log.d(TAG, "documentHeightDivWindowHeight = [" + (documentHeightDivWindowHeight) + "]");
 
-                            float thumbHeight = trackHeight / documentHeightDivWindowHeight;
+                                float thumbHeight = trackHeight / documentHeightDivWindowHeight;
 
-                            Log.d(TAG, "thumbHeight = [" + (thumbHeight) + "]");
+                                if (DEBUG) Log.d(TAG, "thumbHeight = [" + (thumbHeight) + "]");
 
-                            layout = true;
-                            clip.setHeight((int) thumbHeight);
+                                clip.setHeight((int) thumbHeight);
+                            } else {
+                                int itemWidth = view.getWidth();
+
+                                if (DEBUG) Log.d(TAG, "itemWidth = [" + (itemWidth) + "]");
+                                // 2. compute the total width
+
+                                documentWidth = itemWidth * manager.getItemCount();
+                                windowWidth = document.getWidth();
+                                float trackWidth = b;
+
+                                if (DEBUG)
+                                    Log.d(TAG, "documentWidth = [" + (documentWidth) + "]");
+                                if (DEBUG) Log.d(TAG, "windowWidth = [" + (windowWidth) + "]");
+                                if (DEBUG) Log.d(TAG, "trackWidth = [" + (trackWidth) + "]");
+
+                                // 3. now that we have our total width...
+
+                                documentWidthDivWindowWidth = documentWidth / windowWidth;
+
+                                if (DEBUG)
+                                    Log.d(TAG, "documentWidthDivWindowWidth = [" + (documentWidthDivWindowWidth) + "]");
+
+                                float thumbWidth = trackWidth / documentWidthDivWindowWidth;
+
+                                if (DEBUG) Log.d(TAG, "thumbWidth = [" + (thumbWidth) + "]");
+
+                                clip.setWidth((int) thumbWidth);
+                            }
                         }
                     }
                 }
@@ -178,20 +252,60 @@ public class ScrollBarView extends FrameLayout {
 
         Clip(Context context) {
             content = new FrameLayout(context);
-            setHeight(100);
+            if (mOrientation == VERTICAL) {
+                setHeight(100);
+            } else {
+                setWidth(100);
+            }
         }
 
         Clip(Context context, AttributeSet attrs) {
             content = new FrameLayout(context, attrs);
-            setHeight(100);
+            if (mOrientation == VERTICAL) {
+                setHeight(100);
+            } else {
+                setWidth(100);
+            }
         }
 
         public Clip(View content) {
-            content = content;
+            this.content = content;
+            if (mOrientation == VERTICAL) {
+                setHeight(100);
+            } else {
+                setWidth(100);
+            }
         }
 
         public void setColor(@ColorInt int color) {
             content.setBackgroundColor(color);
+        }
+
+        public void setX(float x) {
+            ViewGroup.LayoutParams p = content.getLayoutParams();
+            if (p != null) {
+                if (p instanceof MarginLayoutParams) {
+                    ((MarginLayoutParams) p).leftMargin = (int) x;
+                    content.setLayoutParams(p);
+                } else {
+                    throw new RuntimeException("layout is not an instance of MarginLayoutParams");
+                }
+            } else {
+                content.setLayoutParams(
+                        new MarginLayoutParams(
+                                MATCH_PARENT,
+                                MATCH_PARENT
+                        ) {
+                            {
+                                leftMargin = (int) x;
+                            }
+                        }
+                );
+            }
+        }
+
+        public float getX() {
+            return content.getX();
         }
 
         public void setY(float y) {
@@ -219,6 +333,25 @@ public class ScrollBarView extends FrameLayout {
 
         public float getY() {
             return content.getY();
+        }
+
+        public void setWidth(int width) {
+            ViewGroup.LayoutParams p = content.getLayoutParams();
+            if (p != null) {
+                p.width = width;
+                content.setLayoutParams(p);
+            } else {
+                content.setLayoutParams(
+                        new MarginLayoutParams(
+                                width,
+                                MATCH_PARENT
+                        )
+                );
+            }
+        }
+
+        public int getWidth() {
+            return content.getWidth();
         }
 
         public void setHeight(int height) {
@@ -255,12 +388,16 @@ public class ScrollBarView extends FrameLayout {
 
     private static final String TAG = "ScrollBarView";
 
+    private float relativeToViewX;
     private float relativeToViewY;
 
     boolean clipTouch = false;
     Clip touchedClip;
+    float downDX;
     float downDY;
+    float downRawX;
     float downRawY;
+    float currentRawX;
     float currentRawY;
 
     @Override
@@ -292,6 +429,10 @@ public class ScrollBarView extends FrameLayout {
         return super.onTouchEvent(event);
     }
 
+    public float touchZoneWidthLeft = 80.0f;
+    public float touchZoneWidthLeftOffset = 80.0f;
+    public float touchZoneWidthRight = 80.0f;
+    public float touchZoneWidthRightOffset = 80.0f;
     public float touchZoneHeightTop = 80.0f;
     public float touchZoneHeightTopOffset = 80.0f;
     public float touchZoneHeightBottom = 80.0f;
@@ -320,29 +461,51 @@ public class ScrollBarView extends FrameLayout {
     }
 
     void drawHighlight(Canvas canvas, int width, int height, Paint paint) {
-        float clipStart = touchedClip.getY();
-        float clipHeight = touchedClip.getHeight();
-        float clipEnd = clipStart + clipHeight;
-        canvas.drawRect(0, clipStart, width, clipEnd, paint);
+        if (mOrientation == VERTICAL) {
+            float clipStart = touchedClip.getY();
+            float clipHeight = touchedClip.getHeight();
+            float clipEnd = clipStart + clipHeight;
+            canvas.drawRect(0, clipStart, width, clipEnd, paint);
+        } else {
+            float clipStart = touchedClip.getX();
+            float clipWidth = touchedClip.getWidth();
+            float clipEnd = clipStart + clipWidth;
+            canvas.drawRect(clipStart, 0, clipEnd, height, paint);
+        }
     }
 
     void drawTouchZones(Canvas canvas, int width, int height, Paint paint) {
         if (clip != null) {
-            float clipStart = clip.getY();
-            float clipHeight = clip.getHeight();
-            float clipEnd = clipStart + clipHeight;
-            // top
-            canvas.drawRect(0, clipStart - touchZoneHeightTopOffset, width, (clipStart + touchZoneHeightTop) - touchZoneHeightTopOffset, paint);
-            // bottom
-            canvas.drawRect(0, (clipEnd - touchZoneHeightBottom) + touchZoneHeightBottomOffset, width, clipEnd + touchZoneHeightBottomOffset, paint);
+            if (mOrientation == VERTICAL) {
+                float clipStart = touchedClip.getY();
+                float clipHeight = touchedClip.getHeight();
+                float clipEnd = clipStart + clipHeight;
+                // top
+                canvas.drawRect(0, clipStart - touchZoneHeightTopOffset, width, (clipStart + touchZoneHeightTop) - touchZoneHeightTopOffset, paint);
+                // bottom
+                canvas.drawRect(0, (clipEnd - touchZoneHeightBottom) + touchZoneHeightBottomOffset, width, clipEnd + touchZoneHeightBottomOffset, paint);
+            } else {
+                float clipStart = touchedClip.getX();
+                float clipWidth = touchedClip.getWidth();
+                float clipEnd = clipStart + clipWidth;
+                // left
+                canvas.drawRect(clipStart - touchZoneWidthLeftOffset, 0, (clipStart + touchZoneWidthLeft) - touchZoneWidthLeftOffset, height, paint);
+                // right
+                canvas.drawRect((clipEnd - touchZoneWidthRight) + touchZoneWidthRightOffset, 0, clipEnd + touchZoneWidthRightOffset, height, paint);
+            }
         }
     }
 
     boolean isResizing;
     boolean isDragging;
-    float clipOriginalStart;
+    float clipOriginalStartX;
+    float clipOriginalStartY;
+    float clipOriginalWidth;
     float clipOriginalHeight;
-    float clipOriginalEnd;
+    float clipOriginalEndX;
+    float clipOriginalEndY;
+    boolean resizingLeft;
+    boolean resizingRight;
     boolean resizingTop;
     boolean resizingBottom;
 
@@ -360,22 +523,42 @@ public class ScrollBarView extends FrameLayout {
         // so use documentScrollY instead, which is equivilant in that
         // it is maintained by a callback from the view
         // specifying relative scroll direction
-        float multiplier = documentScrollY / (documentHeight - windowHeight);
-        float scrollBarPosition = multiplier * (getHeight() - clip.getHeight());
-        clip.setY(scrollBarPosition);
+        float multiplier;
+        float scrollBarPosition;
+        if (mOrientation == VERTICAL) {
+            multiplier = documentScrollY / (documentHeight - windowHeight);
+            scrollBarPosition = multiplier * (getHeight() - clip.getHeight());
+            clip.setY(scrollBarPosition);
+        } else {
+            multiplier = documentScrollX / (documentWidth - windowWidth);
+            scrollBarPosition = multiplier * (getWidth() - clip.getWidth());
+            clip.setX(scrollBarPosition);
+        }
     }
 
     void scrollDocument() {
-        float multiplier = clip.getY() / (getHeight() - clip.getHeight());
-        float absoluteOffset = multiplier * (documentHeight - windowHeight);
-        scrolling = true;
-        document.scrollBy(0, -documentScrollY);
-        document.scrollBy(0, (int) absoluteOffset);
+        float multiplier;
+        float absoluteOffset;
+        if (mOrientation == VERTICAL) {
+            multiplier = clip.getY() / (getHeight() - clip.getHeight());
+            absoluteOffset = multiplier * (documentHeight - windowHeight);
+            scrolling = true;
+            document.scrollBy(0, -documentScrollY);
+            document.scrollBy(0, (int) absoluteOffset);
+        } else {
+            multiplier = clip.getX() / (getWidth() - clip.getWidth());
+            absoluteOffset = multiplier * (documentWidth - windowWidth);
+            scrolling = true;
+            document.scrollBy(-documentScrollX, 0);
+            document.scrollBy((int) absoluteOffset, 0);
+        }
         scrolling = false;
     }
 
     public boolean onClipTouchEvent(Clip clip, MotionEvent event) {
+        currentRawX = event.getRawX();
         currentRawY = event.getRawY();
+        relativeToViewX = event.getX() + getScrollX();
         relativeToViewY = event.getY() + getScrollY();
         switch (event.getAction()) {
             case MotionEvent.ACTION_CANCEL:
@@ -391,33 +574,71 @@ public class ScrollBarView extends FrameLayout {
                 return false;
             case MotionEvent.ACTION_MOVE:
                 if (!isResizing && isDragging) {
-                    // scroll bar thumb
-                    float thumbY = clip.getY();
+                    if (mOrientation == VERTICAL) {
+                        // scroll bar thumb
+                        float thumbY = clip.getY();
 
-                    // current y location
-                    float scrollBarPosition = currentRawY + downDY;
+                        // current y location
+                        float scrollBarPosition = currentRawY + downDY;
 
-                    // dont scroll past start
-                    if (scrollBarPosition <= 0) {
-                        clip.setY(0);
-                    } else {
-                        // dont scroll past end
-                        float clipEnd = scrollBarPosition + clipOriginalHeight;
-                        float viewEnd = getY() + getHeight();
-                        if (clipEnd > viewEnd) {
-                            clip.setY(scrollBarPosition - (clipEnd - viewEnd));
+                        // dont scroll past start
+                        if (scrollBarPosition <= 0) {
+                            clip.setY(0);
                         } else {
-                            clip.setY(scrollBarPosition);
+                            // dont scroll past end
+                            float clipEnd = scrollBarPosition + clipOriginalHeight;
+                            float viewEnd = getHeight();
+                            if (clipEnd > viewEnd) {
+                                clip.setY(scrollBarPosition - (clipEnd - viewEnd));
+                            } else {
+                                clip.setY(scrollBarPosition);
+                            }
+                        }
+                    } else {
+                        // scroll bar thumb
+                        float thumbX = clip.getX();
+
+                        // current x location
+                        float scrollBarPosition = currentRawX + downDX;
+
+                        // dont scroll past start
+                        if (scrollBarPosition <= 0) {
+                            clip.setX(0);
+                        } else {
+                            // dont scroll past end
+                            float clipEnd = scrollBarPosition + clipOriginalWidth;
+                            float viewEnd = getWidth();
+                            if (clipEnd > viewEnd) {
+                                clip.setX(scrollBarPosition - (clipEnd - viewEnd));
+                            } else {
+                                clip.setX(scrollBarPosition);
+                            }
                         }
                     }
                     return true;
                 } else if (isResizing && !isDragging) {
                     MarginLayoutParams layoutParams = (MarginLayoutParams) clip.content.getLayoutParams();
-                    if (resizingTop) {
+                    if (resizingLeft) {
+                        float bounds = currentRawX + downDX;
+                        if (layoutParams.width > 0) {
+                            if (bounds > clipOriginalEndX) bounds = clipOriginalEndX;
+                            float newWidth = clipOriginalWidth - (bounds - clipOriginalStartX);
+                            if (newWidth < 1.0f) newWidth = 1.0f;
+                            clip.setX(bounds);
+                            clip.setWidth((int) newWidth);
+                        }
+                    } else if (resizingRight) {
+                        float bounds = currentRawX + downDX;
+                        if (layoutParams.width > 0) {
+                            float newWidth = clipOriginalWidth + (bounds - clipOriginalStartX);
+                            if (newWidth < 1.0f) newWidth = 1.0f;
+                            clip.setWidth((int) newWidth);
+                        }
+                    } else if (resizingTop) {
                         float bounds = currentRawY + downDY;
                         if (layoutParams.height > 0) {
-                            if (bounds > clipOriginalEnd) bounds = clipOriginalEnd;
-                            float newHeight = clipOriginalHeight - (bounds - clipOriginalStart);
+                            if (bounds > clipOriginalEndY) bounds = clipOriginalEndY;
+                            float newHeight = clipOriginalHeight - (bounds - clipOriginalStartY);
                             if (newHeight < 1.0f) newHeight = 1.0f;
                             clip.setY(bounds);
                             clip.setHeight((int) newHeight);
@@ -425,7 +646,7 @@ public class ScrollBarView extends FrameLayout {
                     } else if (resizingBottom) {
                         float bounds = currentRawY + downDY;
                         if (layoutParams.height > 0) {
-                            float newHeight = clipOriginalHeight + (bounds - clipOriginalStart);
+                            float newHeight = clipOriginalHeight + (bounds - clipOriginalStartY);
                             if (newHeight < 1.0f) newHeight = 1.0f;
                             clip.setHeight((int) newHeight);
                         }
@@ -436,28 +657,51 @@ public class ScrollBarView extends FrameLayout {
             case MotionEvent.ACTION_DOWN:
                 isDragging = false;
                 isResizing = false;
-                clipOriginalStart = clip.getY();
+                clipOriginalStartX = clip.getX();
+                clipOriginalStartY = clip.getY();
+                clipOriginalWidth = clip.getWidth();
                 clipOriginalHeight = clip.getHeight();
-                clipOriginalEnd = clipOriginalStart + clipOriginalHeight;
+                clipOriginalEndX = clipOriginalStartX + clipOriginalWidth;
+                clipOriginalEndY = clipOriginalStartY + clipOriginalHeight;
+                downRawX = currentRawX;
                 downRawY = currentRawY;
+                resizingLeft = false;
+                resizingRight = false;
                 resizingTop = false;
                 resizingBottom = false;
-                float topStart = clipOriginalStart - touchZoneHeightTopOffset;
-                float topEnd = (clipOriginalStart + touchZoneHeightTop) - touchZoneHeightTopOffset;
-                float bottomStart = (clipOriginalEnd - touchZoneHeightBottom) + touchZoneHeightBottomOffset;
-                float bottomEnd = clipOriginalEnd + touchZoneHeightBottomOffset;
-                if (within(relativeToViewY, topStart, topEnd)) {
+                if (mOrientation == VERTICAL) {
+                    float topStart = clipOriginalStartY - touchZoneHeightTopOffset;
+                    float topEnd = (clipOriginalStartY + touchZoneHeightTop) - touchZoneHeightTopOffset;
+                    float bottomStart = (clipOriginalEndY - touchZoneHeightBottom) + touchZoneHeightBottomOffset;
+                    float bottomEnd = clipOriginalEndY + touchZoneHeightBottomOffset;
+                    if (within(relativeToViewY, topStart, topEnd)) {
 //                    resizingTop = true;
 //                    isResizing = true;
-                } else if (within(relativeToViewY, bottomStart, bottomEnd)) {
+                    } else if (within(relativeToViewY, bottomStart, bottomEnd)) {
 //                    resizingBottom = true;
 //                    isResizing = true;
-                } else if (within(relativeToViewY, clipOriginalStart, clipOriginalEnd)) {
-                    isDragging = true;
+                    } else if (within(relativeToViewY, clipOriginalStartY, clipOriginalEndY)) {
+                        isDragging = true;
+                    }
+                } else {
+                    float leftStart = clipOriginalStartX - touchZoneWidthLeftOffset;
+                    float leftEnd = (clipOriginalStartX + touchZoneWidthLeft) - touchZoneWidthLeftOffset;
+                    float rightStart = (clipOriginalEndX - touchZoneWidthRight) + touchZoneWidthRightOffset;
+                    float rightEnd = clipOriginalEndX + touchZoneWidthRightOffset;
+                    if (within(relativeToViewX, leftStart, leftEnd)) {
+//                        resizingLeft = true;
+//                        isResizing = true;
+                    } else if (within(relativeToViewX, rightStart, rightEnd)) {
+//                        resizingRight = true;
+//                        isResizing = true;
+                    } else if (within(relativeToViewX, clipOriginalStartX, clipOriginalEndX)) {
+                        isDragging = true;
+                    }
                 }
                 if (isResizing || isDragging) {
                     invalidate();
-                    downDY = clipOriginalStart - downRawY;
+                    downDX = clipOriginalStartX - downRawX;
+                    downDY = clipOriginalStartY - downRawY;
                     return true;
                 }
             default:
