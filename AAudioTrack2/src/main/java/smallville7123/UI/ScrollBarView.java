@@ -11,23 +11,29 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewPropertyAnimator;
 import android.widget.FrameLayout;
-import android.widget.ScrollView;
 
 import androidx.annotation.ColorInt;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
-import java.util.function.Consumer;
-
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
-import static androidx.recyclerview.widget.RecyclerView.NO_POSITION;
+import static androidx.recyclerview.widget.RecyclerView.VERTICAL;
 
-public class ScrollBarView extends ScrollView {
+public class ScrollBarView extends FrameLayout {
     public ScrollBarView(Context context) {
         super(context);
         init(context, null);
+    }
+
+    int orientation = VERTICAL;
+
+    public void setOrientation(int orientation) {
+        this.orientation = orientation;
+    }
+
+    public int getOrientation() {
+        return orientation;
     }
 
     public ScrollBarView(Context context, AttributeSet attrs) {
@@ -49,7 +55,7 @@ public class ScrollBarView extends ScrollView {
         mAttrs = attrs;
 
         // make scroll view match parent height
-        setFillViewport(true);
+//        setFillViewport(true);
 
         FrameLayout frame = new FrameLayout(context, attrs);
         content = frame;
