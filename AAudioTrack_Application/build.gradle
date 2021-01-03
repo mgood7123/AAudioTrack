@@ -9,8 +9,8 @@ android {
         applicationId "smallville7123.aaudiotrack.application"
         minSdkVersion 28 // Android Pie
         targetSdkVersion 29 // Play requires Android Q or higher
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "1.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
