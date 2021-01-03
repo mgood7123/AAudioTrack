@@ -362,43 +362,43 @@ public class ScrollBarView extends ScrollView {
                     return true;
                 }
                 return false;
-        case MotionEvent.ACTION_MOVE:
-            if (!isResizing && isDragging) {
-                // scroll bar thumb
-                float y1 = clip.getY();
+            case MotionEvent.ACTION_MOVE:
+                if (!isResizing && isDragging) {
+                    // scroll bar thumb
+                    float y1 = clip.getY();
 
-                // current y location
-                float y2 = currentRawY + downDY;
+                    // current y location
+                    float y2 = currentRawY + downDY;
 
-                // dont scroll past start
-                if (y2 <= 0) {
-                    clip.setY(0);
-                } else {
-                    // dont scroll past end
-                    float clipEnd = y2 + clipOriginalHeight;
-                    float viewEnd = getY() + getHeight();
-                    if (clipEnd > viewEnd) {
-                        clip.setY(y2 - (clipEnd - viewEnd));
+                    // dont scroll past start
+                    if (y2 <= 0) {
+                        clip.setY(0);
                     } else {
-                        clip.setY(y2);
-                        // scroll our view
-                        // TODO: account for views
-                        //  that can use absolute positions
-                        //  and views that cannot use absolute
-                        //  positions
-                        //
-                        // in this case, our view cannot use absolute position
+                        // dont scroll past end
+                        float clipEnd = y2 + clipOriginalHeight;
+                        float viewEnd = getY() + getHeight();
+                        if (clipEnd > viewEnd) {
+                            clip.setY(y2 - (clipEnd - viewEnd));
+                        } else {
+                            clip.setY(y2);
+                            // scroll our view
+                            // TODO: account for views
+                            //  that can use absolute positions
+                            //  and views that cannot use absolute
+                            //  positions
+                            //
+                            // in this case, our view cannot use absolute position
 
-                        // relative difference
-                        float y3 = (-(y1 - y2)) * documentHeightDivWindowHeight;
-                        Log.d(TAG, "y3 = [" + (y3) + "]");
-                        updateScrollPosition(0, y3);
-                        scrolling = true;
-                        scrollable.scrollBy(0, (int) y3);
-                        scrolling = false;
+                            // relative difference
+                            float y3 = (-(y1 - y2)) * documentHeightDivWindowHeight;
+                            Log.d(TAG, "y3 = [" + (y3) + "]");
+                            updateScrollPosition(0, y3);
+                            scrolling = true;
+                            scrollable.scrollBy(0, (int) y3);
+                            scrolling = false;
+                        }
                     }
-                }
-                return true;
+                    return true;
                 } else if (isResizing && !isDragging) {
                     MarginLayoutParams layoutParams = (MarginLayoutParams) clip.content.getLayoutParams();
                     if (resizingTop) {
