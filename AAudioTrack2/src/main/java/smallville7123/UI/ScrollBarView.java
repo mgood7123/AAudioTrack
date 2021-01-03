@@ -12,6 +12,7 @@ import android.view.ViewDebug;
 import android.view.ViewGroup;
 import android.view.ViewPropertyAnimator;
 import android.widget.FrameLayout;
+import android.widget.HorizontalScrollView;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.InspectableProperty;
@@ -139,7 +140,7 @@ public class ScrollBarView extends FrameLayout {
     float documentHeight;
     float windowHeight;
     
-    static boolean DEBUG = false;
+    static boolean DEBUG = true;
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
@@ -219,7 +220,40 @@ public class ScrollBarView extends FrameLayout {
 
                                 documentWidth = itemWidth * manager.getItemCount();
                                 windowWidth = document.getWidth();
-                                float trackWidth = b;
+                                float trackWidth = r;
+
+                                if (DEBUG)
+                                    Log.d(TAG, "documentWidth = [" + (documentWidth) + "]");
+                                if (DEBUG) Log.d(TAG, "windowWidth = [" + (windowWidth) + "]");
+                                if (DEBUG) Log.d(TAG, "trackWidth = [" + (trackWidth) + "]");
+
+                                // 3. now that we have our total width...
+
+                                documentWidthDivWindowWidth = documentWidth / windowWidth;
+
+                                if (DEBUG)
+                                    Log.d(TAG, "documentWidthDivWindowWidth = [" + (documentWidthDivWindowWidth) + "]");
+
+                                float thumbWidth = trackWidth / documentWidthDivWindowWidth;
+
+                                if (DEBUG) Log.d(TAG, "thumbWidth = [" + (thumbWidth) + "]");
+
+                                clip.setWidth((int) thumbWidth);
+                            }
+                        }
+                    }
+                } else {
+                    if (document instanceof FrameLayout) {
+                        View child = ((FrameLayout) document).getChildAt(0);
+                        if (child != null) {
+                            if (document instanceof HorizontalScrollView) {
+                                HorizontalScrollView view = (HorizontalScrollView) document;
+
+                                // 2. compute the total width
+
+                                documentWidth = child.getWidth();
+                                windowWidth = document.getWidth();
+                                float trackWidth = r;
 
                                 if (DEBUG)
                                     Log.d(TAG, "documentWidth = [" + (documentWidth) + "]");
@@ -511,9 +545,15 @@ public class ScrollBarView extends FrameLayout {
 
     boolean scrolling = false;
 
-    public void updatePosition(int dx, int dy) {
+    public void updateRelativePosition(int dx, int dy) {
         documentScrollX += dx;
         documentScrollY += dy;
+        if (!scrolling) scrollThumb();
+    }
+
+    public void updateAbsolutePosition(int scrollX, int scrollY) {
+        documentScrollX = scrollX;
+        documentScrollY = scrollY;
         if (!scrolling) scrollThumb();
     }
 
