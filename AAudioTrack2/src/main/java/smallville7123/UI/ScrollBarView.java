@@ -69,38 +69,30 @@ public class ScrollBarView extends ScrollView {
         setPaint();
     }
 
-    View scrollable;
+    View document;
     boolean layout = false;
-    int scrollableScrollX;
-    int scrollableScrollY;
-    float tmpScrollableScrollX;
-    float tmpScrollableScrollY;
+    int documentScrollX;
+    int documentScrollY;
+    float tmpDocumentScrollX;
+    float tmpDocumentScrollY;
     float documentHeightDivWindowHeight;
 
 
-    public void attachTo(View scrollable) {
-        this.scrollable = scrollable;
+    public void attachTo(View document) {
+        this.document = document;
         invalidate();
-//        Consumer<ViewGroup.LayoutParams> a = scrollable::setLayoutParams;
-    }
-
-    boolean scrolling = false;
-    public void updatePosition(int dx, int dy) {
-        if (!scrolling) {
-            clip.setY(clip.getY() + (dy / documentHeightDivWindowHeight));
-        }
-        scrollableScrollX += dx;
-        scrollableScrollY += dy / documentHeightDivWindowHeight;
-        Log.d(TAG, "scrollableScrollX = [" + (scrollableScrollX) + "]");
-        Log.d(TAG, "scrollableScrollY = [" + (scrollableScrollY) + "]");
+//        Consumer<ViewGroup.LayoutParams> a = document::setLayoutParams;
     }
 
     public void updateScrollPosition(float dx, float dy) {
-        tmpScrollableScrollX += dx;
-        tmpScrollableScrollY += dy;
-        Log.d(TAG, "tmpScrollableScrollX = [" + (tmpScrollableScrollX) + "]");
-        Log.d(TAG, "tmpScrollableScrollY = [" + (tmpScrollableScrollY) + "]");
+        tmpDocumentScrollX += dx;
+        tmpDocumentScrollY += dy;
+        Log.d(TAG, "tmpDocumentScrollX = [" + (tmpDocumentScrollX) + "]");
+        Log.d(TAG, "tmpDocumentScrollY = [" + (tmpDocumentScrollY) + "]");
     }
+
+    float documentHeight;
+    float windowHeight;
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
@@ -109,9 +101,9 @@ public class ScrollBarView extends ScrollView {
         if (layout) {
             layout = false;
         } else {
-            if (scrollable != null) {
-                if (scrollable instanceof RecyclerView) {
-                    RecyclerView recyclerView = (RecyclerView) scrollable;
+            if (document != null) {
+                if (document instanceof RecyclerView) {
+                    RecyclerView recyclerView = (RecyclerView) document;
                     RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
                     if (layoutManager instanceof LinearLayoutManager) {
                         LinearLayoutManager manager = (LinearLayoutManager) layoutManager;
@@ -147,8 +139,8 @@ public class ScrollBarView extends ScrollView {
                             Log.d(TAG, "itemHeight = [" + (itemHeight) + "]");
                             // 2. compute the total height
 
-                            float documentHeight = itemHeight * manager.getItemCount();
-                            float windowHeight = scrollable.getHeight();
+                            documentHeight = itemHeight * manager.getItemCount();
+                            windowHeight = document.getHeight();
                             float trackHeight = b;
 
                             Log.d(TAG, "documentHeight = [" + (documentHeight) + "]");
@@ -170,6 +162,7 @@ public class ScrollBarView extends ScrollView {
                         }
                     }
                 }
+                if (!scrolling) scrollDocument();
             }
         }
     }
@@ -347,6 +340,34 @@ public class ScrollBarView extends ScrollView {
     boolean resizingTop;
     boolean resizingBottom;
 
+    boolean scrolling = false;
+
+    public void updatePosition(int dx, int dy) {
+        documentScrollX += dx;
+        documentScrollY += dy;
+        if (!scrolling) scrollThumb();
+    }
+
+    void scrollThumb() {
+        // the absolute position is only updated when the scrollbar itself
+        // gets scrolled by the touch listener
+        // so use documentScrollY instead, which is equivilant in that
+        // it is maintained by a callback from the view
+        // specifying relative scroll direction
+        float multiplier = documentScrollY / (documentHeight - windowHeight);
+        float scrollBarPosition = multiplier * (getHeight() - clip.getHeight());
+        clip.setY(scrollBarPosition);
+    }
+
+    void scrollDocument() {
+        float multiplier = clip.getY() / (getHeight() - clip.getHeight());
+        float absoluteOffset = multiplier * (documentHeight - windowHeight);
+        scrolling = true;
+        document.scrollBy(0, -documentScrollY);
+        document.scrollBy(0, (int) absoluteOffset);
+        scrolling = false;
+    }
+
     public boolean onClipTouchEvent(Clip clip, MotionEvent event) {
         currentRawY = event.getRawY();
         relativeToViewY = event.getY() + getScrollY();
@@ -365,37 +386,22 @@ public class ScrollBarView extends ScrollView {
             case MotionEvent.ACTION_MOVE:
                 if (!isResizing && isDragging) {
                     // scroll bar thumb
-                    float y1 = clip.getY();
+                    float thumbY = clip.getY();
 
                     // current y location
-                    float y2 = currentRawY + downDY;
+                    float scrollBarPosition = currentRawY + downDY;
 
                     // dont scroll past start
-                    if (y2 <= 0) {
+                    if (scrollBarPosition <= 0) {
                         clip.setY(0);
                     } else {
                         // dont scroll past end
-                        float clipEnd = y2 + clipOriginalHeight;
+                        float clipEnd = scrollBarPosition + clipOriginalHeight;
                         float viewEnd = getY() + getHeight();
                         if (clipEnd > viewEnd) {
-                            clip.setY(y2 - (clipEnd - viewEnd));
+                            clip.setY(scrollBarPosition - (clipEnd - viewEnd));
                         } else {
-                            clip.setY(y2);
-                            // scroll our view
-                            // TODO: account for views
-                            //  that can use absolute positions
-                            //  and views that cannot use absolute
-                            //  positions
-                            //
-                            // in this case, our view cannot use absolute position
-
-                            // relative difference
-                            float y3 = (-(y1 - y2)) * documentHeightDivWindowHeight;
-                            Log.d(TAG, "y3 = [" + (y3) + "]");
-                            updateScrollPosition(0, y3);
-                            scrolling = true;
-                            scrollable.scrollBy(0, (int) y3);
-                            scrolling = false;
+                            clip.setY(scrollBarPosition);
                         }
                     }
                     return true;
@@ -435,11 +441,11 @@ public class ScrollBarView extends ScrollView {
                 float bottomStart = (clipOriginalEnd - touchZoneHeightBottom) + touchZoneHeightBottomOffset;
                 float bottomEnd = clipOriginalEnd + touchZoneHeightBottomOffset;
                 if (within(relativeToViewY, topStart, topEnd)) {
-                    resizingTop = true;
-                    isResizing = true;
+//                    resizingTop = true;
+//                    isResizing = true;
                 } else if (within(relativeToViewY, bottomStart, bottomEnd)) {
-                    resizingBottom = true;
-                    isResizing = true;
+//                    resizingBottom = true;
+//                    isResizing = true;
                 } else if (within(relativeToViewY, clipOriginalStart, clipOriginalEnd)) {
                     isDragging = true;
                 }
