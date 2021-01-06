@@ -135,6 +135,23 @@ public class ClipView extends HorizontalScrollView {
         }
     }
 
+/*
+in
+
+```
+| scroll view start  |
+| content view start |
+|        0px         |
+|        5px         |
+|        10px        |
+| scroll view end    |
+|        15px        |
+| content view end   |
+```
+
+i want to obtain 15px, but for some reason i can only obtain 10px :(
+*/
+
     Clip newClip() {
         return new Clip(mContext, mAttrs);
     };

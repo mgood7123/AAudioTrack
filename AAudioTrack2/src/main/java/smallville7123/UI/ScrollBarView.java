@@ -24,8 +24,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
-import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
-import static androidx.recyclerview.widget.RecyclerView.VERTICAL;
 
 public class ScrollBarView extends FrameLayout {
     public ScrollBarView(Context context) {
@@ -142,6 +140,78 @@ public class ScrollBarView extends FrameLayout {
     
     static boolean DEBUG = true;
 
+    void adjustClip(int r, int b) {
+        if (mOrientation == VERTICAL) {
+            clip.setWidth(r);
+        } else {
+            clip.setHeight(b);
+        }
+    }
+
+    void getWindowSize() {
+        if (mOrientation == VERTICAL) {
+            windowHeight = document.getHeight();
+        } else {
+            windowWidth = document.getWidth();
+        }
+    }
+
+    boolean getDocumentSizeTypeRecyclerView() {
+        if (document instanceof RecyclerView) {
+            RecyclerView recyclerView = (RecyclerView) document;
+            RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
+            if (layoutManager instanceof LinearLayoutManager) {
+                LinearLayoutManager manager = (LinearLayoutManager) layoutManager;
+                int firstVisibleItemPosition = manager.findFirstVisibleItemPosition();
+                View view = manager.getChildAt(firstVisibleItemPosition);
+                if (view != null) {
+                    if (mOrientation == VERTICAL) {
+                        documentHeight = view.getHeight() * manager.getItemCount();
+                    } else {
+                        documentWidth = view.getWidth() * manager.getItemCount();
+                    }
+                }
+            }
+            return true;
+        } else return false;
+    }
+
+    boolean getDocumentSizeTypeHorizontalScrollView() {
+        if (document instanceof HorizontalScrollView) {
+            HorizontalScrollView horizontalScrollView = (HorizontalScrollView) document;
+            documentWidth = horizontalScrollView.getChildAt(0).getWidth();
+            return true;
+        } else return false;
+    }
+
+    boolean getDocumentSize() {
+        if (getDocumentSizeTypeRecyclerView()) return true;
+        if (getDocumentSizeTypeHorizontalScrollView()) return true;
+        return false;
+    }
+
+    void setThumbSize(int b, int r) {
+        if (mOrientation == VERTICAL) {
+            documentHeightDivWindowHeight = documentHeight / windowHeight;
+            float thumbHeight = b / documentHeightDivWindowHeight;
+            clip.setHeight((int) thumbHeight);
+        } else {
+            documentWidthDivWindowWidth = documentWidth / windowWidth;
+            float thumbWidth = r / documentWidthDivWindowWidth;
+            clip.setWidth((int) thumbWidth);
+        }
+    }
+
+    void doScroll(int r, int b) {
+        if (document != null) {
+            getWindowSize();
+            if (getDocumentSize()) {
+                setThumbSize(b, r);
+                if (!scrolling) scrollDocument();
+            }
+        }
+    }
+
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         super.onLayout(changed, l, t, r, b);
@@ -150,134 +220,8 @@ public class ScrollBarView extends FrameLayout {
             layout = false;
         } else {
             layout = true;
-            if (mOrientation == VERTICAL) {
-                clip.setWidth(r);
-            } else {
-                clip.setHeight(b);
-            }
-            if (document != null) {
-                if (document instanceof RecyclerView) {
-                    RecyclerView recyclerView = (RecyclerView) document;
-                    RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
-                    if (layoutManager instanceof LinearLayoutManager) {
-                        LinearLayoutManager manager = (LinearLayoutManager) layoutManager;
-                        int firstVisibleItemPosition = manager.findFirstVisibleItemPosition();
-                        int firstCompletelyVisibleItemPosition = manager.findFirstCompletelyVisibleItemPosition();
-                        int lastVisibleItemPosition = manager.findLastVisibleItemPosition();
-                        int lastCompletelyVisibleItemPosition = manager.findLastCompletelyVisibleItemPosition();
-
-                        if (DEBUG) Log.d(TAG, "firstVisibleItemPosition = [" + (firstVisibleItemPosition) + "]");
-                        if (DEBUG) Log.d(TAG, "firstCompletelyVisibleItemPosition = [" + (firstCompletelyVisibleItemPosition) + "]");
-                        if (DEBUG) Log.d(TAG, "lastVisibleItemPosition = [" + (lastVisibleItemPosition) + "]");
-                        if (DEBUG) Log.d(TAG, "lastCompletelyVisibleItemPosition = [" + (lastCompletelyVisibleItemPosition) + "]");
-                        // scenarios:
-                        // 1. the first view and last view are partially visible
-                        // 2. the first view and last view are completely visible
-                        // 3. the first view is completely visible
-                        //    while the last view is partially visible
-                        // 4. the last view is completely visible
-                        //    while the first view is partially visible
-
-                        // for reasons, lets skip everything
-                        // and assume each item consumes the entire width:
-                        // |ITEM_A|
-                        // |ITEM_B|
-
-                        View view = manager.getChildAt(firstVisibleItemPosition);
-                        if (view != null) {
-                            if (mOrientation == VERTICAL) {
-                                int itemHeight = view.getHeight();
-
-                                if (DEBUG) Log.d(TAG, "itemHeight = [" + (itemHeight) + "]");
-                                // 2. compute the total height
-
-                                documentHeight = itemHeight * manager.getItemCount();
-                                windowHeight = document.getHeight();
-                                float trackHeight = b;
-
-                                if (DEBUG)
-                                    Log.d(TAG, "documentHeight = [" + (documentHeight) + "]");
-                                if (DEBUG) Log.d(TAG, "windowHeight = [" + (windowHeight) + "]");
-                                if (DEBUG) Log.d(TAG, "trackHeight = [" + (trackHeight) + "]");
-
-                                // 3. now that we have our total height...
-
-                                documentHeightDivWindowHeight = documentHeight / windowHeight;
-
-                                if (DEBUG)
-                                    Log.d(TAG, "documentHeightDivWindowHeight = [" + (documentHeightDivWindowHeight) + "]");
-
-                                float thumbHeight = trackHeight / documentHeightDivWindowHeight;
-
-                                if (DEBUG) Log.d(TAG, "thumbHeight = [" + (thumbHeight) + "]");
-
-                                clip.setHeight((int) thumbHeight);
-                            } else {
-                                int itemWidth = view.getWidth();
-
-                                if (DEBUG) Log.d(TAG, "itemWidth = [" + (itemWidth) + "]");
-                                // 2. compute the total width
-
-                                documentWidth = itemWidth * manager.getItemCount();
-                                windowWidth = document.getWidth();
-                                float trackWidth = r;
-
-                                if (DEBUG)
-                                    Log.d(TAG, "documentWidth = [" + (documentWidth) + "]");
-                                if (DEBUG) Log.d(TAG, "windowWidth = [" + (windowWidth) + "]");
-                                if (DEBUG) Log.d(TAG, "trackWidth = [" + (trackWidth) + "]");
-
-                                // 3. now that we have our total width...
-
-                                documentWidthDivWindowWidth = documentWidth / windowWidth;
-
-                                if (DEBUG)
-                                    Log.d(TAG, "documentWidthDivWindowWidth = [" + (documentWidthDivWindowWidth) + "]");
-
-                                float thumbWidth = trackWidth / documentWidthDivWindowWidth;
-
-                                if (DEBUG) Log.d(TAG, "thumbWidth = [" + (thumbWidth) + "]");
-
-                                clip.setWidth((int) thumbWidth);
-                            }
-                        }
-                    }
-                } else {
-                    if (document instanceof FrameLayout) {
-                        View child = ((FrameLayout) document).getChildAt(0);
-                        if (child != null) {
-                            if (document instanceof HorizontalScrollView) {
-                                HorizontalScrollView view = (HorizontalScrollView) document;
-
-                                // 2. compute the total width
-
-                                documentWidth = child.getWidth();
-                                windowWidth = document.getWidth();
-                                float trackWidth = r;
-
-                                if (DEBUG)
-                                    Log.d(TAG, "documentWidth = [" + (documentWidth) + "]");
-                                if (DEBUG) Log.d(TAG, "windowWidth = [" + (windowWidth) + "]");
-                                if (DEBUG) Log.d(TAG, "trackWidth = [" + (trackWidth) + "]");
-
-                                // 3. now that we have our total width...
-
-                                documentWidthDivWindowWidth = documentWidth / windowWidth;
-
-                                if (DEBUG)
-                                    Log.d(TAG, "documentWidthDivWindowWidth = [" + (documentWidthDivWindowWidth) + "]");
-
-                                float thumbWidth = trackWidth / documentWidthDivWindowWidth;
-
-                                if (DEBUG) Log.d(TAG, "thumbWidth = [" + (thumbWidth) + "]");
-
-                                clip.setWidth((int) thumbWidth);
-                            }
-                        }
-                    }
-                }
-                if (!scrolling) scrollDocument();
-            }
+            adjustClip(r, b);
+            doScroll(r, b);
         }
     }
 

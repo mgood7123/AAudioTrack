@@ -243,16 +243,6 @@ public class PlaylistView extends FrameLayout {
         }
     }
 
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        int measuredWidth = getMeasuredWidth();
-        int measuredHeight = getMeasuredHeight();
-        if (measuredWidth != 0 && measuredHeight != 0) {
-            resizeUI(measuredWidth, measuredHeight);
-        }
-    }
-
     AAudioTrack2 DAW;
 
     public void setDAW(AAudioTrack2 DAW) {
@@ -320,7 +310,9 @@ public class PlaylistView extends FrameLayout {
                     }
                 }
             };
-            scrollBarTopScrollBar.attachTo(track.clipView);
+            if (scrollBarTopScrollBar.document == null) {
+                scrollBarTopScrollBar.attachTo(track.clipView);
+            }
             LinearLayout row = new LinearLayout(mContext);
             row.setOrientation(HORIZONTAL);
 
@@ -405,6 +397,16 @@ public class PlaylistView extends FrameLayout {
         ClipView clipView;
         int maxLength;
         Context mContext;
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        int measuredWidth = getMeasuredWidth();
+        int measuredHeight = getMeasuredHeight();
+        if (measuredWidth != 0 && measuredHeight != 0) {
+            resizeUI(measuredWidth, measuredHeight);
+        }
     }
 
     void resizeUI(int width, int height) {
