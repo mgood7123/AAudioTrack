@@ -142,7 +142,6 @@ public class VstView extends RelativeLayout {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        Log.d(TAG, "onLayout() called with: changed = [" + changed + "], l = [" + l + "], t = [" + t + "], r = [" + r + "], b = [" + b + "]");
         super.onLayout(changed, l, t, r, b);
         if (randomizeChildren) {
             int childCount = getChildCount();

@@ -6,8 +6,8 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.util.Pair;
 import android.view.Gravity;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -17,6 +17,7 @@ import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 
+import smallville7123.UI.ScrollBarView.ScrollBarView;
 import smallville7123.UI.Style.Android.ToggleRadioButton;
 import smallville7123.aaudiotrack2.AAudioTrack2;
 import smallville7123.aaudiotrack2.R;
@@ -66,7 +67,7 @@ public class PlaylistView extends FrameLayout {
     FrameLayout scrollBarRightScrollDown;
     LinearLayout linearLayoutHorizontal;
     LinearLayout patternView;
-    GridView playlistView;
+    TwoWayNestedScrollView playlistView;
 
     Context mContext;
     AttributeSet mAttr;
@@ -202,18 +203,17 @@ public class PlaylistView extends FrameLayout {
 
         linearLayoutHorizontal.addView(patternView, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
 
-        playlistView = new GridView(context, attrs) {
-            @Override
-            public void onScrolled(int dx, int dy) {
-                super.onScrolled(dx, dy);
-                scrollBarRightScrollBar.updateRelativePosition(dx, dy);
-            }
-        };
-        scrollBarRightScrollBar.attachTo(playlistView);
-        playlistView.setOrientation(VERTICAL);
-        playlistView.setRows(channels);
-        playlistView.setColumns(1);
-        playlistView.setBackgroundColor(Color.DKGRAY);
+//        playlistView = new GridView(context, attrs) {
+//            @Override
+//            public void onScrolled(int dx, int dy) {
+//                super.onScrolled(dx, dy);
+////                scrollBarRightScrollBar.updateRelativePosition(dx, dy);
+//            }
+//        };
+//        playlistView.setLayoutParams(new LayoutParams(0,0));
+//        playlistView.setOrientation(VERTICAL);
+//        playlistView.setRows(channels);
+//        playlistView.setColumns(1);
 
         //
         // by default, the FL playlist is 18 bars long (1 to 17)
@@ -228,6 +228,30 @@ public class PlaylistView extends FrameLayout {
         // each pattern extends the grid by 18 (11 to 27)
         // this extension is dependant on the position of the final pattern placement
         //
+
+        playlistView = new TwoWayNestedScrollView(context, attrs) {
+            private static final String TAG = "TwoWayNestedScrollView";
+            @Override
+            protected void onOverScrolled(int scrollX, int scrollY, boolean clampedX, boolean clampedY) {
+                super.onOverScrolled(scrollX, scrollY, clampedX, clampedY);
+                Log.d(TAG, "onOverScrolled() called with: scrollX = [" + scrollX + "], scrollY = [" + scrollY + "], clampedX = [" + clampedX + "], clampedY = [" + clampedY + "]");
+                scrollBarTopScrollBar.updateAbsolutePosition(scrollX, scrollY);
+                scrollBarRightScrollBar.updateAbsolutePosition(scrollX, scrollY);
+            }
+        };
+        playlistView.setBackgroundColor(Color.DKGRAY);
+        scrollBarTopScrollBar.attachTo(playlistView);
+        scrollBarRightScrollBar.attachTo(playlistView);
+        FrameLayout frame = new FrameLayout(context, attrs);
+        Button button = new Button(context, attrs);
+        frame.addView(button, new LayoutParams(1000, 1000) {
+            {
+                leftMargin = 1000;
+                topMargin = 1000;
+            }
+        });
+        frame.setLayoutParams(new FrameLayout.LayoutParams(4000, 4000));
+        playlistView.addView(frame);
         linearLayoutHorizontal.addView(playlistView, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
 
         linearLayoutHorizontal.addView(scrollBarContainerRight, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
@@ -282,14 +306,6 @@ public class PlaylistView extends FrameLayout {
             Track track = newTrack(new Track());
 
             track.mContext = context;
-            // this will be tricky
-//            playlistView = new GridView(context, attrs) {
-//                @Override
-//                public void onScrolled(int dx, int dy) {
-//                    super.onScrolled(dx, dy);
-//                    scrollBarTopScrollBar.updatePosition(dx, dy);
-//                }
-//            };
             track.clipView = new ClipView(context) {
 
                 @Override
@@ -310,9 +326,9 @@ public class PlaylistView extends FrameLayout {
                     }
                 }
             };
-            if (scrollBarTopScrollBar.document == null) {
-                scrollBarTopScrollBar.attachTo(track.clipView);
-            }
+//            if (scrollBarTopScrollBar.document == null) {
+//                scrollBarTopScrollBar.attachTo(track.clipView);
+//            }
             LinearLayout row = new LinearLayout(mContext);
             row.setOrientation(HORIZONTAL);
 
@@ -330,13 +346,13 @@ public class PlaylistView extends FrameLayout {
             row.addView(trackUI.clipView, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
 
             if (fitChannelsToView || channelHeight == Float.NaN) {
-                playlistView.autoSizeRow = true;
+//                playlistView.autoSizeRow = true;
             } else {
-                playlistView.autoSizeRow = false;
-                playlistView.rowSize = (int) channelHeight;
+//                playlistView.autoSizeRow = false;
+//                playlistView.rowSize = (int) channelHeight;
             }
-            playlistView.data.add(new Pair(row, trackUI));
-            playlistView.adapter.notifyDataSetChanged();
+//            playlistView.data.add(new Pair(row, trackUI));
+//            playlistView.adapter.notifyDataSetChanged();
             return track;
         }
     }
@@ -515,19 +531,19 @@ public class PlaylistView extends FrameLayout {
 
         engine.execute();
 
-        playlistView.setResizeUI((trackWidth, trackHeight, data) -> {
-            Log.d(TAG, "trackWidth = [" + (trackWidth) + "]");
-            Log.d(TAG, "trackHeight = [" + (trackHeight) + "]");
-            TrackUI trackUI = (TrackUI) data.second;
-
-            LayoutEngine engine_ = new LayoutEngine();
-            LayoutEngine engine_A = engine_.newWidthRegion(trackWidth);
-            LayoutEngine engine_B = engine_.newHeightRegion(trackHeight);
-            engine_A.width(trackUI.channelButton, 300);
-            engine_A.width(trackUI.clipView, engine_A.remainingWidth);
-            engine_B.height(trackUI.toggleRadioButton, 80);
-            engine_B.height(trackUI.textView, engine_B.remainingHeight);
-            engine_.execute();
-        });
+//        playlistView.setResizeUI((trackWidth, trackHeight, data) -> {
+//            Log.d(TAG, "trackWidth = [" + (trackWidth) + "]");
+//            Log.d(TAG, "trackHeight = [" + (trackHeight) + "]");
+//            TrackUI trackUI = (TrackUI) data.second;
+//
+//            LayoutEngine engine_ = new LayoutEngine();
+//            LayoutEngine engine_A = engine_.newWidthRegion(trackWidth);
+//            LayoutEngine engine_B = engine_.newHeightRegion(trackHeight);
+//            engine_A.width(trackUI.channelButton, 300);
+//            engine_A.width(trackUI.clipView, engine_A.remainingWidth);
+//            engine_B.height(trackUI.toggleRadioButton, 80);
+//            engine_B.height(trackUI.textView, engine_B.remainingHeight);
+//            engine_.execute();
+//        });
     }
 }
