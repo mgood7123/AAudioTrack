@@ -1,7 +1,5 @@
 package smallville7123.aaudiotrack2;
 
-import smallville7123.UI.SequencerView;
-
 public class Track {
     AAudioTrack2 DAWReference = null;
     public long nativeTrack = 0;

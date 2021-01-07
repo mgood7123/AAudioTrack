@@ -1,10 +1,8 @@
 package smallville7123.UI;
 
-import android.util.Log;
 import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 
 import java.util.ArrayList;
 
