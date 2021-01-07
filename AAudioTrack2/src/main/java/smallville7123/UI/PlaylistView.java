@@ -17,6 +17,7 @@ import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 
+import smallville7123.UI.ScrollBarView.ScrollBarLogic;
 import smallville7123.UI.ScrollBarView.ScrollBarView;
 import smallville7123.UI.Style.Android.ToggleRadioButton;
 import smallville7123.aaudiotrack2.AAudioTrack2;
@@ -148,7 +149,7 @@ public class PlaylistView extends FrameLayout {
         scrollBarContainerTop.setBackgroundColor(Color.YELLOW);
         scrollBarTopScrollLeft = new FrameLayout(context, attrs);
         scrollBarTopScrollBar = new ScrollBarView(context, attrs);
-        scrollBarTopScrollBar.setOrientation(ScrollBarView.HORIZONTAL);
+        scrollBarTopScrollBar.setOrientation(ScrollBarLogic.HORIZONTAL);
         scrollBarTopScrollRight = new FrameLayout(context, attrs);
 
         scrollBarContainerTopRight = new LinearLayout(context, attrs);
@@ -160,7 +161,7 @@ public class PlaylistView extends FrameLayout {
         scrollBarContainerRight.setOrientation(VERTICAL);
         scrollBarContainerRight.setBackgroundColor(Color.YELLOW);
         scrollBarRightScrollBar = new ScrollBarView(context, attrs);
-        scrollBarRightScrollBar.setOrientation(ScrollBarView.VERTICAL);
+        scrollBarRightScrollBar.setOrientation(ScrollBarLogic.VERTICAL);
         scrollBarRightScrollDown = new FrameLayout(context, attrs);
 
         linearLayoutHorizontal = new LinearLayout(context, attrs);
