@@ -245,6 +245,7 @@ public class PlaylistView extends FrameLayout {
         scrollBarRightScrollBar.attachTo(playlistView);
         FrameLayout frame = new FrameLayout(context, attrs);
         Button button = new Button(context, attrs);
+        // 1000 width, 1000 height
         frame.addView(button, new LayoutParams(1000, 1000) {
             {
                 leftMargin = 1000;
