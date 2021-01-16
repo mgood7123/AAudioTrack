@@ -316,8 +316,8 @@ public class WindowView extends FrameLayout {
         touchZonePaint = new Paint();
         titleBarPaint = new Paint();
 
-        highlightPaint.setARGB(200, 0, 0, 255);
-        highlightCornerPaint.setARGB(200, 255, 90, 0);
+        highlightPaint.setARGB(70, 0, 0, 255);
+        highlightCornerPaint.setARGB(70, 255, 90, 0);
         touchZonePaint.setARGB(60, 0, 90, 0);
         regionPaint.setARGB(255, 168, 168, 168);
         titleBarPaint.setARGB(255, 0,0,255);
