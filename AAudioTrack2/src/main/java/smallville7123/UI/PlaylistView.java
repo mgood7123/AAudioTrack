@@ -17,7 +17,6 @@ import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 
-import smallville7123.UI.ScrollBarView.ScrollBarLogic;
 import smallville7123.UI.ScrollBarView.ScrollBarView;
 import smallville7123.UI.Style.Android.ToggleRadioButton;
 import smallville7123.aaudiotrack2.AAudioTrack2;
@@ -149,7 +148,7 @@ public class PlaylistView extends FrameLayout {
         scrollBarContainerTop.setBackgroundColor(Color.YELLOW);
         scrollBarTopScrollLeft = new FrameLayout(context, attrs);
         scrollBarTopScrollBar = new ScrollBarView(context, attrs);
-        scrollBarTopScrollBar.setOrientation(ScrollBarLogic.HORIZONTAL);
+        scrollBarTopScrollBar.setOrientation(ScrollBarView.HORIZONTAL);
         scrollBarTopScrollRight = new FrameLayout(context, attrs);
 
         scrollBarContainerTopRight = new LinearLayout(context, attrs);
@@ -161,7 +160,7 @@ public class PlaylistView extends FrameLayout {
         scrollBarContainerRight.setOrientation(VERTICAL);
         scrollBarContainerRight.setBackgroundColor(Color.YELLOW);
         scrollBarRightScrollBar = new ScrollBarView(context, attrs);
-        scrollBarRightScrollBar.setOrientation(ScrollBarLogic.VERTICAL);
+        scrollBarRightScrollBar.setOrientation(ScrollBarView.VERTICAL);
         scrollBarRightScrollDown = new FrameLayout(context, attrs);
 
         linearLayoutHorizontal = new LinearLayout(context, attrs);
@@ -230,19 +229,13 @@ public class PlaylistView extends FrameLayout {
         // this extension is dependant on the position of the final pattern placement
         //
 
-        playlistView = new TwoWayNestedScrollView(context, attrs) {
-            private static final String TAG = "TwoWayNestedScrollView";
-            @Override
-            protected void onOverScrolled(int scrollX, int scrollY, boolean clampedX, boolean clampedY) {
-                super.onOverScrolled(scrollX, scrollY, clampedX, clampedY);
-                Log.d(TAG, "onOverScrolled() called with: scrollX = [" + scrollX + "], scrollY = [" + scrollY + "], clampedX = [" + clampedX + "], clampedY = [" + clampedY + "]");
-                scrollBarTopScrollBar.updateAbsolutePosition(scrollX, scrollY);
-                scrollBarRightScrollBar.updateAbsolutePosition(scrollX, scrollY);
-            }
-        };
+        playlistView = new TwoWayNestedScrollView(context, attrs);
+
         playlistView.setBackgroundColor(Color.DKGRAY);
+
         scrollBarTopScrollBar.attachTo(playlistView);
         scrollBarRightScrollBar.attachTo(playlistView);
+
         FrameLayout frame = new FrameLayout(context, attrs);
         Button button = new Button(context, attrs);
         // 1000 width, 1000 height
@@ -316,7 +309,6 @@ public class PlaylistView extends FrameLayout {
                     Log.d(TAG, "onOverScrolled() called with: scrollX = [" + scrollX + "], scrollY = [" + scrollY + "], clampedX = [" + clampedX + "], clampedY = [" + clampedY + "]");
                     if (!track.scrolling) {
                         track.scrolling = true;
-                        scrollBarTopScrollBar.updateAbsolutePosition(scrollX, scrollY);
                         for (Track track1 : trackArrayList) {
                             if (!track1.scrolling) {
                                 track1.scrolling = true;
