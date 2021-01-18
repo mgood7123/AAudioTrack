@@ -8,7 +8,6 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
-import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -19,6 +18,7 @@ import androidx.annotation.Nullable;
 import java.util.ArrayList;
 
 import smallville7123.UI.ScrollBarView.ScrollBarView;
+import smallville7123.UI.ScrollBarView.CanvasView;
 import smallville7123.UI.Style.Android.ToggleRadioButton;
 import smallville7123.aaudiotrack2.AAudioTrack2;
 import smallville7123.aaudiotrack2.R;
@@ -65,17 +65,17 @@ public class PlaylistView extends FrameLayout {
     FrameLayout timeline;
     LinearLayout scrollBarContainerTop;
     FrameLayout scrollBarTopScrollLeft;
-    ScrollBarView scrollBarTopScrollBar;
+    ScrollBarView horizontalScrollBar;
     FrameLayout scrollBarTopScrollRight;
     LinearLayout scrollBarContainerTopRight;
     FrameLayout zoom;
     FrameLayout scrollBarRightScrollUp;
     LinearLayout scrollBarContainerRight;
-    ScrollBarView scrollBarRightScrollBar;
+    ScrollBarView verticalScrollBar;
     FrameLayout scrollBarRightScrollDown;
     LinearLayout linearLayoutHorizontal;
     LinearLayout patternView;
-    TwoWayNestedScrollView playlistView;
+    CanvasView playlistView;
 
     Context mContext;
     AttributeSet mAttr;
@@ -149,12 +149,12 @@ public class PlaylistView extends FrameLayout {
         scrollBarAndTimeLine.setBackgroundColor(bright_orange);
         timeline.setBackgroundColor(Color.BLUE);
 
-        scrollBarTopScrollBar = new ScrollBarView(context, attrs);
-        scrollBarTopScrollBar.setOrientation(ScrollBarView.HORIZONTAL);
-        scrollBarRightScrollBar = new ScrollBarView(context, attrs);
-        scrollBarRightScrollBar.setOrientation(ScrollBarView.VERTICAL);
+        horizontalScrollBar = new ScrollBarView(context, attrs);
+        horizontalScrollBar.setOrientation(ScrollBarView.HORIZONTAL);
+        verticalScrollBar = new ScrollBarView(context, attrs);
+        verticalScrollBar.setOrientation(ScrollBarView.VERTICAL);
 
-        scrollBarTopScrollBar.registerView(
+        horizontalScrollBar.registerView(
                 TwoWayNestedScrollView.class,
                 (view, mOrientation) -> {
                     TwoWayNestedScrollView twoWayNestedScrollView = (TwoWayNestedScrollView) view;
@@ -177,7 +177,7 @@ public class PlaylistView extends FrameLayout {
                 defaultGetScrollY
         );
 
-        scrollBarRightScrollBar.registerView(
+        verticalScrollBar.registerView(
                 TwoWayNestedScrollView.class,
                 (view, mOrientation) -> {
                     TwoWayNestedScrollView twoWayNestedScrollView = (TwoWayNestedScrollView) view;
@@ -225,8 +225,8 @@ public class PlaylistView extends FrameLayout {
 
         scrollBarContainerTop.addView(scrollBarTopScrollLeft, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
         scrollBarTopScrollLeft.setBackgroundColor(Color.RED);
-        scrollBarContainerTop.addView(scrollBarTopScrollBar, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
-        scrollBarTopScrollBar.setBackgroundColor(Color.GREEN);
+        scrollBarContainerTop.addView(horizontalScrollBar, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        horizontalScrollBar.setBackgroundColor(Color.GREEN);
         scrollBarContainerTop.addView(scrollBarTopScrollRight, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
         scrollBarTopScrollRight.setBackgroundColor(Color.MAGENTA);
 
@@ -235,8 +235,8 @@ public class PlaylistView extends FrameLayout {
         scrollBarContainerTopRight.addView(scrollBarRightScrollUp, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 1f));
         scrollBarRightScrollUp.setBackgroundColor(Color.RED);
 
-        scrollBarContainerRight.addView(scrollBarRightScrollBar, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
-        scrollBarRightScrollBar.setBackgroundColor(Color.GREEN);
+        scrollBarContainerRight.addView(verticalScrollBar, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        verticalScrollBar.setBackgroundColor(Color.GREEN);
         scrollBarContainerRight.addView(scrollBarRightScrollDown, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
         scrollBarRightScrollDown.setBackgroundColor(Color.MAGENTA);
 
@@ -262,7 +262,7 @@ public class PlaylistView extends FrameLayout {
 //            @Override
 //            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
 //                super.onScrolled(recyclerView, dx, dy);
-//                scrollBarRightScrollBar.updateRelativePosition(dx, dy);
+//                verticalScrollBar.updateRelativePosition(dx, dy);
 //            }
 //        });
 //
@@ -285,26 +285,10 @@ public class PlaylistView extends FrameLayout {
         // this extension is dependant on the position of the final pattern placement
         //
 
-        playlistView = new TwoWayNestedScrollView(context, attrs);
-
-        playlistView.setBackgroundColor(Color.DKGRAY);
-
-        scrollBarTopScrollBar.attachTo(playlistView);
-        scrollBarRightScrollBar.attachTo(playlistView);
-
-        FrameLayout frame = new FrameLayout(context, attrs);
-        Button button = new Button(context, attrs);
-        // 1000 width, 1000 height
-        frame.addView(button, new LayoutParams(1000, 1000) {
-            {
-                leftMargin = 1000;
-                topMargin = 1000;
-            }
-        });
-        frame.setLayoutParams(new LayoutParams(4000, 4000));
-        playlistView.addView(frame);
+        playlistView = new TimelineView(context, attrs);
+        horizontalScrollBar.attachTo(playlistView);
+        verticalScrollBar.attachTo(playlistView);
         linearLayoutHorizontal.addView(playlistView, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
-
         linearLayoutHorizontal.addView(scrollBarContainerRight, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
 
 
@@ -376,8 +360,8 @@ public class PlaylistView extends FrameLayout {
                     }
                 }
             };
-//            if (scrollBarTopScrollBar.document == null) {
-//                scrollBarTopScrollBar.attachTo(track.clipView);
+//            if (horizontalScrollBar.document == null) {
+//                horizontalScrollBar.attachTo(track.clipView);
 //            }
             LinearLayout row = new LinearLayout(mContext);
             row.setOrientation(HORIZONTAL);
@@ -483,13 +467,13 @@ public class PlaylistView extends FrameLayout {
         LayoutEngine engineA_ = engine.newHeightRegion(engineA.remainingHeight);
         if (engineA.remainingHeight > 80) {
             engineA_.height(scrollBarRightScrollDown, 80);
-            engineA_.height(scrollBarRightScrollBar, engineA_.remainingHeight);
+            engineA_.height(verticalScrollBar, engineA_.remainingHeight);
         } else if (engineA.remainingHeight == 80) {
             engineA_.height(scrollBarRightScrollDown, 80);
-            engineA_.height(scrollBarRightScrollBar, 0);
+            engineA_.height(verticalScrollBar, 0);
         } else if (engineA.remainingHeight < 80) {
             engineA_.height(scrollBarRightScrollDown, engineA.remainingHeight);
-            engineA_.height(scrollBarRightScrollBar, 0);
+            engineA_.height(verticalScrollBar, 0);
         }
         engineA.height(linearLayoutHorizontal, engineA.remainingHeight);
 
@@ -519,20 +503,20 @@ public class PlaylistView extends FrameLayout {
                 if (engineB.remainingWidth > 160) {
                     engineB_.width(scrollBarTopScrollLeft, 80);
                     engineB_.width(scrollBarTopScrollRight, 80);
-                    engineB_.width(scrollBarTopScrollBar, engineB_.remainingWidth);
+                    engineB_.width(horizontalScrollBar, engineB_.remainingWidth);
                 } else if (engineB.remainingWidth == 160) {
                     engineB_.width(scrollBarTopScrollLeft, 80);
                     engineB_.width(scrollBarTopScrollRight, 80);
-                    engineB_.width(scrollBarTopScrollBar, 0);
+                    engineB_.width(horizontalScrollBar, 0);
                 } else if (engineB.remainingWidth < 160) {
                     if (engineB.remainingWidth < 80) {
                         engineB_.width(scrollBarTopScrollLeft, engineB.remainingWidth);
                         engineB_.width(scrollBarTopScrollRight, 0);
-                        engineB_.width(scrollBarTopScrollBar, 0);
+                        engineB_.width(horizontalScrollBar, 0);
                     } else {
                         engineB_.width(scrollBarTopScrollLeft, 80);
                         engineB_.width(scrollBarTopScrollRight, engineB.remainingWidth);
-                        engineB_.width(scrollBarTopScrollBar, 0);
+                        engineB_.width(horizontalScrollBar, 0);
                     }
                 }
                 engineB.width(scrollBarAndTimeLine, engineB.remainingWidth);
