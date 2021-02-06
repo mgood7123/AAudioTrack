@@ -43,6 +43,14 @@ public class AAudioTrack2 {
     private native void startEngine();
     private native void stopEngine();
     public native void setNoteData(long pattern, boolean[] array);
+    public native long getMidiEventAt(long pattern, int index);
+    public native int getMidiTickAt(long pattern, long midiEvent);
+    public native int getMidiChannelAt(long pattern, long midiEvent);
+    public native int getMidiNumberAt(long pattern, long midiEvent);
+    public native int getMidiVelocityAt(long pattern, long midiEvent);
+    public native boolean isMidiEventNote(long pattern, long midiEvent);
+    public native boolean isMidiEventNoteOn(long pattern, long midiEvent);
+    public native boolean isMidiEventNoteOff(long pattern, long midiEvent);
     public native void setTrackData(long track, boolean[] array);
     public native int getDSPLoad();
 

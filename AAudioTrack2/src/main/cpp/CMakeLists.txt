@@ -13,6 +13,7 @@ add_library(engine SHARED
         ardour/AudioEngine/AudioBackend.cpp
         ardour/AudioEngine/AudioEngine.cpp
         ardour/Backends/AAudio.cpp
+        smallville7123/MidiMap.cpp
         smallville7123/TempoGrid.cpp
 )
 

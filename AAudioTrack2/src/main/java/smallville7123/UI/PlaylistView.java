@@ -17,8 +17,8 @@ import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 
-import smallville7123.UI.ScrollBarView.ScrollBarView;
 import smallville7123.UI.ScrollBarView.CanvasView;
+import smallville7123.UI.ScrollBarView.ScrollBarView;
 import smallville7123.UI.Style.Android.ToggleRadioButton;
 import smallville7123.aaudiotrack2.AAudioTrack2;
 import smallville7123.aaudiotrack2.R;

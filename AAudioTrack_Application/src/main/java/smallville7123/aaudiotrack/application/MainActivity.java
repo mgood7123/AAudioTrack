@@ -7,6 +7,8 @@ import android.widget.RadioGroup;
 import androidx.appcompat.app.AppCompatActivity;
 
 import smallville7123.UI.Constants;
+import smallville7123.UI.PatternView;
+import smallville7123.UI.PianoRollView;
 import smallville7123.UI.PlaylistView;
 import smallville7123.UI.SequencerView;
 import smallville7123.UI.UpdatingImageProgressBar;
@@ -72,13 +74,17 @@ public class MainActivity extends AppCompatActivity {
 
         // bind
         playlistView.addRow(playlist, "Track 1").bindPatternListToTrack(list);
-        playlistView.addRow(playlist, "Track 2").bindPatternListToTrack(list);
-        playlistView.addRow(playlist, "Track 3").bindPatternListToTrack(list);
-        playlistView.addRow(playlist, "Track 4").bindPatternListToTrack(list);
-        playlistView.addRow(playlist, "Track 5").bindPatternListToTrack(list);
+
+        SequencerView.Pattern pattern = sequencerView.addRow(list, "Kick");
+
+        PatternView patternView = findViewById(R.id.patternView);
+        patternView.setPatternList(list);
+
+        PianoRollView pianoRollView = findViewById(R.id.pianoRoll);
+        pianoRollView.setPattern(pattern);
 
         audioTrack.load(
-                sequencerView.addRow(list, "Kick").newSamplerChannel(),
+                pattern.newSamplerChannel(),
                 this, R.raw.kick, "wav"
         );
         audioTrack.load(

@@ -11,6 +11,9 @@
 using namespace ARDOUR;
 AudioEngine * engine = nullptr;
 
+#define makeVoidPtr(what) reinterpret_cast<void*>(what)
+#define makejlong(what) reinterpret_cast<jlong>(what)
+
 bool engine_exists() {
     if (engine == nullptr) {
         LOGW("engine is null");
@@ -89,6 +92,54 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_setNoteData(JNIEnv *env, jobject t
 }
 
 extern "C"
+JNIEXPORT jlong JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_getMidiEventAt(JNIEnv *env, jobject thiz, jlong pattern, jint index) {
+    return makejlong(reinterpret_cast<Pattern *>(pattern)->pianoRoll.getMidiEventAt(index));
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_getMidiTickAt(JNIEnv *env, jobject thiz, jlong pattern, jlong midiEvent) {
+    return reinterpret_cast<Pattern *>(pattern)->pianoRoll.getMidiTickAt(makeVoidPtr(midiEvent));
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_getMidiChannelAt(JNIEnv *env, jobject thiz, jlong pattern, jlong midiEvent) {
+    return reinterpret_cast<Pattern *>(pattern)->pianoRoll.getMidiChannelAt(makeVoidPtr(midiEvent));
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_getMidiNumberAt(JNIEnv *env, jobject thiz, jlong pattern, jlong midiEvent) {
+    return reinterpret_cast<Pattern *>(pattern)->pianoRoll.getMidiNumberAt(makeVoidPtr(midiEvent));
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_getMidiVelocityAt(JNIEnv *env, jobject thiz, jlong pattern, jlong midiEvent) {
+    return reinterpret_cast<Pattern *>(pattern)->pianoRoll.getMidiVelocityAt(makeVoidPtr(midiEvent));
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_isMidiEventNote(JNIEnv *env, jobject thiz, jlong pattern, jlong midiEvent) {
+    return reinterpret_cast<Pattern *>(pattern)->pianoRoll.isMidiEventNote(makeVoidPtr(midiEvent));
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_isMidiEventNoteOn(JNIEnv *env, jobject thiz, jlong pattern, jlong midiEvent) {
+    return reinterpret_cast<Pattern *>(pattern)->pianoRoll.isMidiEventNoteOn(makeVoidPtr(midiEvent));
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_isMidiEventNoteOff(JNIEnv *env, jobject thiz, jlong pattern, jlong midiEvent) {
+    return reinterpret_cast<Pattern *>(pattern)->pianoRoll.isMidiEventNoteOff(makeVoidPtr(midiEvent));
+}
+
+extern "C"
 JNIEXPORT void JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_setTrackData(JNIEnv *env, jobject thiz,
                                                           jlong track, jbooleanArray booleanArray) {
@@ -125,9 +176,6 @@ JNIEXPORT void JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_changeToSongMode(JNIEnv *env, jobject thiz) {
     if (engine_exists()) engine->changeToSongMode();
 }
-
-#define makeVoidPtr(what) reinterpret_cast<void*>(what)
-#define makejlong(what) reinterpret_cast<jlong>(what)
 
 extern "C"
 JNIEXPORT void JNICALL

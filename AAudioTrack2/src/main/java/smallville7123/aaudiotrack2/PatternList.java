@@ -2,6 +2,18 @@ package smallville7123.aaudiotrack2;
 
 import java.util.ArrayList;
 
+/**
+ * a Pattern List is a list of Patterns, which is a sequence of MIDI Events
+ * <br>
+ * <br>
+ * this is sub Pattern List, and is an abstract list of Patterns
+ * <br>
+ * <br>
+ * this is typically used in Sequencers to display a pattern for each channel,
+ * and should not be considered as an actual PatternList, see {@link PatternGroup} instead
+ * @see PatternGroup
+ * @see Pattern
+ */
 public class PatternList<P extends Pattern> {
     public ArrayList<P> patternArrayList = new ArrayList<>();
     AAudioTrack2 DAWReference;

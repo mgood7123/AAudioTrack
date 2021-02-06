@@ -2,6 +2,14 @@ package smallville7123.aaudiotrack2;
 
 import java.util.ArrayList;
 
+/**
+ * a Pattern Group is a list of Pattern Lists
+ * <br>
+ * <br>
+ * this is the actual Pattern List
+ * @see PatternList
+ * @see Pattern
+ */
 public class PatternGroup<P extends PatternList<? extends Pattern>> {
     public ArrayList<P> patternListArrayList = new ArrayList<>();
     AAudioTrack2 DAWReference;

@@ -12,7 +12,7 @@ public:
     int sample_rate;
     int samples_per_bar;
     int samples_per_note;
-     float notes_per_second;
+    float notes_per_second;
     bool mapped;
 
     static inline void map_tempo_to_frame(TempoGrid &grid) {

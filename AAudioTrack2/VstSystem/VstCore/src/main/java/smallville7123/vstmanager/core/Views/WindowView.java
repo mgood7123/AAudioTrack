@@ -218,9 +218,11 @@ public class WindowView extends FrameLayout {
         switch (getVisibility()) {
             case INVISIBLE:
             case GONE:
-                setVisibility(VISIBLE);
-                invalidate();
-                post(this::minimize);
+                if (!isInEditMode()) {
+                    setVisibility(VISIBLE);
+                    invalidate();
+                    post(this::minimize);
+                }
                 break;
         }
 

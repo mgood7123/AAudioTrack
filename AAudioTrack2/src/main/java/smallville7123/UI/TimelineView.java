@@ -1,69 +1,109 @@
 package smallville7123.UI;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.graphics.Paint;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.MotionEvent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.ArrayList;
+
 import smallville7123.UI.ScrollBarView.CanvasDrawer;
 import smallville7123.UI.ScrollBarView.CanvasView;
 
-import static android.graphics.Color.argb;
-
 public class TimelineView extends CanvasView {
-    private static final String TAG = "TimelineView";
-
     public TimelineView(@NonNull Context context) {
         super(context);
-        init(context, null);
     }
 
     public TimelineView(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        init(context, attrs);
     }
 
     public TimelineView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init(context, attrs);
     }
 
     public TimelineView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
-        init(context, attrs);
     }
 
-    Paint paintGrey;
-    Paint paintRed;
+    public class Row {
+        class Column {
+            int index;
 
-    void initPaint() {
-        paintGrey = new Paint();
-        paintRed = new Paint();
-        paintGrey.setColor(argb(255, 125, 125, 125));
-        paintRed.setColor(argb(255, 255, 0, 0));
+            Column(int index) {
+                this.index = index;
+            }
+
+            void draw(CanvasDrawer canvas, int width) {
+                int x = index * columnWidth;
+                int y = rows.indexOf(Row.this) * rowHeight;
+                canvas.drawRect(x, y, width, rowHeight);
+            }
+        }
+        ArrayList<Column> columns = new ArrayList<>();
+
+        public void addColumn(int index) {
+            columns.add(new Column(index));
+        }
     }
 
-    private void init(Context context, AttributeSet attrs) {
-        createCanvas(4000, 4000);
-        initPaint();
+    ArrayList<Row> rows = new ArrayList<>();
+
+    public Row addRow() {
+        Row row = new Row();
+        rows.add(row);
+        return row;
     }
 
+    @Override
+    public void init(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+        Row row;
+        row = addRow();
+        row.addColumn(0);
+        row.addColumn(2);
+        row.addColumn(4);
+        row.addColumn(6);
+        row.addColumn(8);
+        row = addRow();
+        row.addColumn(1);
+        row.addColumn(3);
+        row.addColumn(5);
+        row.addColumn(7);
+        row.addColumn(9);
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        createCanvas(w, h);
+    }
+
+    int columnWidth = 100;
+    int rowHeight = 200;
+
+    // a TimelineView draws things scaled
+    // 1 pixel = X samples
+
+    int sampleRate = 48000;
+    int samplesPerPixel = 2048;
+
+    /**
+     * Implement this to do your drawing.
+     *
+     * @param canvas the canvas on which the background will be drawn
+     */
     @Override
     protected void onDrawCanvas(CanvasDrawer canvas) {
         canvas.clear();
-        canvas.paint = paintRed;
-        canvas.drawRect(500, 500, 500, 500);
-        invalidate();
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        Log.d(TAG, "onTouchEvent() called with: event = [" + event + "]");
-        return super.onTouchEvent(event);
+        canvas.savePaint();
+        canvas.setPaint(CanvasDrawer.paintRed);
+        for (Row row : rows) {
+            for (Row.Column column : row.columns) {
+                column.draw(canvas, columnWidth);
+            }
+        }
+        canvas.restorePaint();
     }
 }

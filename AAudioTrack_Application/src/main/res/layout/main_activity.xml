@@ -108,7 +108,7 @@
         android:layout_height="match_parent"
         android:layout_weight="6">
         <smallville7123.vstmanager.core.Views.WindowView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Sequencer"
             >
@@ -120,13 +120,38 @@
                 app:channels="4"
                 app:fitChannelsToView="true"
                 app:nativeNotes="16"
+                app:viewNotes="16"
                 app:fitNotesToView="true"
+                />
+        </smallville7123.vstmanager.core.Views.WindowView>
+        <smallville7123.vstmanager.core.Views.WindowView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Pattern View"
+            >
+            <smallville7123.UI.PatternView
+                android:id="@+id/patternView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                />
+        </smallville7123.vstmanager.core.Views.WindowView>
+        <smallville7123.vstmanager.core.Views.WindowView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Piano Roll"
+            android:visibility="gone"
+            >
+            <smallville7123.UI.PianoRollView
+                android:id="@+id/pianoRoll"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 />
         </smallville7123.vstmanager.core.Views.WindowView>
         <smallville7123.vstmanager.core.Views.WindowView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Playlist"
+            android:visibility="gone"
             >
             <smallville7123.UI.PlaylistView
                 android:id="@+id/playlist"
