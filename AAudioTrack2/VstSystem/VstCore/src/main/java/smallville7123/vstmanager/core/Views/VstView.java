@@ -173,12 +173,23 @@ public class VstView extends RelativeLayout {
         }
     }
 
+    void setWindowViewIcon(WindowView windowView) {
+        Context context = getContext();
+        int iconRes = context.getApplicationInfo().icon;
+        if (iconRes != 0) windowView.setIcon(context.getDrawable(iconRes));
+    }
+
+    void setWindowViewIconIfNeeded(WindowView windowView) {
+        if (windowView.icon == null) setWindowViewIcon(windowView);
+    }
+
     @Override
     public void addView(View child, int index, ViewGroup.LayoutParams params) {
         if (child.getTag() == Internal) super.addView(child, index, params);
         else if (child instanceof WindowView) {
             Log.d(TAG, "addView() called with WINDOW: child = [" + child + "], index = [" + index + "], params = [" + params + "]");
             WindowView window = (WindowView) child;
+            setWindowViewIconIfNeeded(window);
             window.setDrag(this);
             switch (params.width) {
                 case ViewGroup.LayoutParams.MATCH_PARENT:
@@ -209,6 +220,7 @@ public class VstView extends RelativeLayout {
 
     public WindowView requestNewWindow() {
         WindowView window = new WindowView(mContext);
+        setWindowViewIconIfNeeded(window);
         window.setDrag(this);
         super.addView(window, -1, new LayoutParams(defaultWindowWidth, defaultWindowHeight));
         return window;
