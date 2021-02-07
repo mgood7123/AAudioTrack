@@ -171,7 +171,6 @@ public class PatternView extends CanvasView {
 
                 int rows = (max - min) + 1;
 
-                Log.d(TAG, "rows = [" + (rows) + "]");
                 if (rows < 12) rows = 12;
 
                 int rowHeight = windowHeight / rows;
