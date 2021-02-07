@@ -274,16 +274,16 @@ public class OnDragTouchListener {
                     resizingBottomRight = true;
                     corner = true;
                     isResizing = true;
-                } else if (relativeToViewX < widthLeft) {
+                } else if (relativeToViewX < wl) {
                     resizingLeft = true;
                     isResizing = true;
-                } else if ((mView.getRight() - relativeToViewX) < widthRight) {
+                } else if ((mView.getRight() - relativeToViewX) < wr) {
                     resizingRight = true;
                     isResizing = true;
                 } else if (relativeToViewY < heightTop) {
                     resizingTop = true;
                     isResizing = true;
-                } else if ((mView.getBottom() - relativeToViewY) < heightBottom) {
+                } else if ((mView.getBottom() - relativeToViewY) < hb) {
                     resizingBottom = true;
                     isResizing = true;
                 } else if (relativeToViewY <= marginTop) {
