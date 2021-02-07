@@ -65,40 +65,35 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // configure the Playlist
-        PlaylistView playlistView = findViewById(R.id.playlist);
-        PlaylistView.TrackList playlist = playlistView.newTrackList(audioTrack);
+//        PlaylistView playlistView = findViewById(R.id.playlist);
+//        PlaylistView.TrackList playlist = playlistView.newTrackList(audioTrack);
 
         // configure the Sequencer
         SequencerView sequencerView = findViewById(R.id.sequencer);
         SequencerView.PatternList list = sequencerView.newPatternList(audioTrack);
 
         // bind
-        playlistView.addRow(playlist, "Track 1").bindPatternListToTrack(list);
-
-        SequencerView.Pattern pattern = sequencerView.addRow(list, "Kick");
+//        playlistView.addRow(playlist, "Track 1").bindPatternListToTrack(list);
 
         PatternView patternView = findViewById(R.id.patternView);
         patternView.setPatternList(list);
 
-        PianoRollView pianoRollView = findViewById(R.id.pianoRoll);
-        pianoRollView.setPattern(pattern);
-
         audioTrack.load(
-                pattern.newSamplerChannel(),
+                sequencerView.addRow(list, "Kick").newSamplerChannel(),
                 this, R.raw.kick, "wav"
         );
         audioTrack.load(
                 sequencerView.addRow(list, "Snare").newSamplerChannel(),
                 this, R.raw.snare_2, "wav"
         );
-        audioTrack.load(
-                sequencerView.addRow(list, "Loop").newSamplerChannel(),
-                this, R.raw.loop_00001313, "wav"
-        );
-        audioTrack.manager = new VstManager(this, findViewById(R.id.vstView));
-        audioTrack.loadVST(
-                sequencerView.addRow(list, "VST").newChannel(),
-                "smallville7123.DAW.simplesinewave"
-        );
+//        audioTrack.load(
+//                sequencerView.addRow(list, "Loop").newSamplerChannel(),
+//                this, R.raw.loop_00001313, "wav"
+//        );
+//        audioTrack.manager = new VstManager(this, findViewById(R.id.vstView));
+//        audioTrack.loadVST(
+//                sequencerView.addRow(list, "VST").newChannel(),
+//                "smallville7123.DAW.simplesinewave"
+//        );
     }
 }
