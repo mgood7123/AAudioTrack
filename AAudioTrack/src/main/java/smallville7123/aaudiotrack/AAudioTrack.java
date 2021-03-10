@@ -36,7 +36,7 @@ public class AAudioTrack {
     private native int getChannelCount(long native_aaudio_track_pointer);
     private native int getUnderrunCount(long native_aaudio_track_pointer);
     private native int getCurrentFrame(long native_aaudio_track_pointer);
-    private native int getTotalFramesFrame(long native_aaudio_track_pointer);
+    private native int getTotalSamplesFrame(long native_aaudio_track_pointer);
     private native void setTrack(long native_aaudio_track_pointer, String track);
     private native void resetPlayHead(long native_aaudio_track_pointer);
     private native void pause(long native_aaudio_track_pointer);
@@ -61,8 +61,8 @@ public class AAudioTrack {
         return getCurrentFrame(native_aaudio_track_pointer);
     }
 
-    public int getTotalFrames() {
-        return getTotalFramesFrame(native_aaudio_track_pointer);
+    public int getTotalSamples() {
+        return getTotalSamplesFrame(native_aaudio_track_pointer);
     }
 
     public void resetPlayHead() {

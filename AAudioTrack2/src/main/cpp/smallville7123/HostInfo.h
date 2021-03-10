@@ -14,7 +14,7 @@ class HostInfo {
 
 public:
     TempoGrid tempoGrid = TempoGrid(120);
-    uint64_t engineFrame = 0;
+    uint64_t engineSample = 0;
     void * channelRack;
     void * patternGroup;
     void * midiFile;
@@ -25,18 +25,18 @@ public:
     PianoRollRingBuffer midiInputBuffer;
     PianoRollRingBuffer midiPlaylistInputBuffer;
 
-    template <typename T> T wrap(T frame, T min, T max) {
-        return min + ((frame-min) % (max - min));
+    template <typename T> T wrap(T sample, T min, T max) {
+        return min + ((sample-min) % (max - min));
     }
 
     void fillMidiEvents(PianoRollRingBuffer &midiInputBuffer, TempoGrid &grid,
                         PianoRollRingBuffer &noteData,
-                        unsigned int samples, uint64_t &engineFrame) {
+                        unsigned int samples, uint64_t &engineSample) {
         midiInputBuffer.consumerClear();
         if (noteData.isEmpty()) return;
         int size = noteData.readAvailable();
-        uint64_t wrappedStart = wrap<uint64_t>(engineFrame, 0, grid.samples_per_bar);
-        uint64_t wrappedEnd = wrap<uint64_t>(engineFrame + samples, 0, grid.samples_per_bar);
+        uint64_t wrappedStart = wrap<uint64_t>(engineSample, 0, grid.samples_per_bar);
+        uint64_t wrappedEnd = wrap<uint64_t>(engineSample + samples, 0, grid.samples_per_bar);
         for (int i = 0; i < size; ++i) {
             smf::MidiEvent * midiEvent = noteData.at(i);
             if (midiEvent != nullptr) {

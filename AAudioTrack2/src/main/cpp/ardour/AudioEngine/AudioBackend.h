@@ -759,7 +759,7 @@ namespace ARDOUR {
          * Can ONLY be called from within a process() callback tree (which
          * implies that it can only be called by a process thread)
          */
-        virtual ARDOUR_TYPEDEFS::frames_t samples_since_cycle_start () = 0;
+        virtual ARDOUR_TYPEDEFS::samples_t samples_since_cycle_start () = 0;
 
         /** Return true if it possible to determine the offset in samples of the
          * first video frame that starts within the current buffer process cycle,
@@ -776,7 +776,7 @@ namespace ARDOUR {
          * Can ONLY be called from within a process() callback tree (which implies
          * that it can only be called by a process thread)
          */
-        virtual bool get_sync_offset (ARDOUR_TYPEDEFS::frames_t& offset) const
+        virtual bool get_sync_offset (ARDOUR_TYPEDEFS::samples_t& offset) const
         {
             return false;
         }

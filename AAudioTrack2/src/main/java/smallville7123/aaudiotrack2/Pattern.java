@@ -20,13 +20,13 @@ public class Pattern {
     }
 
     public long newChannel() {
-        nativeChannel = DAWReference.newChannel();
+        nativeChannel = DAWReference.newChannel().nativeChannel;
         DAWReference.bindChannelToPattern(nativeChannel, nativePattern);
         return nativeChannel;
     }
 
     public long newSamplerChannel() {
-        nativeChannel = DAWReference.newSamplerChannel();
+        nativeChannel = DAWReference.newSamplerChannel().nativeChannel;
         DAWReference.bindChannelToPattern(nativeChannel, nativePattern);
         return nativeChannel;
     }

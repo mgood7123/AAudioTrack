@@ -56,9 +56,35 @@ public:
 
     void * audioData = nullptr;
     size_t audioDataSize = -1;
-    int    audioDataTotalFrames = 0;
+    int    audioDataTotalSamples = 0;
 
-    virtual void stopPlayback() {}
+    jnk0le::Ringbuffer<int, 2> eventBuffer;
+
+    void addEvent(int event) {
+        if (eventBuffer.isFull()) eventBuffer.remove();
+        eventBuffer.insert(event);
+    }
+
+    bool mIsPlaying = true;
+    bool mIsLooping = true;
+    int mReadSampleIndex = 0;
+
+    virtual void loop(bool value) {
+        mIsLooping = value;
+    }
+
+    virtual void startPlayback() {
+        mIsPlaying = true;
+    }
+
+    virtual void pausePlayback() {
+        mIsPlaying = false;
+    }
+
+    virtual void stopPlayback() {
+        mIsPlaying = false;
+        mReadSampleIndex = 0;
+    }
 
     void load(const char *filename, int channelCount) {
         int fd;
@@ -99,16 +125,8 @@ public:
             audioData = nullptr;
         }
         audioDataSize = len;
-        audioDataTotalFrames = audioDataSize / (2 * channelCount);
-
-        float * data = static_cast<float *>(malloc(len));
-        int16_t * i16 = static_cast<int16_t*>(o);
-        for (int i = 0; i < audioDataTotalFrames; i += 2) {
-            data[i] = SoapySDR::S16toF32(i16[i]);
-            data[i+1] = SoapySDR::S16toF32(i16[i+1]);
-        }
-        free(o);
-        audioData = data;
+        audioDataTotalSamples = audioDataSize / (sizeof(float) * channelCount);
+        audioData = o;
     }
 
     ~Plugin_Base() {

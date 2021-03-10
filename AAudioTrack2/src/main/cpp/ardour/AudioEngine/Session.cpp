@@ -4,6 +4,6 @@
 
 #include "Session.h"
 
-void Session::renderAudio(void *output_buffer, frames_t number_of_frames_to_render) {
+void Session::renderAudio(void *output_buffer, samples_t number_of_samples_to_render) {
 
 }

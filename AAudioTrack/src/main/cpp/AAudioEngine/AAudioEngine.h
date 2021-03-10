@@ -13,7 +13,7 @@ public:
     AAudioStreamBuilder *builder;
     AAudioStream *stream;
     int sampleRate = 48000;
-    int BufferCapacityInFrames = 192;
+    int BufferCapacityInSamples = 192;
     int channelCount = 2;
 
     int32_t underrunCount = 0;
@@ -25,12 +25,12 @@ public:
     void * audioData = nullptr;
     size_t audioDataSize = -1;
 
-    uint64_t mReadFrameIndex = 0;
-    uint64_t mTotalFrames = 0;
+    uint64_t mReadSampleIndex = 0;
+    uint64_t mTotalSamples = 0;
     std::atomic<bool> mIsPlaying { false };
     std::atomic<bool> mIsLooping { true };
 
-    void renderAudio(int16_t *audioData, int32_t numFrames);
+    void renderAudio(int16_t *audioData, int32_t numSamples);
 
     bool hasData();
 
@@ -38,7 +38,7 @@ public:
     ~AAudioEngine();
 
     static aaudio_data_callback_result_t onAudioReady(
-            AAudioStream *stream, void *userData, void *audioData, int32_t numFrames
+            AAudioStream *stream, void *userData, void *audioData, int32_t numSamples
     );
 
     static void onError(

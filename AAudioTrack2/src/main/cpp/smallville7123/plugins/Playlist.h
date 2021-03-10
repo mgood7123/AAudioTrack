@@ -87,7 +87,7 @@ public:
             if (trackList != nullptr) {
                 for (int i = 0; i < trackList->rack.typeList.size(); ++i) {
                     Track *track = trackList->rack.typeList[i];
-//                    if (track->hasNote(hostInfo->engineFrame)) {
+//                    if (track->hasNote(hostInfo->engineSample)) {
                         for (int i = 0; i < PatternGroup::cast(
                                 hostInfo->patternGroup)->rack.typeList.size(); ++i) {
                             PatternList *patternList = PatternGroup::cast(
@@ -132,7 +132,7 @@ public:
                 if (trackList != nullptr) {
                     for (int i = 0; i < trackList->rack.typeList.size(); ++i) {
                         Track *track = trackList->rack.typeList[i];
-                        if (track->hasNote(hostInfo->engineFrame)) {
+                        if (track->hasNote(hostInfo->engineSample)) {
                             for (int i = 0; i < PatternGroup::cast(
                                     hostInfo->patternGroup)->rack.typeList.size(); ++i) {
                                 PatternList *patternList = PatternGroup::cast(
@@ -167,7 +167,7 @@ public:
                     }
                 }
             }
-            hostInfo->engineFrame++;
+            hostInfo->engineSample++;
             // return from the audio loop
         }
         // LOGE("wrote channels");
@@ -253,7 +253,7 @@ public:
                                     pattern->pianoRoll.grid,
                                     pattern->pianoRoll.noteData,
                                     samples,
-                                    hostInfo->engineFrame
+                                    hostInfo->engineSample
                             );
                             if (channel->plugin != nullptr) {
                                 channel->plugin->write(hostInfo, in, mixer,
@@ -294,11 +294,11 @@ public:
                 p = PLUGIN_STOP;
             }
         }
-        if (playing) hostInfo->engineFrame += samples;
+        if (playing) hostInfo->engineSample += samples;
     }
 
     void stopPlayback(HostInfo * hostInfo) {
-        hostInfo->engineFrame = 0;
+        hostInfo->engineSample = 0;
         playing = false;
     }
 

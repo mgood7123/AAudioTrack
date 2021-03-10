@@ -74,7 +74,7 @@ namespace ARDOUR {
         : AudioBackend(audioEngine, i)
         , currentDeviceStatus("default", false)
         , currentSampleRate(0.0)
-        , currentBufferSizeInFrames(0)
+        , currentBufferSizeInSamples(0)
         , currentInputChannelCount(0)
         , currentOutputChannelCount(0)
         {
@@ -107,12 +107,12 @@ namespace ARDOUR {
 
     aaudio_data_callback_result_t AAudio::onAudioReady(
             AAudioStream *stream, void *userData, void *audioData,
-            frames_t number_of_frames_to_render
+            samples_t number_of_samples_to_render
     ) {
         AAudio *aaudio = static_cast<AAudio *>(userData);
 
         int channelCount = aaudio->currentOutputChannelCount;
-        frames_t samples = number_of_frames_to_render*channelCount;
+        samples_t samples = number_of_samples_to_render*channelCount;
 
         PortUtils2 outPort = PortUtils2();
 
@@ -124,13 +124,13 @@ namespace ARDOUR {
         ENGINE_FORMAT * right = reinterpret_cast<ENGINE_FORMAT *>(outPort.ports.outputStereo->r->buf);
 
         // does timing drift as under-runs occur?
-        // for example, if every 24000 frames a note plays,
-        // and if the audio engine is on frame 72001,
-        // and 24000 frames of under-run occur,
-        // would the next note be played on frame 120000
-        // instead of frame 96000,
-        // or would it be delayed by 24000 frames
-        // and play on 96000 but 24000 frames later
+        // for example, if every 24000 samples a note plays,
+        // and if the audio engine is on sample 72001,
+        // and 24000 samples of under-run occur,
+        // would the next note be played on sample 120000
+        // instead of sample 96000,
+        // or would it be delayed by 24000 samples
+        // and play on 96000 but 24000 samples later
 
         // ughh im contemplating wether i want to start actually implementing the MIDI events system for sequencers/piano rolls or wether i should focus on fixing low priority bugs (such as audio desync occuring when given a large buffer of 8k, or if under-runs affect timing of events)
 
@@ -146,10 +146,10 @@ namespace ARDOUR {
 
         outPort.deallocatePorts<ENGINE_FORMAT>(channelCount);
 
-        aaudio->_processed_samples += number_of_frames_to_render;
+        aaudio->_processed_samples += number_of_samples_to_render;
 
         // Are we getting underruns?
-        frames_t tmpuc = AAudioStream_getXRunCount(stream);
+        samples_t tmpuc = AAudioStream_getXRunCount(stream);
         if (tmpuc > aaudio->previousUnderrunCount) {
             aaudio->previousUnderrunCount = aaudio->underrunCount;
             aaudio->underrunCount = tmpuc;
@@ -336,8 +336,8 @@ namespace ARDOUR {
 
     std::vector<uint32_t> AAudio::available_buffer_sizes(const std::string &device) const {
         // ignore device
-        const_cast<int32_t *>(&currentBufferSizeInFrames)[0] = AAudioStream_getBufferSizeInFrames(stream);
-        return std::vector<uint32_t>(1, currentBufferSizeInFrames);
+        const_cast<int32_t *>(&currentBufferSizeInSamples)[0] = AAudioStream_getBufferSizeInFrames(stream);
+        return std::vector<uint32_t>(1, currentBufferSizeInSamples);
     }
 
     uint32_t AAudio::available_input_channel_count(const std::string &device) const {
@@ -500,7 +500,7 @@ namespace ARDOUR {
         return 0;
     }
 
-    frames_t AAudio::samples_since_cycle_start() {
+    samples_t AAudio::samples_since_cycle_start() {
         return 0;
     }
 

@@ -9,6 +9,7 @@
 
 class Plugin_Type_Generator : public Plugin_Base {
 public:
+
     virtual bool requires_sample_count() override {
         return Plugin_Base::requires_sample_count();
     }
@@ -20,6 +21,18 @@ public:
     virtual int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
                       unsigned int samples) override {
         return Plugin_Base::write(hostInfo, in, mixer, out, samples);
+    }
+
+    virtual void loop(bool value) override {
+        Plugin_Base::loop(value);
+    }
+
+    virtual void startPlayback() override {
+        Plugin_Base::startPlayback();
+    }
+
+    virtual void pausePlayback() override {
+        Plugin_Base::pausePlayback();
     }
 
     virtual void stopPlayback() override {

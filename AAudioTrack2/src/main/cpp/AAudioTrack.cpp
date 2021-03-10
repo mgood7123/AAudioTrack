@@ -167,6 +167,12 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_getDSPLoad(JNIEnv *env, jobject th
 
 extern "C"
 JNIEXPORT void JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_changeToDirectMode(JNIEnv *env, jobject thiz) {
+    if (engine_exists()) engine->changeToDirectMode();
+}
+
+extern "C"
+JNIEXPORT void JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_changeToPatternMode(JNIEnv *env, jobject thiz) {
     if (engine_exists()) engine->changeToPatternMode();
 }
@@ -237,14 +243,14 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_stopEngine(JNIEnv *env, jobject th
 
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_smallville7123_aaudiotrack2_AAudioTrack2_newChannel(JNIEnv *env, jobject thiz) {
+Java_smallville7123_aaudiotrack2_AAudioTrack2_newChannel_1(JNIEnv *env, jobject thiz) {
     if (!engine_exists()) return 0;
     return reinterpret_cast<jlong>(engine->channelRack.newChannel());
 }
 
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_smallville7123_aaudiotrack2_AAudioTrack2_newSamplerChannel(JNIEnv *env, jobject thiz) {
+Java_smallville7123_aaudiotrack2_AAudioTrack2_newSamplerChannel_1(JNIEnv *env, jobject thiz) {
     Channel_Generator * channel = engine->channelRack.newChannel();
     channel->plugin = new Sampler();
     return reinterpret_cast<jlong>(channel);
@@ -281,6 +287,13 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_setPlugin(JNIEnv *env, jobject thi
 }
 
 extern "C"
+JNIEXPORT void JNICALL
+Java_smallville7123_aaudiotrack2_AAudioTrack2_sendEvent(JNIEnv *env, jobject thiz, jlong nativeChannel, jint event) {
+    if (!engine_exists()) return;
+    engine->sendEvent(makeVoidPtr(nativeChannel), event);
+}
+
+extern "C"
 JNIEXPORT jint JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_getUnderrunCount(JNIEnv *env, jobject thiz) {
     if (!check_engine()) return 0;
@@ -289,23 +302,23 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_getUnderrunCount(JNIEnv *env, jobj
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_smallville7123_aaudiotrack2_AAudioTrack2_getCurrentFrame(JNIEnv *env, jobject thiz) {
+Java_smallville7123_aaudiotrack2_AAudioTrack2_getCurrentSample(JNIEnv *env, jobject thiz) {
     if (!check_engine()) return 0;
-    return 0; //reinterpret_cast<AudioEngine*>(native_aaudio_track_pointer)->mReadFrameIndex;
+    return 0; //reinterpret_cast<AudioEngine*>(native_aaudio_track_pointer)->mReadSampleIndex;
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_smallville7123_aaudiotrack2_AAudioTrack2_getTotalFrames(JNIEnv *env, jobject thiz) {
+Java_smallville7123_aaudiotrack2_AAudioTrack2_getTotalSamples(JNIEnv *env, jobject thiz) {
     if (!check_engine()) return 0;
-    return 0; //reinterpret_cast<AudioEngine*>(native_aaudio_track_pointer)->mTotalFrames;
+    return 0; //reinterpret_cast<AudioEngine*>(native_aaudio_track_pointer)->mTotalSamples;
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_resetPlayHead(JNIEnv *env, jobject thiz) {
     if (!check_engine()) return;
-//    reinterpret_cast<AudioEngine*>(native_aaudio_track_pointer)->mReadFrameIndex = 0;
+//    reinterpret_cast<AudioEngine*>(native_aaudio_track_pointer)->mReadSampleIndex = 0;
 }
 
 extern "C"
@@ -327,11 +340,10 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_resume(JNIEnv *env, jobject thiz) 
 extern "C"
 JNIEXPORT void JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_loop(JNIEnv *env, jobject thiz,
-                                                 jboolean value) {
-    if (!check_engine()) return;
-//    reinterpret_cast<AudioEngine*>(native_aaudio_track_pointer)->mReadFrameIndex = 0;
-//    AudioEngine* AE = reinterpret_cast<AudioEngine*>(native_aaudio_track_pointer);
-//    if (!AE->metronomeMode.load()) AE->mIsLooping.store(value);
+                                                   jlong channel, jboolean value) {
+    if (engine_exists()) {
+        engine->loop(makeVoidPtr(channel), value);
+    }
 }
 
 extern "C"

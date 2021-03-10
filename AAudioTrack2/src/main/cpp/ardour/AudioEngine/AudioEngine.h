@@ -133,9 +133,12 @@ namespace ARDOUR {
 
         void setPlugin(void *pVoid, void *pVoid1);
 
+        void sendEvent(void *pVoid, int event);
+
         void setPatternGridResolution(void *nativePattern, int size);
         void setTrackGridResolution(void *nativeTrack, int size);
 
+        void loop(void *nativeChannel, bool value);
         void bindChannelToPattern(void *nativeChannel, void *nativePattern);
 
         PatternList * createPatternList();
@@ -159,6 +162,8 @@ namespace ARDOUR {
         PatternGroup *getPatternGroup();
 
         smf::MidiFile *getMidiFile();
+
+        void changeToDirectMode();
 
         void changeToPatternMode();
 

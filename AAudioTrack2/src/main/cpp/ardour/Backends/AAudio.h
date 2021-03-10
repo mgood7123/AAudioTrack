@@ -27,7 +27,7 @@ namespace ARDOUR {
 
         DeviceStatus currentDeviceStatus;
         float currentSampleRate;
-        int32_t currentBufferSizeInFrames;
+        int32_t currentBufferSizeInSamples;
         int32_t currentInputChannelCount;
         int32_t currentOutputChannelCount;
         aaudio_format_t outputFormat = AAUDIO_FORMAT_UNSPECIFIED;
@@ -43,7 +43,7 @@ namespace ARDOUR {
 
         static aaudio_data_callback_result_t onAudioReady(
                 AAudioStream *stream, void *userData, void *audioData,
-                frames_t number_of_frames_to_render
+                samples_t number_of_samples_to_render
         );
 
         static void onError(
@@ -165,7 +165,7 @@ namespace ARDOUR {
 
         sample_position_t sample_time_at_cycle_start() override;
 
-        frames_t samples_since_cycle_start() override;
+        samples_t samples_since_cycle_start() override;
 
         int create_process_thread(std::function<void()> func) override;
 

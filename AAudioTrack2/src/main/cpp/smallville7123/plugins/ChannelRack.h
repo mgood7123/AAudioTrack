@@ -17,6 +17,7 @@
 #include "../PatternList.h"
 #include "../PatternGroup.h"
 #include "../../midifile/include/MidiFile.h"
+#include <cstdlib>
 
 class ChannelRack : Plugin_Base {
 public:
@@ -93,7 +94,6 @@ public:
 
     void writeChannels(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
                        unsigned int samples) {
-        // LOGE("writing channels");
         for (int i = 0; i < PatternGroup::cast(hostInfo->patternGroup)->rack.typeList.size(); ++i) {
             PatternList *patternList = PatternGroup::cast(hostInfo->patternGroup)->rack.typeList[i];
             if (patternList != nullptr) {
@@ -107,7 +107,7 @@ public:
                                     pattern->pianoRoll.grid,
                                     pattern->pianoRoll.noteData,
                                     samples,
-                                    hostInfo->engineFrame
+                                    hostInfo->engineSample
                             );
                             channel->out->allocatePorts<ENGINE_FORMAT>(out);
                             channel->out->fillPortBuffer<ENGINE_FORMAT>(0);
@@ -124,9 +124,78 @@ public:
                 }
             }
         }
-        hostInfo->engineFrame += samples;
+        hostInfo->engineSample += samples;
         // LOGE("wrote channels");
     }
+
+    static constexpr int NO_EVENT = 0;
+    static constexpr int EVENT_NOTE_ON = 1;
+    static constexpr int EVENT_NOTE_OFF = 2;
+
+    void writeChannelsDirect(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
+                       unsigned int samples) {
+        for (int i = 0; i < rack.typeList.size(); ++i) {
+            Channel_Generator * channel = rack.typeList[i];
+            if (channel != nullptr) {
+                channel->out->allocatePorts<ENGINE_FORMAT>(out);
+                channel->out->fillPortBuffer<ENGINE_FORMAT>(0);
+                if (channel->plugin != nullptr) {
+                    hostInfo->midiInputBuffer.consumerClear();
+                    if (!channel->plugin->eventBuffer.isEmpty()) {
+                        int *tmp = channel->plugin->eventBuffer.peek();
+                        int event;
+                        if (tmp == nullptr) {
+                            event = NO_EVENT;
+                        } else {
+                            event = *tmp;
+                            channel->plugin->eventBuffer.remove();
+                        }
+                        switch(event) {
+                            case NO_EVENT:
+                                break;
+                            case EVENT_NOTE_ON: {
+                                smf::MidiEvent midiEvent;
+                                midiEvent.tick = hostInfo->engineSample;
+                                midiEvent.makeNoteOn(0, 0, 127);
+                                hostInfo->midiInputBuffer.insert(midiEvent);
+                                break;
+                            }
+                            case EVENT_NOTE_OFF: {
+                                smf::MidiEvent midiEvent;
+                                midiEvent.tick = hostInfo->engineSample;
+                                midiEvent.makeNoteOff(0, 0, 0);
+                                hostInfo->midiInputBuffer.insert(midiEvent);
+                                break;
+                            }
+                        }
+                    }
+                    channel->plugin->write(hostInfo, in, mixer, channel->out, samples);
+                }
+                if (channel->effectRack != nullptr) {
+                    channel->effectRack->write(hostInfo, in, mixer, channel->out, samples);
+                }
+            }
+        }
+        hostInfo->engineSample += samples;
+        // LOGE("wrote channels");
+    }
+
+    void prepareMixerDirect(HostInfo * hostInfo, Plugin_Type_Mixer * mixer_, PortUtils2 * out) {
+        // LOGE("preparing mixer");
+        for (int i = 0; i < rack.typeList.size(); ++i) {
+            Channel_Generator * channel = rack.typeList[i];
+            if (channel != nullptr) {
+                if (channel->out->allocated) {
+                    mixer_->addPort(channel->out);
+                }
+            }
+        }
+        silencePort->allocatePorts<ENGINE_FORMAT>(out);
+        mixer_->addPort(silencePort);
+        silencePort->fillPortBuffer<ENGINE_FORMAT>(0);
+        // LOGE("prepared mixer");
+    }
+
 
     void prepareMixer(HostInfo * hostInfo, Plugin_Type_Mixer * mixer_, PortUtils2 * out) {
         // LOGE("preparing mixer");
@@ -158,6 +227,23 @@ public:
         // LOGE("mixed");
     }
 
+    void finalizeMixerDirect(HostInfo * hostInfo, Plugin_Type_Mixer * mixer_) {
+        // LOGE("finalizing mixer");
+        mixer_->removePort(silencePort);
+        silencePort->deallocatePorts<ENGINE_FORMAT>();
+
+        for (int i = 0; i < rack.typeList.size(); ++i) {
+            Channel_Generator * channel = rack.typeList[i];
+            if (channel != nullptr) {
+                if (channel->out->allocated) {
+                    mixer_->removePort(channel->out);
+                    channel->out->deallocatePorts<ENGINE_FORMAT>();
+                }
+            }
+        }
+        // LOGE("finalized mixer");
+    }
+
     void finalizeMixer(HostInfo * hostInfo, Plugin_Type_Mixer * mixer_) {
         // LOGE("finalizing mixer");
         mixer_->removePort(silencePort);
@@ -182,11 +268,25 @@ public:
         // LOGE("finalized mixer");
     }
 
+    void mixChannelsDirect(HostInfo *hostInfo, PortUtils2 *in, Plugin_Type_Mixer * mixer, PortUtils2 *out,
+                           unsigned int samples) {
+        prepareMixerDirect(hostInfo, mixer, out);
+        mix(hostInfo, in, mixer, out, samples);
+        finalizeMixerDirect(hostInfo, mixer);
+    }
+
     void mixChannels(HostInfo *hostInfo, PortUtils2 *in, Plugin_Type_Mixer * mixer, PortUtils2 *out,
                      unsigned int samples) {
         prepareMixer(hostInfo, mixer, out);
         mix(hostInfo, in, mixer, out, samples);
         finalizeMixer(hostInfo, mixer);
+    }
+
+    int writeDirect(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
+              unsigned int samples) {
+        writeChannelsDirect(hostInfo, in, mixer, out, samples);
+        mixChannelsDirect(hostInfo, in, reinterpret_cast<Plugin_Type_Mixer*>(mixer), out, samples);
+        return PLUGIN_CONTINUE;
     }
 
     int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
@@ -202,6 +302,16 @@ public:
 
     void setPlugin(void *nativeChannel, void *nativePlugin) {
         static_cast<Channel_Generator *>(nativeChannel)->plugin = static_cast<Plugin_Type_Generator *>(nativePlugin);
+    }
+
+    void loop(void * nativeChannel, bool value) {
+        Plugin_Type_Generator * plugin = static_cast<Channel_Generator *>(nativeChannel)->plugin;
+        if (plugin != nullptr) plugin->loop(value);
+    }
+
+    void sendEvent(void *nativeChannel, int event) {
+        Plugin_Type_Generator * plugin = static_cast<Channel_Generator *>(nativeChannel)->plugin;
+        if (plugin != nullptr) plugin->addEvent(event);
     }
 
     PatternList * newPatternList(HostInfo * hostInfo) {

@@ -33,6 +33,10 @@ import smallville7123.vstmanager.core.VST;
 import static com.arthenica.mobileffmpeg.Config.RETURN_CODE_SUCCESS;
 
 public class AAudioTrack2 {
+    public static final int NO_EVENT = 0;
+    public static final int EVENT_NOTE_ON = 1;
+    public static final int EVENT_NOTE_OFF = 2;
+
     static {
         System.loadLibrary("AAudioTrack2");
     }
@@ -54,6 +58,7 @@ public class AAudioTrack2 {
     public native void setTrackData(long track, boolean[] array);
     public native int getDSPLoad();
 
+    public native void changeToDirectMode();
     public native void changeToPatternMode();
     public native void changeToSongMode();
 
@@ -77,15 +82,137 @@ public class AAudioTrack2 {
     public  native int getChannelCount();
     public  native int getUnderrunCount();
     public  native int getCurrentFrame();
-    public  native int getTotalFrames();
+    public  native int getTotalSamples();
     public  native void setTrack(long nativeChannel, String track);
     public  native void setPlugin(long nativeChannel, long plugin);
+    public  native void sendEvent(long nativeChannel, int event);
     public  native void resetPlayHead();
     public  native void pause();
     public  native void resume();
-    public  native void loop(boolean value);
-    public  native long newChannel();
-    public  native long newSamplerChannel();
+    public  native void loop(long nativeChannel, boolean value);
+    public  native long newChannel_();
+    public  native long newSamplerChannel_();
+
+    public class ChannelInterface {
+        public final long nativeChannel;
+        AAudioTrack2 DAW;
+
+        ChannelInterface(AAudioTrack2 DAW, long nativeChannel) {
+            this.DAW = DAW;
+            this.nativeChannel = nativeChannel;
+        }
+
+        public void loop(boolean value) {
+            DAW.loop(nativeChannel, value);
+        }
+
+        public void sendEvent(int event) {
+            DAW.sendEvent(nativeChannel, event);
+        }
+
+        /**
+         * Load the sound from the specified path.
+         *
+         * @param context this is used to obtain a temporary directory to decode the audio file to
+         * @param path the path to the audio file
+         */
+        public void loadPath(Context context, String path) {
+            DAW.loadPath(nativeChannel, context, path);
+        }
+
+        /**
+         * Load the sound from the specified APK resource.
+         *
+         * Note that the extension is dropped. For example, if you want to load
+         * a sound from the raw resource file "explosion.mp3", you would specify
+         * "R.raw.explosion" as the resource ID. Note that this means you cannot
+         * have both an "explosion.wav" and an "explosion.mp3" in the res/raw
+         * directory.
+         *
+         * @param context this is used to obtain a temporary directory to decode the audio file to
+         * @param resId the resource ID
+         * @param extension the extension that should be used to decode the file.
+         *                  Note that this means you cannot
+         *                  have both an "explosion.wav" and an "explosion.mp3" in the res/raw
+         *                  directory.
+         */
+        public void load(Context context, int resId, CharSequence extension) {
+            DAW.load(nativeChannel, context, resId, extension);
+        }
+
+        /**
+         * Load the sound from an asset file descriptor.
+         *
+         * @param context this is used to obtain a temporary directory to decode the audio file to
+         * @param afd an asset file descriptor
+         * @param extension the extension that should be used to decode the file.
+         *                  Note that this means you cannot
+         *                  have both an "explosion.wav" and an "explosion.mp3" in the res/raw
+         *                  directory.
+         */
+        public void load(Context context, AssetFileDescriptor afd, CharSequence extension) {
+            DAW.load(nativeChannel, context, afd, extension);
+        }
+
+        /**
+         * Load the sound from a FileDescriptor.
+         *
+         * @param context this is used to obtain a temporary directory to decode the audio file to
+         * @param fd a FileDescriptor object
+         * @param extension the extension that should be used to decode the file.
+         *                  Note that this means you cannot
+         *                  have both an "explosion.wav" and an "explosion.mp3" in the res/raw
+         *                  directory.
+         */
+        public void load(Context context, FileDescriptor fd, CharSequence extension) {
+            DAW.load(nativeChannel, context, fd, extension);
+        }
+
+        /**
+         * Load the sound from a FileDescriptor.
+         *
+         * This version is useful if you store multiple sounds in a single
+         * binary. The offset specifies the offset from the start of the file
+         * and the length specifies the length of the sound within the file.
+         *
+         * @param context this is used to obtain a temporary directory to decode the audio file to
+         * @param fd a FileDescriptor object
+         * @param offset offset to the start of the sound
+         * @param length length of the sound
+         * @param extension the extension that should be used to decode the file.
+         *                  Note that this means you cannot
+         *                  have both an "explosion.wav" and an "explosion.mp3" in the res/raw
+         *                  directory.
+         */
+        public void load(Context context, FileDescriptor fd, long offset, long length, CharSequence extension) {
+            DAW.load(nativeChannel, context, fd, offset, length, extension);
+        }
+
+        /**
+         * Load the VST instrument
+         * @param vst the vst to load
+         */
+        public void loadVST(Pair<VST, ReflectionActivity> vst) {
+            DAW.loadVST(nativeChannel, vst);
+        }
+
+        /**
+         * Load the VST instrument using the given package name
+         *
+         * @param packageName the vst to load
+         */
+        public void loadVST(String packageName) {
+            DAW.loadVST(nativeChannel, packageName);
+        }
+    }
+
+    public ChannelInterface newChannel() {
+        return new ChannelInterface(this, newChannel_());
+    }
+
+    public ChannelInterface newSamplerChannel() {
+        return new ChannelInterface(this, newSamplerChannel_());
+    }
 
     private String converted;
 
@@ -99,18 +226,19 @@ public class AAudioTrack2 {
     private void _load(long nativeChannel, Path tmp) {
         int sampleRate = getSampleRate();
         int channelCount = getChannelCount();
-        converted = tmp + ".converted.f_s16le.ar_" + sampleRate + ".ac_" + channelCount;
+        converted = tmp + ".converted.f_f32le.ar_" + sampleRate + ".ac_" + channelCount;
         int returnCode = FFmpeg.execute("-y" + " " +
                 // input
                 "-i " + tmp + " " +
                 // output
-                "-f s16le" + " " +// audio format is signed 16 bit little-endian pcm
+                "-f f32le" + " " + // audio format is Floating-Point 32-bit little-endian pcm
                 "-ar " + sampleRate + " " +
                 "-ac " + channelCount + " " +
                 converted
         );
         if (returnCode == RETURN_CODE_SUCCESS) {
             Log.i(Config.TAG, "Command execution completed successfully.");
+            // JNI setTrack calls -> C++ void PluginBase::load(const char *filename, int channelCount)
             setTrack(nativeChannel, converted);
         } else {
             throw new RuntimeException(Config.TAG + ": Command execution failed (returned " + returnCode + ")");
@@ -245,7 +373,7 @@ public class AAudioTrack2 {
      * @param nativeChannel the channel to load the vst instrument into
      * @param vst the vst to load
      */
-    public void load(long nativeChannel, Pair<VST, ReflectionActivity> vst) {
+    public void loadVST(long nativeChannel, Pair<VST, ReflectionActivity> vst) {
         long nativeInstance = ReflectionHelpers.callInstanceMethod(
                 vst.second.getCurrentClient(),
                 "newNativeInstance"
@@ -262,7 +390,7 @@ public class AAudioTrack2 {
     public void loadVST(long nativeChannel, String packageName) {
         Pair<VST, ReflectionActivity> vst = manager.loadVst(packageName);
         if (vst != null) {
-            load(nativeChannel, vst);
+            loadVST(nativeChannel, vst);
         }
     }
 

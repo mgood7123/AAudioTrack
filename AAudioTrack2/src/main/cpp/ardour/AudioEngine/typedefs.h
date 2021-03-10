@@ -11,7 +11,7 @@
 namespace ARDOUR_TYPEDEFS {
     typedef int64_t sample_position_t;
     typedef int64_t sample_count_t;
-    typedef int32_t frames_t;
+    typedef int32_t samples_t;
     static const sample_position_t max_sample_position = INT64_MAX;
 
 //    typedef int16_t ENGINE_FORMAT;

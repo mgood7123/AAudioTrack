@@ -4,16 +4,16 @@
 
 #include "AAudioMixer.h"
 
-//void OboeMixer::renderAudio(int16_t *audioData, int32_t numFrames) {
+//void OboeMixer::renderAudio(int16_t *audioData, int32_t numSamples) {
 //    // Zero out the incoming container array
-//    for (int j = 0; j < numFrames * kChannelCount; ++j) {
+//    for (int j = 0; j < numSamples * kChannelCount; ++j) {
 //        audioData[j] = 0;
 //    }
 //
 //    for (int i = 0; i < mNextFreeTrackIndex; ++i) {
-//        mTracks[i]->renderAudio(mixingBuffer, numFrames, mTracks[i]);
+//        mTracks[i]->renderAudio(mixingBuffer, numSamples, mTracks[i]);
 //
-//        for (int j = 0; j < numFrames * kChannelCount; ++j) {
+//        for (int j = 0; j < numSamples * kChannelCount; ++j) {
 //            audioData[j] += mixingBuffer[j];
 //        }
 //    }

@@ -414,6 +414,7 @@ namespace ARDOUR {
     }
 
     enum Mode {
+        direct,
         pattern,
         song
     };
@@ -422,7 +423,7 @@ namespace ARDOUR {
 
     void AudioEngine::renderAudio(PortUtils2 * in, PortUtils2 * out) {
 
-        // the sample counter is used to synchronise events with frames
+        // the sample counter is used to synchronise events with samples
         // A timebase that allows sequencing in relation to musical events like beats or bars
         // it may look something like this:
         // data[4] = {MIDI_ON, MIDI_OFF, MIDI_ON, MIDI_OFF};
@@ -430,8 +431,8 @@ namespace ARDOUR {
         //
         // see TempoGrid for info on tempo mapping
         //
-        // data[0] is frame 0, data[1] is frame 24000, data[2] is frame 48000, data[3] is frame 72000
-        // bar[0] is frame 0, bar[1] is frame 96000, and so on
+        // data[0] is sample 0, data[1] is sample 24000, data[2] is sample 48000, data[3] is sample 72000
+        // bar[0] is sample 0, bar[1] is sample 96000, and so on
         // tempo_grid[4] = {0, 24000, 48000, 72000}; in 1/4 notes, assuming 48k sample rate, 120 bpm
         // when each note is aligned to 1/4 notes
         // eg note quantisation, (snap to resolution, eg snap to 1/4)
@@ -447,7 +448,7 @@ namespace ARDOUR {
 
         // DON'T FORGET TO MAP!
         if (!hostInfo.tempoGrid.mapped) {
-            TempoGrid::map_tempo_to_frame(hostInfo.tempoGrid);
+            TempoGrid::map_tempo_to_sample(hostInfo.tempoGrid);
         }
 
         if (!_backend) {
@@ -457,8 +458,17 @@ namespace ARDOUR {
 
         auto start = std::chrono::high_resolution_clock::now();
 
-        if (mode == Mode::pattern) channelRack.write(&hostInfo, in, &mixer, out, out->ports.samplesPerChannel);
-        else if (mode == Mode::song) playlist.write(&hostInfo, in, &mixer, out, out->ports.samplesPerChannel);
+        switch(mode) {
+            case Mode::direct:
+                channelRack.writeDirect(&hostInfo, in, &mixer, out, out->ports.samplesPerChannel);
+                break;
+            case Mode::pattern:
+                channelRack.write(&hostInfo, in, &mixer, out, out->ports.samplesPerChannel);
+                break;
+            case Mode::song:
+                playlist.write(&hostInfo, in, &mixer, out, out->ports.samplesPerChannel);
+                break;
+        }
 
         auto end = std::chrono::high_resolution_clock::now();
         processingTime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
@@ -482,6 +492,10 @@ namespace ARDOUR {
         channelRack.setPlugin(nativeChannel, nativePlugin);
     }
 
+    void AudioEngine::sendEvent(void *nativeChannel, int event) {
+        channelRack.sendEvent(nativeChannel, event);
+    };
+
     void AudioEngine::setPatternGridResolution(void *nativePattern, int size) {
         Pattern * pattern = static_cast<Pattern *>(nativePattern);
         pattern->pianoRoll.setResolution(size);
@@ -492,6 +506,10 @@ namespace ARDOUR {
         Track * track = static_cast<Track *>(nativeTrack);
         track->pianoRoll.setResolution(size);
         track->pianoRoll.updateGrid();
+    }
+
+    void AudioEngine::loop(void *nativeChannel, bool value) {
+        channelRack.loop(nativeChannel, value);
     }
 
     void AudioEngine::bindChannelToPattern(void *nativeChannel, void *nativePattern) {
@@ -549,6 +567,10 @@ namespace ARDOUR {
 
     smf::MidiFile * AudioEngine::getMidiFile() {
         return static_cast<smf::MidiFile *>(hostInfo.midiFile);
+    }
+
+    void AudioEngine::changeToDirectMode() {
+        mode = Mode::direct;
     }
 
     void AudioEngine::changeToPatternMode() {

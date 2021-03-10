@@ -13,7 +13,7 @@ public:
     PianoRoll pianoRoll;
     PatternList * patternListReference = nullptr;
 
-    bool hasNote(uint64_t frame) {
+    bool hasNote(uint64_t sample) {
         return false;
     }
 };

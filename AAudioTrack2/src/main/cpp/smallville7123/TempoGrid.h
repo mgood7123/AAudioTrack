@@ -15,7 +15,7 @@ public:
     float notes_per_second;
     bool mapped;
 
-    static inline void map_tempo_to_frame(TempoGrid &grid) {
+    static inline void map_tempo_to_sample(TempoGrid &grid) {
         grid.samples_per_note = grid.sample_rate * 60 / grid.beats_per_minute;
         grid.samples_per_bar = grid.samples_per_note * grid.notes_per_bar;
         grid.notes_per_second = (float) grid.sample_rate / (float) grid.samples_per_note;

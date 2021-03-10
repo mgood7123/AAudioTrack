@@ -41,23 +41,23 @@ Java_smallville7123_aaudiotrack_AAudioTrack_getUnderrunCount(JNIEnv *env, jobjec
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_smallville7123_aaudiotrack_AAudioTrack_getCurrentFrame(JNIEnv *env, jobject thiz,
+Java_smallville7123_aaudiotrack_AAudioTrack_getCurrentSample(JNIEnv *env, jobject thiz,
                                                         jlong native_aaudio_track_pointer) {
-    return reinterpret_cast<AAudioEngine*>(native_aaudio_track_pointer)->mReadFrameIndex;
+    return reinterpret_cast<AAudioEngine*>(native_aaudio_track_pointer)->mReadSampleIndex;
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_smallville7123_aaudiotrack_AAudioTrack_getTotalFramesFrame(JNIEnv *env, jobject thiz,
+Java_smallville7123_aaudiotrack_AAudioTrack_getTotalSamples(JNIEnv *env, jobject thiz,
                                                             jlong native_aaudio_track_pointer) {
-    return reinterpret_cast<AAudioEngine*>(native_aaudio_track_pointer)->mTotalFrames;
+    return reinterpret_cast<AAudioEngine*>(native_aaudio_track_pointer)->mTotalSamples;
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_smallville7123_aaudiotrack_AAudioTrack_resetPlayHead(JNIEnv *env, jobject thiz,
                                                           jlong native_aaudio_track_pointer) {
-    reinterpret_cast<AAudioEngine*>(native_aaudio_track_pointer)->mReadFrameIndex = 0;
+    reinterpret_cast<AAudioEngine*>(native_aaudio_track_pointer)->mReadSampleIndex = 0;
 }
 
 extern "C"

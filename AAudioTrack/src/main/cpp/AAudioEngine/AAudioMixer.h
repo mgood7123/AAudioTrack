@@ -15,7 +15,7 @@
 class AAudioMixer {
 public:
 //    void addTrack(SoundRecording *renderer);
-//    void renderAudio(int16_t *audioData, int32_t numFrames);
+//    void renderAudio(int16_t *audioData, int32_t numSamples);
 
 private:
 

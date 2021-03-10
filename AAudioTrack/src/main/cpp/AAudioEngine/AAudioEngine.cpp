@@ -22,12 +22,12 @@ bool AAudioEngine::hasData() {
 }
 
 aaudio_data_callback_result_t AAudioEngine::onAudioReady (
-        AAudioStream *stream, void *userData, void *audioData, int32_t numFrames
+        AAudioStream *stream, void *userData, void *audioData, int32_t numSamples
 ) {
     AAudioEngine * AE = static_cast<AAudioEngine *>(userData);
 
     // AE->renderAudio will internally memset if there is no data
-    AE->renderAudio(static_cast<int16_t *>(audioData), numFrames);
+    AE->renderAudio(static_cast<int16_t *>(audioData), numSamples);
 
     // Are we getting underruns?
     int32_t tmpuc = AAudioStream_getXRunCount(stream);
@@ -41,36 +41,36 @@ aaudio_data_callback_result_t AAudioEngine::onAudioReady (
     return AAUDIO_CALLBACK_RESULT_CONTINUE;
 }
 
-void AAudioEngine::renderAudio(int16_t *targetData, int32_t totalFrames) {
+void AAudioEngine::renderAudio(int16_t *targetData, int32_t totalSamples) {
     if (mIsPlaying && hasData()) {
         int16_t * AUDIO_DATA = reinterpret_cast<int16_t *>(audioData);
 
         // Check whether we're about to reach the end of the recording
-        if (!mIsLooping && mReadFrameIndex + totalFrames >= mTotalFrames) {
-            totalFrames = mTotalFrames - mReadFrameIndex;
+        if (!mIsLooping && mReadSampleIndex + totalSamples >= mTotalSamples) {
+            totalSamples = mTotalSamples - mReadSampleIndex;
             mIsPlaying = false;
         }
 
-        if (mReadFrameIndex == 0) {
+        if (mReadSampleIndex == 0) {
 //            GlobalTime.StartOfFile = true;
-//            GlobalTime.update(mReadFrameIndex, AudioData);
+//            GlobalTime.update(mReadSampleIndex, AudioData);
         }
-        for (int i = 0; i < totalFrames; ++i) {
+        for (int i = 0; i < totalSamples; ++i) {
             for (int j = 0; j < channelCount; ++j) {
-                targetData[(i * channelCount) + j] = AUDIO_DATA[(mReadFrameIndex * channelCount) + j];
+                targetData[(i * channelCount) + j] = AUDIO_DATA[(mReadSampleIndex * channelCount) + j];
             }
 
             // Increment and handle wrap-around
-            if (++mReadFrameIndex >= mTotalFrames) {
+            if (++mReadSampleIndex >= mTotalSamples) {
 //                GlobalTime.EndOfFile = true;
-//                GlobalTime.update(mReadFrameIndex, AudioData);
-                mReadFrameIndex = 0;
+//                GlobalTime.update(mReadSampleIndex, AudioData);
+                mReadSampleIndex = 0;
             } else {
-//                GlobalTime.update(mReadFrameIndex, AudioData);
+//                GlobalTime.update(mReadSampleIndex, AudioData);
             }
         }
     } else {
-        for (int i = 0; i < totalFrames; ++i) {
+        for (int i = 0; i < totalSamples; ++i) {
             for (int j = 0; j < channelCount; ++j) {
                 targetData[(i * channelCount) + j] = 0;
             }
@@ -117,7 +117,7 @@ aaudio_result_t AAudioEngine::CreateStream() {
         return result;
     }
 
-    AAudioStreamBuilder_setBufferCapacityInFrames(builder, BufferCapacityInFrames*2);
+    AAudioStreamBuilder_setBufferCapacityInFrames(builder, BufferCapacityInSamples*2);
     AAudioStreamBuilder_setDataCallback(builder, onAudioReady, this);
     AAudioStreamBuilder_setErrorCallback(builder, onError, this);
     AAudioStreamBuilder_setPerformanceMode(builder, AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
@@ -264,7 +264,7 @@ void AAudioEngine::load(const char *filename) {
     }
     audioData = o;
     audioDataSize = len;
-    mTotalFrames = audioDataSize / (2 * channelCount);
+    mTotalSamples = audioDataSize / (2 * channelCount);
     if (wasPaused) {
         StartStreamNonBlocking();
     }

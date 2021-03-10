@@ -22,6 +22,18 @@ public:
         return Plugin_Base::write(hostInfo, in, mixer, out, samples);
     }
 
+    virtual void loop(bool value) override {
+        Plugin_Base::loop(value);
+    }
+
+    virtual void startPlayback() override {
+        Plugin_Base::startPlayback();
+    }
+
+    virtual void pausePlayback() override {
+        Plugin_Base::pausePlayback();
+    }
+
     virtual void stopPlayback() override {
         Plugin_Base::stopPlayback();
     }

@@ -25,11 +25,11 @@ public:
     }
 
     void updateGrid() {
-        TempoGrid::map_tempo_to_frame(grid);
+        TempoGrid::map_tempo_to_sample(grid);
     }
 
     // lock free, wait free ring buffer, 20 to the power of 2
-    // frame index, should this note be played
+    // sample index, should this note be played
     HostInfo::PianoRollRingBuffer noteData;
 
     int noteindex = -1;
@@ -76,15 +76,15 @@ public:
     }
 
     void setNoteData(std::vector<int> noteData) {
-        uint64_t frame = 0;
+        uint64_t sample = 0;
         this->noteData.consumerClear();
         for(int & data : noteData) {
             smf::MidiEvent midiEvent;
             if (data == 1) midiEvent.makeNoteOn(0, 0, 64);
             else midiEvent.makeNoteOff(0, 0, 0);
-            midiEvent.tick = frame;
+            midiEvent.tick = sample;
             this->noteData.insert(midiEvent);
-            frame += grid.samples_per_note;
+            sample += grid.samples_per_note;
         }
     }
 
