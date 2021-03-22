@@ -33,7 +33,7 @@ namespace ARDOUR {
     PatternGroup patternGroup;
     smf::MidiFile midifile;
 
-    AudioEngine::AudioEngine ()
+    AudioEngine::AudioEngine (JNIEnv* env)
             :// session_remove_pending (false)
 //            , session_removal_countdown (-1)
             /*,*/ _running (false)
@@ -66,6 +66,7 @@ namespace ARDOUR {
 //            , _init_countdown (0)
 //            , _pending_playback_latency_callback (0)
 //            , _pending_capture_latency_callback (0)
+            , jniEnv(env)
     {
 //        reset_silence_countdown ();
 //        start_hw_event_processing();
@@ -82,17 +83,18 @@ namespace ARDOUR {
         for (BackendMap::const_iterator i = _backends.begin(); i != _backends.end(); ++i) {
             i->second->deinstantiate();
         }
-//        delete _main_thread;
+        jniEnv = nullptr;
+//        jniEnv _main_thread;
     }
 
     AudioEngine*
-    AudioEngine::create ()
+    AudioEngine::create (JNIEnv* env)
     {
         if (_instance) {
             return _instance;
         }
 
-        _instance = new AudioEngine ();
+        _instance = new AudioEngine (env);
 
         return _instance;
     }

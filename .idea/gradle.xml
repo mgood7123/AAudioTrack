@@ -19,6 +19,9 @@
             <option value="$PROJECT_DIR$/AAudioTrack2/VstSystem/VstManager" />
             <option value="$PROJECT_DIR$/AAudioTrack2/VstSystem/libOverview" />
             <option value="$PROJECT_DIR$/AAudioTrack_Application" />
+            <option value="$PROJECT_DIR$/AndroidDAW_SDK__MIDI" />
+            <option value="$PROJECT_DIR$/AndroidDAW_SDK__Plugin" />
+            <option value="$PROJECT_DIR$/AndroidDAW_SDK__RingBuffer" />
             <option value="$PROJECT_DIR$/audioplayer" />
             <option value="$PROJECT_DIR$/simplesinewave" />
           </set>

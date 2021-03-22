@@ -10,6 +10,7 @@
 #include <thread>
 #include <optional>
 #include <map>
+#include <jni.h>
 #include "typedefs.h"
 #include "../../smallville7123/PortUtils2.h"
 #include "../../smallville7123/plugins/Mixer.h"
@@ -35,15 +36,18 @@ namespace ARDOUR {
         uint64_t processingTime;
         uint64_t bufferLength;
 
+        JNIEnv* jniEnv;
         Mixer mixer;
         ChannelRack channelRack;
         EffectRack effectRack;
         Playlist playlist;
+        std::string decode(std::string path);
 
         /* latency measurement */
 
         MTDM* mtdm() { return _mtdm; }
         MIDIDM* mididm() { return _mididm; }
+
 
         int  prepare_for_latency_measurement ();
         int  start_latency_detection (bool);
@@ -90,9 +94,9 @@ namespace ARDOUR {
         int set_systemic_input_latency (uint32_t);
         int set_systemic_output_latency (uint32_t);
 
-        AudioEngine ();
+        AudioEngine (JNIEnv* env);
         ~AudioEngine ();
-        static AudioEngine* create ();
+        static AudioEngine* create (JNIEnv* env);
         static void destroy ();
 
         int discover_backends();

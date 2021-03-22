@@ -2,6 +2,8 @@ plugins {
     id 'com.android.library'
 }
 
+// https://developer.android.com/studio/build/native-dependencies
+
 android {
     compileSdkVersion 29 // Play requires Android Q or higher
     buildToolsVersion "29.0.3" // Play requires Android Q or higher
@@ -14,23 +16,27 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
+
         externalNativeBuild {
             cmake {
                 cppFlags "-std=c++17"
             }
         }
     }
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+            version "3.10.2"
+        }
+    }
+    buildFeatures {
+        prefab true
+    }
 
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-    }
-    externalNativeBuild {
-        cmake {
-            path "src/main/cpp/CMakeLists.txt"
-            version "3.10.2"
         }
     }
     compileOptions {

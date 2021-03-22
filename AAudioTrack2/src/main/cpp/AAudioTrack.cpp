@@ -56,7 +56,7 @@ bool check_engine() {
 extern "C" JNIEXPORT void JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_createNativeInstance(JNIEnv* env, jobject  /* this */) {
     // create the engine
-    engine = AudioEngine::create();
+    engine = AudioEngine::create(env);
 
     if (!engine_exists()) {
         LOGF("Cannot create Audio/MIDI engine.\n");

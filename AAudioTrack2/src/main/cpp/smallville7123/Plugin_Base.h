@@ -20,6 +20,14 @@ public:
 
     int is_writing = PLUGIN_STOP;
 
+    void init() {
+
+    }
+
+    std::string decode(std::string path) {
+        return "";
+    }
+
     // add two values and detect overflow/underflow, returning TYPE_MAX if overflow occured, and TYPE_MIN if underflow occured
     template<typename type> type PLUGIN_HELPERS_add(type TYPE_MIN, type TYPE_MAX, type lhs, type rhs, bool & overflowed, bool & underflow)
     {

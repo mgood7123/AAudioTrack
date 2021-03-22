@@ -24,7 +24,7 @@ public:
         ENGINE_FORMAT * left = reinterpret_cast<ENGINE_FORMAT *>(out->ports.outputStereo->l->buf);
         ENGINE_FORMAT * right = reinterpret_cast<ENGINE_FORMAT *>(out->ports.outputStereo->r->buf);
         if (mIsPlaying && audioData != nullptr) {
-            LOGW("playing audio %p at sample index %d", audioData, mReadSampleIndex);
+//            LOGW("playing audio %p at sample index %d", audioData, mReadSampleIndex);
             if (mIsLooping) {
                 // we may transition from not looping to looping, upon the EOF being reached
                 // if this happens, reset the sample index
@@ -90,8 +90,7 @@ public:
 
     int p = PLUGIN_STOP;
 
-    int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
-              unsigned int samples) override {
+    int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out, unsigned int samples) override {
         size_t size = hostInfo->midiInputBuffer.readAvailable();
         if (p == PLUGIN_CONTINUE) {
             p = play(hostInfo, in, out, samples);

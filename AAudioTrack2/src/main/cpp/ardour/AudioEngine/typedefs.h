@@ -14,16 +14,8 @@ namespace ARDOUR_TYPEDEFS {
     typedef int32_t samples_t;
     static const sample_position_t max_sample_position = INT64_MAX;
 
-//    typedef int16_t ENGINE_FORMAT;
-
-//    static const auto ENGINE_FORMAT_MIN = INT16_MIN;
-
-//    static const auto ENGINE_FORMAT_MAX = INT16_MAX;
-
     typedef float ENGINE_FORMAT;
-
     static const auto ENGINE_FORMAT_MIN = -1.0;
-
     static const auto ENGINE_FORMAT_MAX = 1.0;
 }
 

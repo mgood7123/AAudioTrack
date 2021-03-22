@@ -29,6 +29,7 @@ import smallville7123.vstmanager.VstManager;
 import smallville7123.vstmanager.core.ReflectionActivity;
 import smallville7123.vstmanager.core.ReflectionHelpers;
 import smallville7123.vstmanager.core.VST;
+import smallville7123.vstmanager.core.VstActivity;
 
 import static com.arthenica.mobileffmpeg.Config.RETURN_CODE_SUCCESS;
 
@@ -90,8 +91,8 @@ public class AAudioTrack2 {
     public  native void pause();
     public  native void resume();
     public  native void loop(long nativeChannel, boolean value);
-    public  native long newChannel_();
-    public  native long newSamplerChannel_();
+    private   native long newChannel_();
+    private   native long newSamplerChannel_();
 
     public class ChannelInterface {
         public final long nativeChannel;
@@ -189,17 +190,27 @@ public class AAudioTrack2 {
         }
 
         /**
-         * Load the VST instrument
-         * @param vst the vst to load
+         * Connects the VST instrument to the given nativeChannel
+         *
+         * @param reflectionActivity the vst to connect
          */
-        public void loadVST(Pair<VST, ReflectionActivity> vst) {
-            DAW.loadVST(nativeChannel, vst);
+        public void connectVST(ReflectionActivity reflectionActivity) {
+            DAW.connectVST(nativeChannel, reflectionActivity);
         }
 
         /**
-         * Load the VST instrument using the given package name
+         * Connects the VST instrument to the given nativeChannel
          *
-         * @param packageName the vst to load
+         * @param vst the vst to connect
+         */
+        public void connectVST(Pair<VST, ReflectionActivity> vst) {
+            DAW.connectVST(nativeChannel, vst);
+        }
+
+        /**
+         * Load and Connect the VST instrument using the given package name to the given nativeChannel
+         *
+         * @param packageName the vst package name to load
          */
         public void loadVST(String packageName) {
             DAW.loadVST(nativeChannel, packageName);
@@ -369,28 +380,35 @@ public class AAudioTrack2 {
     }
 
     /**
-     * Load the VST instrument
-     * @param nativeChannel the channel to load the vst instrument into
-     * @param vst the vst to load
+     * Connects the VST instrument to the given nativeChannel
+     *
+     * @param nativeChannel the channel to connect the vst instrument to the given nativeChannel
+     * @param reflectionActivity the vst to connect
      */
-    public void loadVST(long nativeChannel, Pair<VST, ReflectionActivity> vst) {
-        long nativeInstance = ReflectionHelpers.callInstanceMethod(
-                vst.second.getCurrentClient(),
-                "newNativeInstance"
-        );
-        setPlugin(nativeChannel, nativeInstance);
+    public void connectVST(long nativeChannel, ReflectionActivity reflectionActivity) {
+        setPlugin(nativeChannel, VstActivity.callNewNativeInstance(reflectionActivity));
     }
 
     /**
-     * Load the VST instrument using the given package name
+     * Connects the VST instrument to the given nativeChannel
      *
-     * @param nativeChannel the channel to load the vst instrument into
-     * @param packageName the vst to load
+     * @param nativeChannel the channel to connect the vst instrument to
+     * @param vst the vst to connect
+     */
+    public void connectVST(long nativeChannel, Pair<VST, ReflectionActivity> vst) {
+        connectVST(nativeChannel, vst.second);
+    }
+
+    /**
+     * Load and Connect the VST instrument using the given package name to the given nativeChannel
+     *
+     * @param nativeChannel the channel to connect the vst instrument to
+     * @param packageName the vst package name to load
      */
     public void loadVST(long nativeChannel, String packageName) {
         Pair<VST, ReflectionActivity> vst = manager.loadVst(packageName);
         if (vst != null) {
-            loadVST(nativeChannel, vst);
+            connectVST(nativeChannel, vst);
         }
     }
 

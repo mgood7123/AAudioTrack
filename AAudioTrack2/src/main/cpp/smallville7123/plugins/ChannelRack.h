@@ -301,6 +301,8 @@ public:
     }
 
     void setPlugin(void *nativeChannel, void *nativePlugin) {
+        // TODO:
+        //   plugin = new Plugin(path); plugin.instantiate(/* params */); rack.add(plugin);
         static_cast<Channel_Generator *>(nativeChannel)->plugin = static_cast<Plugin_Type_Generator *>(nativePlugin);
     }
 
