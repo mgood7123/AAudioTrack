@@ -1,4 +1,9 @@
 cmake_minimum_required(VERSION 3.10.2)
 project("synth")
+
+add_subdirectory(AndroidDAW_SDK_CMAKE_HELPER)
+SET_PROJECT_ROOT_AndroidDAW_SDK(${CMAKE_CURRENT_SOURCE_DIR}/../../../..)
+import_library__AndroidDAW_Plugin()
+
 add_library(synth SHARED native-lib.cpp)
-target_link_libraries(synth android log)
+target_link_libraries(synth AndroidDAW_Plugin)

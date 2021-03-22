@@ -5,7 +5,7 @@
 #ifndef AAUDIOTRACK_ARDOUR_H
 #define AAUDIOTRACK_ARDOUR_H
 
-#include "../other/log.h"
+#include <AndroidDAW_SDK/Log/log.h>
 #include "pdb/failed_constructor.h"
 #include "pdb/i18n.h"
 #include "AudioEngine/typedefs.h"

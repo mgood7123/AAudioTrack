@@ -9,7 +9,7 @@
 #include "PianoRoll.h"
 #include "Rack.h"
 #include "Channel_Generator.h"
-#include "../midifile/include/MidiEventList.h"
+#include <AndroidDAW_SDK/midifile/MidiEventList.h>
 #include <cstdint>
 
 //02:16 vampifrog: so, make a table of each tick

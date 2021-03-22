@@ -1,6 +1,6 @@
 #include <jni.h>
 #include <string>
-#include "../../../../AAudioTrack2/src/main/cpp/smallville7123/Plugin_Type_Generator.h"
+#include <AndroidDAW_SDK/plugin/Plugin_Type_Generator.h>
 
 class AudioPlayer : public Plugin_Type_Generator {
 };

@@ -5,11 +5,11 @@
 #ifndef AAUDIOTRACK_PLAYLIST_H
 #define AAUDIOTRACK_PLAYLIST_H
 
-#include "../PortUtils2.h"
+#include <AndroidDAW_SDK/plugin/PortUtils2.h>
 #include "Mixer.h"
 #include "Sampler.h"
 #include "Delay.h"
-#include "../HostInfo.h"
+#include <AndroidDAW_SDK/plugin/HostInfo.h>
 #include "../Rack.h"
 #include "../Channel_Generator.h"
 #include "../PianoRoll.h"

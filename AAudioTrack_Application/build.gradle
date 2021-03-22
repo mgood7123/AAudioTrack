@@ -3,6 +3,9 @@ plugins {
 }
 
 android {
+    packagingOptions {
+        pickFirst "**/*.so"
+    }
     compileSdkVersion 29 // Play requires Android Q or higher
 
     defaultConfig {

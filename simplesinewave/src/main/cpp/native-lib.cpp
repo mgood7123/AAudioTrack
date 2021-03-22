@@ -1,6 +1,6 @@
 #include <jni.h>
 #include <string>
-#include "../../../../AAudioTrack2/src/main/cpp/smallville7123/Plugin_Type_Generator.h"
+#include <AndroidDAW_SDK/plugin/Plugin_Type_Generator.h>
 
 class SineGenerator : public Plugin_Type_Generator {
 public:
@@ -8,7 +8,9 @@ public:
 
     int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
               unsigned int samples) override {
-        using namespace ARDOUR_TYPEDEFS;
+
+        using namespace AndroidDAW_SDK__Plugin_TYPEDEFS;
+
         ENGINE_FORMAT * left = reinterpret_cast<ENGINE_FORMAT *>(out->ports.outputStereo->l->buf);
         ENGINE_FORMAT * right = reinterpret_cast<ENGINE_FORMAT *>(out->ports.outputStereo->r->buf);
 

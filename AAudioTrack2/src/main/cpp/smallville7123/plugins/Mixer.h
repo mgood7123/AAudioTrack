@@ -16,10 +16,10 @@
 
 #include <cstdint>
 #include <vector>
-#include "../PortUtils2.h"
-#include "../Plugin.h"
+#include <AndroidDAW_SDK/plugin/PortUtils2.h>
+#include <AndroidDAW_SDK/plugin/Plugin.h>
 
-using namespace ARDOUR_TYPEDEFS;
+using namespace AndroidDAW_SDK__Plugin_TYPEDEFS;
 
 class Mixer : public Plugin_Type_Mixer {
 public:

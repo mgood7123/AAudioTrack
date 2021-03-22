@@ -5,7 +5,7 @@
 #ifndef AAUDIOTRACK_CHANNEL_EFFECT_H
 #define AAUDIOTRACK_CHANNEL_EFFECT_H
 
-#include "Plugin.h"
+#include <AndroidDAW_SDK/plugin/Plugin.h>
 
 class Channel_Effect {
 public:

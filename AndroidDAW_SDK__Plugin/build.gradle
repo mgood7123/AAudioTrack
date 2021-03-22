@@ -45,6 +45,11 @@ android {
 
 dependencies {
 
+    implementation project(':AndroidDAW_SDK__Log')
+    implementation project(':AndroidDAW_SDK__MIDI')
+    implementation project(':AndroidDAW_SDK__RingBuffer')
+    api project(':AndroidDAW_SDK__Plugin:VstSystem:VstManager')
+
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.material:material:1.3.0'
     testImplementation 'junit:junit:4.+'

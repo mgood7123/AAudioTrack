@@ -5,7 +5,7 @@
 #ifndef AAUDIOTRACK_CHANNEL_GENERATOR_H
 #define AAUDIOTRACK_CHANNEL_GENERATOR_H
 
-#include "Plugin.h"
+#include <AndroidDAW_SDK/plugin/Plugin.h>
 #include "plugins/EffectRack.h"
 
 class Channel_Generator {

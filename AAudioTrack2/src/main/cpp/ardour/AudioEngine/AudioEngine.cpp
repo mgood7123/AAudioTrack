@@ -3,7 +3,7 @@
 //
 
 #include "AudioEngine.h"
-#include "../../other/log.h"
+#include <AndroidDAW_SDK/Log/log.h>
 #include "../pdb/failed_constructor.h"
 #include "../pdb/i18n.h"
 #include "AudioBackend.h"
@@ -11,7 +11,7 @@
 #include <thread>
 #include <fcntl.h>
 #include <unistd.h>
-#include "../../smallville7123/TempoGrid.h"
+#include <AndroidDAW_SDK/plugin/TempoGrid.h>
 
 //
 // plugins

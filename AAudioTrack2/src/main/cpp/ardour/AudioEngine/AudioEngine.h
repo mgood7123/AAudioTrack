@@ -12,12 +12,11 @@
 #include <map>
 #include <jni.h>
 #include "typedefs.h"
-#include "../../smallville7123/PortUtils2.h"
+#include <AndroidDAW_SDK/plugin/PortUtils2.h>
 #include "../../smallville7123/plugins/Mixer.h"
 #include "../../smallville7123/plugins/ChannelRack.h"
 #include "../../smallville7123/plugins/EffectRack.h"
 #include "../../smallville7123/plugins/Playlist.h"
-
 
 namespace ARDOUR {
     using namespace ARDOUR_TYPEDEFS;

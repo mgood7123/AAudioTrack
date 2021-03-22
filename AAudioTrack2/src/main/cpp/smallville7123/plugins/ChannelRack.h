@@ -5,18 +5,18 @@
 #ifndef AAUDIOTRACK_CHANNELRACK_H
 #define AAUDIOTRACK_CHANNELRACK_H
 
-#include "../PortUtils2.h"
+#include <AndroidDAW_SDK/plugin/PortUtils2.h>
 #include "Mixer.h"
 #include "Sampler.h"
 #include "Delay.h"
-#include "../HostInfo.h"
+#include <AndroidDAW_SDK/plugin/HostInfo.h>
 #include "../Rack.h"
 #include "../Channel_Generator.h"
 #include "../PianoRoll.h"
 #include "../Pattern.h"
 #include "../PatternList.h"
 #include "../PatternGroup.h"
-#include "../../midifile/include/MidiFile.h"
+#include <AndroidDAW_SDK/midifile/MidiFile.h>
 #include <cstdlib>
 
 class ChannelRack : Plugin_Base {

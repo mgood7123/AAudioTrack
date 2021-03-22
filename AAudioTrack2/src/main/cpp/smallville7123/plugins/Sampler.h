@@ -6,10 +6,10 @@
 #define AAUDIOTRACK_SAMPLER_H
 
 #include <cstdint>
-#include "../PortUtils2.h"
-#include "../Plugin.h"
-#include "../../midifile/include/MidiEvent.h"
-#include "../../midifile/include/MidiEventList.h"
+#include <AndroidDAW_SDK/plugin/PortUtils2.h>
+#include <AndroidDAW_SDK/plugin/Plugin.h>
+#include <AndroidDAW_SDK/midifile/MidiEvent.h>
+#include <AndroidDAW_SDK/midifile/MidiEventList.h>
 
 using namespace ARDOUR_TYPEDEFS;
 

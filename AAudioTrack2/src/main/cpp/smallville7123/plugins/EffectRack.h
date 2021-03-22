@@ -5,11 +5,11 @@
 #ifndef AAUDIOTRACK_EFFECTRACK_H
 #define AAUDIOTRACK_EFFECTRACK_H
 
-#include "../PortUtils2.h"
+#include <AndroidDAW_SDK/plugin/PortUtils2.h>
 #include "Mixer.h"
 #include "Sampler.h"
 #include "Delay.h"
-#include "../HostInfo.h"
+#include <AndroidDAW_SDK/plugin/HostInfo.h>
 #include "../Rack.h"
 #include "../Channel_Effect.h"
 

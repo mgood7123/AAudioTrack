@@ -7,17 +7,32 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} --optimize -Ofast -g0")
 
 # https://developer.android.com/ndk/guides/asan#cmake
 
-add_subdirectory(midifile)
+# SDK SETUP
+
+if(NOT COMMAND AndroidDAW_SDK_CMAKE_HELPER)
+    add_subdirectory(AndroidDAW_SDK_CMAKE_HELPER)
+endif()
+
+SET_PROJECT_ROOT_AndroidDAW_SDK(${CMAKE_CURRENT_SOURCE_DIR}/../../../..)
+
+import_library__AndroidDAW_Plugin()
+
+# BUILD
 
 add_library(engine SHARED
         ardour/AudioEngine/AudioBackend.cpp
         ardour/AudioEngine/AudioEngine.cpp
         ardour/Backends/AAudio.cpp
         smallville7123/MidiMap.cpp
-        smallville7123/TempoGrid.cpp
 )
 
-target_link_libraries(engine log aaudio midifile)
+target_link_libraries(
+        engine
+        aaudio
+        log
+        AndroidDAW_MIDI
+        AndroidDAW_Plugin
+)
 
 add_library(AAudioTrack2 SHARED
         AAudioTrack.cpp other/JniHelpers.cpp

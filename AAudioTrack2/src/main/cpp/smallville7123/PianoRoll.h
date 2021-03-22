@@ -5,10 +5,10 @@
 #ifndef AAUDIOTRACK_PIANOROLL_H
 #define AAUDIOTRACK_PIANOROLL_H
 
-#include "TempoGrid.h"
+#include <AndroidDAW_SDK/plugin/TempoGrid.h>
 #include "MidiMap.h"
-#include "../ringbuffer/ringbuffer.hpp"
-#include "../midifile/include/MidiEvent.h"
+#include <AndroidDAW_SDK/RingBuffer/ringbuffer.hpp>
+#include <AndroidDAW_SDK/midifile/MidiEvent.h>
 #include <cstdarg>
 #include <vector>
 
