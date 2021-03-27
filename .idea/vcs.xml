@@ -9,5 +9,6 @@
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/AAudioTrack2/src/main/java/smallville7123/UI/ScrollBarView" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/AndroidDAW_SDK__Plugin/VstSystem/libOverview" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/ContextMenu/" vcs="Git" />
   </component>
 </project>
