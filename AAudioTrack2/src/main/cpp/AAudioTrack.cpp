@@ -54,9 +54,9 @@ bool check_engine() {
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_smallville7123_aaudiotrack2_AAudioTrack2_createNativeInstance(JNIEnv* env, jobject  /* this */) {
+Java_smallville7123_aaudiotrack2_AAudioTrack2_createNativeInstance(JNIEnv* env, jobject  object) {
     // create the engine
-    engine = AudioEngine::create(env);
+    engine = AudioEngine::create(env, object);
 
     if (!engine_exists()) {
         LOGF("Cannot create Audio/MIDI engine.\n");
@@ -260,14 +260,14 @@ extern "C"
 JNIEXPORT jint JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_getSampleRate(JNIEnv *env, jobject thiz) {
     if (!check_engine()) return 0;
-    return engine->current_backend()->sample_rate();
+    return engine->sample_rate();
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_getChannelCount(JNIEnv *env, jobject thiz) {
     if (!check_engine()) return 0;
-    return engine->current_backend()->output_channels();
+    return engine->output_channels();
 }
 
 extern "C"

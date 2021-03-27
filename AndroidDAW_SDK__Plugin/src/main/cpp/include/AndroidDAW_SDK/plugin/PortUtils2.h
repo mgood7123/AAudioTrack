@@ -2,8 +2,8 @@
 // Created by matthew good on 25/11/20.
 //
 
-#ifndef AndroidDAW_SDK_PORTUTILS2_H
-#define AndroidDAW_SDK_PORTUTILS2_H
+#ifndef AndroidDAW_SDK__Plugin_PORTUTILS2_H
+#define AndroidDAW_SDK__Plugin_PORTUTILS2_H
 
 
 #include <cstdint>
@@ -180,4 +180,4 @@ public:
 };
 
 
-#endif //AndroidDAW_SDK_PORTUTILS2_H
+#endif //AndroidDAW_SDK__Plugin_PORTUTILS2_H

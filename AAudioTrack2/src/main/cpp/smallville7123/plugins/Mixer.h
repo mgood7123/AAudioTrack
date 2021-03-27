@@ -21,28 +21,17 @@
 
 using namespace AndroidDAW_SDK__Plugin_TYPEDEFS;
 
-class Mixer : public Plugin_Type_Mixer {
+class Mixer : public Plugin {
 public:
-    std::vector<PortUtils2*> in;
-
-    void addPort(PortUtils2 *port) override {
-        in.push_back(port);
+    int plugin_type() override {
+        return PLUGIN_TYPE_MIXER;
     }
 
-    void removePort(PortUtils2 *port) override {
-        for (auto it = in.begin(); it != in.end(); it++) {
-            if (*it == port) {
-                in.erase(it);
-                break;
-            }
-        }
-    }
-
-    int write(HostInfo *hostInfo, PortUtils2 *unused, Plugin_Base *mixer, PortUtils2 *out,
+    int write(HostInfo *hostInfo, PortUtils2 *unused, Plugin *mixer, PortUtils2 *out,
               unsigned int samples) override {
         // a mixer will have no direct input port, and instead manage its own input ports
         // a silence port will always be given
-        if (in.empty() || in.size() == 1) {
+        if (ports.empty() || ports.size() == 1) {
             out->fillPortBuffer<ENGINE_FORMAT>(0);
             return PLUGIN_STOP;
         }
@@ -52,7 +41,7 @@ public:
             ENGINE_FORMAT sumLeft = 0;
             ENGINE_FORMAT sumRight = 0;
             // sum each input port in the mixer
-            for (PortUtils2 * portUtils2 : in) {
+            for (PortUtils2 * portUtils2 : ports) {
                 if (portUtils2->allocated) {
                     bool overflowed = false;
                     bool underflowed = false;

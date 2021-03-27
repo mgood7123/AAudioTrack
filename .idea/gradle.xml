@@ -11,7 +11,6 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/AAudioTrack" />
             <option value="$PROJECT_DIR$/AAudioTrack2" />
             <option value="$PROJECT_DIR$/AAudioTrack_Application" />
             <option value="$PROJECT_DIR$/AndroidDAW_SDK__Log" />
@@ -23,6 +22,7 @@
             <option value="$PROJECT_DIR$/AndroidDAW_SDK__Plugin/VstSystem/VstManager" />
             <option value="$PROJECT_DIR$/AndroidDAW_SDK__Plugin/VstSystem/libOverview" />
             <option value="$PROJECT_DIR$/AndroidDAW_SDK__RingBuffer" />
+            <option value="$PROJECT_DIR$/ContextMenu" />
             <option value="$PROJECT_DIR$/audioplayer" />
             <option value="$PROJECT_DIR$/simplesinewave" />
           </set>

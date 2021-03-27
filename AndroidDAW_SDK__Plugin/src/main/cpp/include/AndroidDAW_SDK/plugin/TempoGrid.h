@@ -2,8 +2,8 @@
 // Created by matthew good on 22/11/20.
 //
 
-#ifndef AndroidDAW_SDK_TEMPOGRID_H
-#define AndroidDAW_SDK_TEMPOGRID_H
+#ifndef AndroidDAW_SDK__Plugin_TEMPOGRID_H
+#define AndroidDAW_SDK__Plugin_TEMPOGRID_H
 
 class TempoGrid {
 public:
@@ -27,4 +27,4 @@ public:
     bool sample_matches_samples_per_note(uint64_t sample);
 };
 
-#endif //AndroidDAW_SDK_TEMPOGRID_H
+#endif //AndroidDAW_SDK__Plugin_TEMPOGRID_H

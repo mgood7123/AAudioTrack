@@ -5,16 +5,30 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCInconsistentNamingInspection"
 #pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
-#ifndef MEDIA_PLAYER_PRO_JNIHELPERS_H
-#define MEDIA_PLAYER_PRO_JNIHELPERS_H
+#ifndef CIRCULARBUFFER_JNIHELPERS_H
+#define CIRCULARBUFFER_JNIHELPERS_H
 
 #include <jni.h>
 #include <deque>
+#include <string>
 
 class JniHelpers {
 public:
     class Strings {
     public:
+
+        static jclass charsetClass;
+        static jmethodID forNameMethod;
+        static jclass stringClass;
+        static jmethodID charsetConstructor;
+
+
+        static jbyteArray newByteArray(JNIEnv * env, const std::string & string);
+
+        static jstring newString(JNIEnv * env, jbyteArray byteArray);
+
+        static jstring newString(JNIEnv * env, const std::string & string);
+
         static size_t jniStrlenUTF(JNIEnv *env, jstring from);
 
         static void deleteJniStringUTF(const char **string);
@@ -107,6 +121,6 @@ public:
     };
 };
 
-#endif //MEDIA_PLAYER_PRO_JNIHELPERS_H
+#endif //CIRCULARBUFFER_JNIHELPERS_H
 
 #pragma clang diagnostic pop

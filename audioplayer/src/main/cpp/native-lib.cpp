@@ -1,8 +1,11 @@
 #include <jni.h>
 #include <string>
-#include <AndroidDAW_SDK/plugin/Plugin_Type_Generator.h>
+#include <AndroidDAW_SDK/plugin/Plugin.h>
 
-class AudioPlayer : public Plugin_Type_Generator {
+class AudioPlayer : public Plugin {
+    int plugin_type() override {
+        return PLUGIN_TYPE_GENERATOR;
+    }
 };
 
 extern "C" JNIEXPORT jlong JNICALL

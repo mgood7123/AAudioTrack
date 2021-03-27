@@ -1,5 +1,4 @@
 rootProject.name = "AAudioTrack"
-include ':AAudioTrack'
 include ':AAudioTrack2'
 include ':AAudioTrack_Application'
 include ':simplesinewave'
@@ -13,3 +12,4 @@ include ':AndroidDAW_SDK__Plugin:VstSystem:Taggable'
 include ':AndroidDAW_SDK__MIDI'
 include ':AndroidDAW_SDK__RingBuffer'
 include ':AndroidDAW_SDK__Log'
+include ':ContextMenu'

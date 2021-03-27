@@ -13,10 +13,10 @@
 
 using namespace ARDOUR_TYPEDEFS;
 
-class Sampler : public Plugin_Type_Generator {
+class Sampler : public Plugin {
 public:
-    bool requires_sample_count() override {
-        return true;
+    int plugin_type() override {
+        return PLUGIN_TYPE_GENERATOR;
     }
 
     int play(HostInfo *hostInfo, PortUtils2 *in, PortUtils2 *out, unsigned int samples) {
@@ -90,7 +90,7 @@ public:
 
     int p = PLUGIN_STOP;
 
-    int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out, unsigned int samples) override {
+    int write(HostInfo *hostInfo, PortUtils2 *in, Plugin *mixer, PortUtils2 *out, unsigned int samples) override {
         size_t size = hostInfo->midiInputBuffer.readAvailable();
         if (p == PLUGIN_CONTINUE) {
             p = play(hostInfo, in, out, samples);

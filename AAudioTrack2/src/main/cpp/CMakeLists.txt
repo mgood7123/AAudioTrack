@@ -24,6 +24,7 @@ add_library(engine SHARED
         ardour/AudioEngine/AudioEngine.cpp
         ardour/Backends/AAudio.cpp
         smallville7123/MidiMap.cpp
+        other/JniHelpers.cpp
 )
 
 target_link_libraries(

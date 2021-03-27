@@ -5,7 +5,5 @@ add_subdirectory(AndroidDAW_SDK_CMAKE_HELPER)
 SET_PROJECT_ROOT_AndroidDAW_SDK(${CMAKE_CURRENT_SOURCE_DIR}/../../../..)
 import_library__AndroidDAW_Plugin()
 
-# 4. link the imported .so
-
 add_library(audio_player SHARED native-lib.cpp)
 target_link_libraries(audio_player AndroidDAW_Plugin)

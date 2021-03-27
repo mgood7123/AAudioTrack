@@ -36,11 +36,12 @@ namespace ARDOUR {
         uint64_t bufferLength;
 
         JNIEnv* jniEnv;
+        jobject jniObject;
         Mixer mixer;
         ChannelRack channelRack;
         EffectRack effectRack;
         Playlist playlist;
-        std::string decode(std::string path);
+        std::string decode(const std::string & path);
 
         /* latency measurement */
 
@@ -93,9 +94,9 @@ namespace ARDOUR {
         int set_systemic_input_latency (uint32_t);
         int set_systemic_output_latency (uint32_t);
 
-        AudioEngine (JNIEnv* env);
+        AudioEngine (JNIEnv* env, jobject object);
         ~AudioEngine ();
-        static AudioEngine* create (JNIEnv* env);
+        static AudioEngine* create (JNIEnv* env, jobject object);
         static void destroy ();
 
         int discover_backends();
@@ -171,6 +172,12 @@ namespace ARDOUR {
         void changeToPatternMode();
 
         void changeToSongMode();
+
+        int sample_rate();
+
+        int output_channels();
+
+        jmethodID AAudioTrack2ClassDecodeMethod;
     };
 }
 

@@ -10,7 +10,7 @@
 
 class Channel_Generator {
 public:
-    Plugin_Type_Generator * plugin = nullptr;
+    Plugin * plugin = nullptr;
     EffectRack * effectRack = nullptr;
     PortUtils2 * out = nullptr;
 

@@ -10,17 +10,58 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCInconsistentNamingInspection"
 #pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
+
+jclass JniHelpers::Strings::charsetClass = nullptr;
+jclass JniHelpers::Strings::stringClass = nullptr;
+jmethodID JniHelpers::Strings::forNameMethod = nullptr;
+jmethodID JniHelpers::Strings::charsetConstructor = nullptr;
+
 /**
- * @return the length of a java string
- *
- * the code below is used internally in newJniStringUTF(JNIEnv *env, jstring from, size_t * len)
- *
- * @code size_t len = jniStrlenUTF(env, from);
+ * @return a std::string converted to a jbyteArray
  */
-size_t JniHelpers::Strings::jniStrlenUTF(JNIEnv *env, jstring from) {
-    // TODO: error check
-    return static_cast<size_t>(env->GetStringUTFLength(from));
-}
+jbyteArray JniHelpers::Strings::newByteArray(JNIEnv * env, const std::string & string) {
+    size_t byteCount = string.length();
+    jbyteArray bytes = env->NewByteArray(byteCount);
+    env->SetByteArrayRegion(
+            bytes,
+            0,
+            byteCount,
+            reinterpret_cast<const jbyte*>(string.c_str())
+    );
+    return bytes;
+};
+
+/**
+ * @return a std::string converted to a jbyteArray
+ */
+jstring JniHelpers::Strings::newString(JNIEnv * env, jbyteArray byteArray) {
+    if (charsetClass == nullptr) {
+        charsetClass = static_cast<jclass>(env->NewGlobalRef(env->FindClass("java/nio/charset/Charset")));
+    }
+    if (stringClass == nullptr) {
+        stringClass = static_cast<jclass>(env->NewGlobalRef(env->FindClass("java/lang/String")));
+    }
+    if (forNameMethod == nullptr) {
+        forNameMethod = env->GetStaticMethodID(
+                        charsetClass, "forName", "(Ljava/lang/String;)Ljava/nio/charset/Charset;");
+    }
+    if (charsetConstructor == nullptr) {
+        charsetConstructor = env->GetMethodID(
+                stringClass, "<init>", "([BLjava/nio/charset/Charset;)V");
+    }
+
+    jstring utf8 = env->NewStringUTF("UTF-8");
+    jobject charset = env->CallStaticObjectMethod(charsetClass, forNameMethod, utf8);
+    jobject obj = env->NewObject(stringClass, charsetConstructor, byteArray, charset);
+    return reinterpret_cast<jstring>(obj);
+};
+
+/**
+ * @return a std::string converted to a jbyteArray
+ */
+jstring JniHelpers::Strings::newString(JNIEnv * env, const std::string & string) {
+    return env->NewStringUTF(string.c_str());
+};
 
 /**
  * @return an allocated string, this must be freed by calling deleteJniStringUTF(&ReturnedString)
@@ -74,7 +115,6 @@ const char *JniHelpers::Strings::newJniStringUTF(JNIEnv *env, jstring from) {
     return newJniStringUTF(env, from, &unused);
 }
 
-
 /**
  * de-allocates a jniString returned by newJniStringUTF
  * @param string the jniString to de-allocate
@@ -92,6 +132,18 @@ void JniHelpers::Strings::deleteJniStringUTF(const char ** string) {
     const char * stringToDelete = *string;
     delete[] stringToDelete;
     *string = nullptr;
+}
+
+/**
+ * @return the length of a java string
+ *
+ * the code below is used internally in newJniStringUTF(JNIEnv *env, jstring from, size_t * len)
+ *
+ * @code size_t len = jniStrlenUTF(env, from);
+ */
+size_t JniHelpers::Strings::jniStrlenUTF(JNIEnv *env, jstring from) {
+    // TODO: error check
+    return static_cast<size_t>(env->GetStringUTFLength(from));
 }
 
 void JniHelpers::Strings::copyJniStringUTF(JNIEnv *env, jstring from, char * to) {

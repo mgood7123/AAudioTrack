@@ -82,8 +82,8 @@ public class AAudioTrack2 {
     public  native int getSampleRate();
     public  native int getChannelCount();
     public  native int getUnderrunCount();
-    public  native int getCurrentFrame();
-    public  native int getTotalSamples();
+//    public  native int getCurrentFrame();
+//    public  native int getTotalSamples();
     public  native void setTrack(long nativeChannel, String track);
     public  native void setPlugin(long nativeChannel, long plugin);
     public  native void sendEvent(long nativeChannel, int event);
@@ -225,8 +225,6 @@ public class AAudioTrack2 {
         return new ChannelInterface(this, newSamplerChannel_());
     }
 
-    private String converted;
-
     public AAudioTrack2() {
         createNativeInstance();
         startEngine();
@@ -235,9 +233,12 @@ public class AAudioTrack2 {
     // each Audio Track instance will correspond to a Channel in the Channel Rack
 
     private void _load(long nativeChannel, Path tmp) {
-        int sampleRate = getSampleRate();
-        int channelCount = getChannelCount();
-        converted = tmp + ".converted.f_f32le.ar_" + sampleRate + ".ac_" + channelCount;
+        setTrack(nativeChannel, tmp.toString());
+    }
+
+    private String decode(String tmp, int sampleRate, int channelCount) {
+        String converted = "TMP_" + tmp + ".converted.ffmpeg.f_f32le.ar_" + sampleRate + ".ac_" + channelCount;
+        Log.i(Config.TAG, "converted = [" + converted + "]");
         int returnCode = FFmpeg.execute("-y" + " " +
                 // input
                 "-i " + tmp + " " +
@@ -249,8 +250,7 @@ public class AAudioTrack2 {
         );
         if (returnCode == RETURN_CODE_SUCCESS) {
             Log.i(Config.TAG, "Command execution completed successfully.");
-            // JNI setTrack calls -> C++ void PluginBase::load(const char *filename, int channelCount)
-            setTrack(nativeChannel, converted);
+            return converted;
         } else {
             throw new RuntimeException(Config.TAG + ": Command execution failed (returned " + returnCode + ")");
         }

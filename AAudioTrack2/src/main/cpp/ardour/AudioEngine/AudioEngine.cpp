@@ -21,6 +21,7 @@
 #include "../../smallville7123/plugins/Mixer.h"
 // channel rack plugin
 #include "../../smallville7123/plugins/ChannelRack.h"
+#include "../../other/JniHelpers.h"
 
 using namespace std;
 
@@ -33,7 +34,7 @@ namespace ARDOUR {
     PatternGroup patternGroup;
     smf::MidiFile midifile;
 
-    AudioEngine::AudioEngine (JNIEnv* env)
+    AudioEngine::AudioEngine (JNIEnv* env, jobject object)
             :// session_remove_pending (false)
 //            , session_removal_countdown (-1)
             /*,*/ _running (false)
@@ -67,34 +68,66 @@ namespace ARDOUR {
 //            , _pending_playback_latency_callback (0)
 //            , _pending_capture_latency_callback (0)
             , jniEnv(env)
+            , jniObject(object)
     {
 //        reset_silence_countdown ();
 //        start_hw_event_processing();
         hostInfo.patternGroup = &patternGroup;
         hostInfo.midiFile = &midifile;
         discover_backends ();
+        jclass AAudioTrack2Class = jniEnv->FindClass("smallville7123/aaudiotrack2/AAudioTrack2");
+        AAudioTrack2ClassDecodeMethod = jniEnv->GetMethodID(AAudioTrack2Class, "decode", "(Ljava/lang/String;II)Ljava/lang/String;");
     }
 
     AudioEngine::~AudioEngine ()
     {
         _in_destructor = true;
-//        stop_hw_event_processing();
         drop_backend ();
         for (BackendMap::const_iterator i = _backends.begin(); i != _backends.end(); ++i) {
             i->second->deinstantiate();
         }
-        jniEnv = nullptr;
-//        jniEnv _main_thread;
+        jniEnv->DeleteGlobalRef(reinterpret_cast<jobject>(AAudioTrack2ClassDecodeMethod));
+        AAudioTrack2ClassDecodeMethod = nullptr;
+    }
+
+    std::string AudioEngine::decode(const std::string & path) {
+
+        // obtain memory
+        jstring javaString = JniHelpers::Strings::newString(jniEnv, path);
+
+        // obtain memory
+        jobject result = jniEnv->CallObjectMethod(
+                jniObject, AAudioTrack2ClassDecodeMethod,
+                javaString, sample_rate(), output_channels()
+        );
+
+        // free memory
+        jniEnv->DeleteLocalRef(javaString);
+
+        // obtain memory
+        const char * str = JniHelpers::Strings::newJniStringUTF(jniEnv, static_cast<jstring>(result));
+
+        // free memory
+        jniEnv->DeleteLocalRef(result);
+
+        // copy string so we can free original
+        // copied string is auto freed in destructor ~string()
+        std::string res = std::string(str);
+
+        // free memory
+        JniHelpers::Strings::deleteJniStringUTF(&str);
+
+        return res;
     }
 
     AudioEngine*
-    AudioEngine::create (JNIEnv* env)
+    AudioEngine::create (JNIEnv* env, jobject object)
     {
         if (_instance) {
             return _instance;
         }
 
-        _instance = new AudioEngine (env);
+        _instance = new AudioEngine (env, object);
 
         return _instance;
     }
@@ -396,10 +429,7 @@ namespace ARDOUR {
     // AUDIO ENGINE
 
     void AudioEngine::load(void * nativeChannel, const char *filename) {
-        reinterpret_cast<Channel_Generator*>(nativeChannel)->plugin->load(
-                filename,
-                _backend->available_output_channel_count(_backend->device_name())
-        );
+        reinterpret_cast<Channel_Generator*>(nativeChannel)->plugin->load(filename);
         // if the audio buffer is 8k or larger
         // then this can handle up to 120 channels
         // (with 0 FX)
@@ -491,7 +521,12 @@ namespace ARDOUR {
     }
 
     void AudioEngine::setPlugin(void *nativeChannel, void *nativePlugin) {
-        channelRack.setPlugin(nativeChannel, nativePlugin);
+        channelRack.setPlugin(
+                nativeChannel, nativePlugin,
+                [this]() { return sample_rate(); },
+                [this]() { return output_channels(); },
+                [&, this](std::string path) { return decode(path); }
+        );
     }
 
     void AudioEngine::sendEvent(void *nativeChannel, int event) {
@@ -581,5 +616,13 @@ namespace ARDOUR {
 
     void AudioEngine::changeToSongMode() {
         mode = Mode::song;
+    }
+
+    int AudioEngine::sample_rate() {
+        return current_backend()->sample_rate();
+    }
+
+    int AudioEngine::output_channels() {
+        return current_backend()->output_channels();
     }
 }

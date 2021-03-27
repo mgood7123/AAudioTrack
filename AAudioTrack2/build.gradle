@@ -6,33 +6,32 @@ plugins {
 // https://developer.android.com/studio/build/native-dependencies
 
 android {
-    compileSdkVersion 29 // Play requires Android Q or higher
-    buildToolsVersion "29.0.3" // Play requires Android Q or higher
-
+    buildFeatures {
+        prefab true
+    }
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+            version "3.18.1"
+        }
+    }
     defaultConfig {
-        minSdkVersion 28 // Android Pie
-        targetSdkVersion 29 // Play requires Android Q or higher
+        externalNativeBuild {
+            cmake {
+                cppFlags "-std=c++17"
+            }
+        }
+        minSdkVersion 29
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
 
-        externalNativeBuild {
-            cmake {
-                cppFlags "-std=c++17"
-            }
-        }
     }
-    externalNativeBuild {
-        cmake {
-            path "src/main/cpp/CMakeLists.txt"
-            version "3.10.2"
-        }
-    }
-    buildFeatures {
-        prefab true
-    }
+    compileSdkVersion 29
+    buildToolsVersion "29.0.3"
 
     buildTypes {
         release {
@@ -53,8 +52,9 @@ dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.material:material:1.3.0'
+    implementation project(path: ':ContextMenu')
     //noinspection GradleDynamicVersion
-    testImplementation 'junit:junit:4.+'
+    testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 }

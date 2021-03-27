@@ -2,8 +2,8 @@
 // Created by matthew good on 28/11/20.
 //
 
-#ifndef AndroidDAW_SDK_HOSTINFO_H
-#define AndroidDAW_SDK_HOSTINFO_H
+#ifndef AndroidDAW_SDK__Plugin_HOSTINFO_H
+#define AndroidDAW_SDK__Plugin_HOSTINFO_H
 
 #include "TempoGrid.h"
 #include <AndroidDAW_SDK/midifile/MidiEventList.h>
@@ -66,4 +66,4 @@ public:
     }
 };
 
-#endif //AndroidDAW_SDK_HOSTINFO_H
+#endif //AndroidDAW_SDK__Plugin_HOSTINFO_H

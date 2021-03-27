@@ -9,7 +9,7 @@
 
 class Channel_Effect {
 public:
-    Plugin_Type_Effect * plugin = nullptr;
+    Plugin * plugin = nullptr;
     bool plugin_is_allocated = false;
     PortUtils2 * out = nullptr;
 

@@ -22,8 +22,12 @@
 // NOTE 3 R -
 // NOTE 4 - L
 
-class Delay : public Plugin_Type_Effect {
+class Delay : public Plugin {
 public:
+
+    int plugin_type() override {
+        return PLUGIN_TYPE_EFFECT;
+    }
 
     DelayLine left;
     DelayLine right;
@@ -31,7 +35,7 @@ public:
         left.setdelay(48000/8);
     }
 
-    int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
+    int write(HostInfo *hostInfo, PortUtils2 *in, Plugin *mixer, PortUtils2 *out,
               unsigned int samples) override {
         for (int i = 0; i < samples; i += 2) {
             reinterpret_cast<ENGINE_FORMAT *>(out->ports.outputStereo->l->buf)[i] = left.delayline(reinterpret_cast<ENGINE_FORMAT *>(in->ports.outputStereo->l->buf)[i]);

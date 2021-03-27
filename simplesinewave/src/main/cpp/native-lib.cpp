@@ -1,12 +1,16 @@
 #include <jni.h>
 #include <string>
-#include <AndroidDAW_SDK/plugin/Plugin_Type_Generator.h>
+#include <AndroidDAW_SDK/plugin/Plugin.h>
 
-class SineGenerator : public Plugin_Type_Generator {
+class SineGenerator : public Plugin {
 public:
     int dataIndex = 0;
 
-    int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
+    int plugin_type() override {
+        return PLUGIN_TYPE_GENERATOR;
+    }
+
+    int write(HostInfo *hostInfo, PortUtils2 *in, Plugin *mixer, PortUtils2 *out,
               unsigned int samples) override {
 
         using namespace AndroidDAW_SDK__Plugin_TYPEDEFS;

@@ -6,12 +6,12 @@ android {
     packagingOptions {
         pickFirst "**/*.so"
     }
-    compileSdkVersion 29 // Play requires Android Q or higher
+    compileSdkVersion 29
 
     defaultConfig {
         applicationId "smallville7123.aaudiotrack.application"
-        minSdkVersion 28 // Android Pie
-        targetSdkVersion 29 // Play requires Android Q or higher
+        minSdkVersion 29
+        targetSdkVersion 29
         versionCode 3
         versionName "(v1.2) AAudioTrack commit 7d3daf6b93faa1d43a345c2d19fb646251686716"
 
@@ -31,13 +31,12 @@ android {
 }
 
 dependencies {
-    implementation project(path: ':AAudioTrack')
     implementation project(path: ':AAudioTrack2')
 
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.material:material:1.3.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
-    testImplementation 'junit:junit:4.+'
+    testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 }

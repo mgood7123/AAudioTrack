@@ -19,6 +19,7 @@ import smallville7123.UI.Style.Android.ToggleRadioButton;
 import smallville7123.aaudiotrack2.AAudioTrack2;
 import smallville7123.aaudiotrack2.PatternGroup;
 import smallville7123.aaudiotrack2.R;
+import smallville7123.contextmenu.ContextWindow;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.widget.LinearLayout.HORIZONTAL;
@@ -80,6 +81,17 @@ public class SequencerView extends FrameLayout {
     WindowsContextMenu channelContextMenu;
 
     void setupChannelContextMenu() {
+
+        int textSize = 20;
+
+        ContextWindow mainMenu = new ContextWindow(mContext);
+        mainMenu.addSubMenu("directory", textSize)
+                .subMenu.addItem("sub file", textSize);
+        mainMenu.addSubMenu("Replace", textSize)
+                .subMenu.addItem("sub file", textSize);
+        mainMenu.addItem("file", textSize);
+        mainMenu.addItem("file", textSize);
+
         channelContextMenu = new WindowsContextMenu(mContext);
         channelContextMenu.addSubMenu("Insert").subMenu.addItem("hi");
         channelContextMenu.addSubMenu("Replace").subMenu.addItem("hi again");

@@ -17,7 +17,7 @@
 #include "../TrackList.h"
 #include "../TrackGroup.h"
 
-class Playlist : Plugin_Base {
+class Playlist : Plugin {
 public:
 
     Rack<Channel_Generator> rack;
@@ -31,14 +31,6 @@ public:
     }
 
 public:
-    bool requires_sample_count() override {
-        return true;
-    }
-
-    bool requires_mixer() override {
-        return true;
-    }
-
     PortUtils2 * silencePort = nullptr;
 
     TrackGroup trackGroup;
@@ -52,19 +44,19 @@ public:
         delete silencePort;
     }
 
-    void writePlugin(Plugin_Base * plugin, HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer,
+    void writePlugin(Plugin * plugin, HostInfo *hostInfo, PortUtils2 *in, Plugin *mixer,
                      PortUtils2 *out, unsigned int samples) {
         plugin->is_writing = plugin->write(hostInfo, in, mixer,
                                            out, samples);
     }
 
-    void writeEffectRack(EffectRack * effectRack, HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer,
+    void writeEffectRack(EffectRack * effectRack, HostInfo *hostInfo, PortUtils2 *in, Plugin *mixer,
                          PortUtils2 *out, unsigned int samples) {
         effectRack->is_writing = effectRack->write(hostInfo, in, mixer,
                                                    out, samples);
     }
 
-    void writeChannels(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
+    void writeChannels(HostInfo *hostInfo, PortUtils2 *in, Plugin *mixer, PortUtils2 *out,
                        unsigned int samples) {
         // LOGE("writing channels");
 
@@ -173,7 +165,7 @@ public:
         // LOGE("wrote channels");
     }
 
-    void prepareMixer(HostInfo * hostInfo, Plugin_Type_Mixer * mixer_, PortUtils2 * out) {
+    void prepareMixer(HostInfo * hostInfo, Plugin * mixer_, PortUtils2 * out) {
         // LOGE("preparing mixer");
         for (int i = 0; i < PatternGroup::cast(hostInfo->patternGroup)->rack.typeList.size(); ++i) {
             PatternList *patternList = PatternGroup::cast(hostInfo->patternGroup)->rack.typeList[i];
@@ -196,14 +188,14 @@ public:
         // LOGE("prepared mixer");
     }
 
-    void mix(HostInfo *hostInfo, PortUtils2 *in, Plugin_Type_Mixer * mixer, PortUtils2 *out,
+    void mix(HostInfo *hostInfo, PortUtils2 *in, Plugin * mixer, PortUtils2 *out,
              unsigned int samples) {
         // LOGE("mixing");
         mixer->write(hostInfo, in, mixer, out, samples);
         // LOGE("mixed");
     }
 
-    void finalizeMixer(HostInfo * hostInfo, Plugin_Type_Mixer * mixer_) {
+    void finalizeMixer(HostInfo * hostInfo, Plugin * mixer_) {
         // LOGE("finalizing mixer");
         mixer_->removePort(silencePort);
         silencePort->deallocatePorts<ENGINE_FORMAT>();
@@ -227,7 +219,7 @@ public:
         // LOGE("finalized mixer");
     }
 
-    void mixChannels(HostInfo *hostInfo, PortUtils2 *in, Plugin_Type_Mixer * mixer, PortUtils2 *out,
+    void mixChannels(HostInfo *hostInfo, PortUtils2 *in, Plugin * mixer, PortUtils2 *out,
                      unsigned int samples) {
         prepareMixer(hostInfo, mixer, out);
         mix(hostInfo, in, mixer, out, samples);
@@ -236,7 +228,7 @@ public:
 
     bool playing = false;
 
-    int play(Track * track, HostInfo * hostInfo, PortUtils2 *in, Plugin_Base *mixer,
+    int play(Track * track, HostInfo * hostInfo, PortUtils2 *in, Plugin *mixer,
                      PortUtils2 *out, unsigned int samples) {
         if (track->patternListReference != nullptr) {
             for (int i = 0;
@@ -274,7 +266,7 @@ public:
     int p = PLUGIN_STOP;
     uint64_t sample;
 
-    void process(Track * track, HostInfo * hostInfo, PortUtils2 *in, Plugin_Base *mixer,
+    void process(Track * track, HostInfo * hostInfo, PortUtils2 *in, Plugin *mixer,
                  PortUtils2 *out, unsigned int samples) {
         size_t size = hostInfo->midiPlaylistInputBuffer.readAvailable();
         if (p == PLUGIN_CONTINUE) {
@@ -304,7 +296,7 @@ public:
 
     smf::MidiEvent * lastMidiEvent = nullptr;
 
-    void processPatterns(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
+    void processPatterns(HostInfo *hostInfo, PortUtils2 *in, Plugin *mixer, PortUtils2 *out,
                        unsigned int samples) {
         for (int i = 0; i < trackGroup.rack.typeList.size(); ++i) {
             TrackList *trackList = trackGroup.rack.typeList[i];
@@ -325,15 +317,15 @@ public:
         sample += samples;
     }
 
-    int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
+    int write(HostInfo *hostInfo, PortUtils2 *in, Plugin *mixer, PortUtils2 *out,
           unsigned int samples) override {
         processPatterns(hostInfo, in, mixer, out, samples);
-        mixChannels(hostInfo, in, reinterpret_cast<Plugin_Type_Mixer*>(mixer), out, samples);
+        mixChannels(hostInfo, in, reinterpret_cast<Plugin*>(mixer), out, samples);
         return PLUGIN_CONTINUE;
     }
 
     void setPlugin(void *nativeChannel, void *nativePlugin) {
-        static_cast<Channel_Generator *>(nativeChannel)->plugin = static_cast<Plugin_Type_Generator *>(nativePlugin);
+        static_cast<Channel_Generator *>(nativeChannel)->plugin = static_cast<Plugin *>(nativePlugin);
     }
 
     TrackList * newTrackList() {

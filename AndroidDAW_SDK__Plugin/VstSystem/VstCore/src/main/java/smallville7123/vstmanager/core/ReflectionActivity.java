@@ -12,6 +12,7 @@ import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 
 import androidx.annotation.IdRes;
 import androidx.annotation.LayoutRes;
@@ -203,9 +204,27 @@ public class ReflectionActivity extends ContextThemeWrapper {
         layoutInflater = LayoutInflater.from(this);
     }
 
+    /**
+     * compatibility
+     */
     public void setup(ViewGroup contentRoot, Context context) {
+        setup(context, contentRoot);
+    }
+
+    public void setup(Context context, ViewGroup contentRoot) {
         mContentRoot = contentRoot;
         setup(context);
+    }
+
+    /**
+     * APP glue for local hosted ReflectionActivity
+     * same as if starting the APP directly from its own apk
+     */
+    public void setupAndAttach(Activity activity) {
+        FrameLayout frameLayout = new FrameLayout(activity);
+        ViewGroup.LayoutParams matchParent = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        activity.setContentView(frameLayout, matchParent);
+        setup(activity, frameLayout);
     }
 
     protected void onCreate(Bundle savedInstanceState) {

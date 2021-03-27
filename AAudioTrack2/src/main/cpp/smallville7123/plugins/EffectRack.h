@@ -5,15 +5,14 @@
 #ifndef AAUDIOTRACK_EFFECTRACK_H
 #define AAUDIOTRACK_EFFECTRACK_H
 
-#include <AndroidDAW_SDK/plugin/PortUtils2.h>
 #include "Mixer.h"
 #include "Sampler.h"
 #include "Delay.h"
-#include <AndroidDAW_SDK/plugin/HostInfo.h>
 #include "../Rack.h"
 #include "../Channel_Effect.h"
+#include <AndroidDAW_SDK/plugin/Plugin.h>
 
-class EffectRack : public Plugin_Base {
+class EffectRack : public Plugin {
 public:
 
     Rack<Channel_Effect> rack;
@@ -34,13 +33,9 @@ public:
     }
 
 public:
-    bool requires_sample_count() override {
-        return true;
-    }
-
     bool tmp;
 
-    int write(HostInfo *hostInfo, PortUtils2 *in, Plugin_Base *mixer, PortUtils2 *out,
+    int write(HostInfo *hostInfo, PortUtils2 *in, Plugin *mixer, PortUtils2 *out,
               unsigned int samples) override {
         tmp = PLUGIN_STOP;
         for(auto effect : rack.typeList) {
