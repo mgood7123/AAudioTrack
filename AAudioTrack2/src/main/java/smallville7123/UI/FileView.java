@@ -1,21 +1,28 @@
 package smallville7123.UI;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.text.Editable;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextUtils;
+import android.text.TextWatcher;
+import android.text.util.Rfc822Tokenizer;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.Pair;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
+import android.widget.MultiAutoCompleteTextView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -23,15 +30,18 @@ import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import java.io.File;
-import java.nio.file.LinkOption;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.function.Predicate;
 
 import smallville7123.aaudiotrack2.R;
 
 import static android.widget.LinearLayout.VERTICAL;
 
 public class FileView extends FrameLayout {
+    private static final String TAG = "FileView";
+
     public FileView(@NonNull Context context) {
         super(context);
         init(context, null);
@@ -90,26 +100,162 @@ public class FileView extends FrameLayout {
         header = findViewById(R.id.FileView_header_EditText);
         FrameLayout fl = findViewById(R.id.FileView_container);
         fl.addView(fileList);
+        setup_IME_ACTION_handler();
+        setup_AutoCompletion();
         if (isInEditMode()) {
             enterDirectory("/");
         }
-        setup_IME_ACTION_handler();
     }
 
-    InputMethodManager inputMethodManager;
-
     void setup_IME_ACTION_handler() {
-        header.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_GO) {
-                    FileView.this.enterDirectory(v.getText().toString());
-                    header.dismissSoftKeyboard();
-                    return true;
-                }
+        header.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_GO) {
+                enterDirectory(v.getText().toString());
+                header.dismissSoftKeyboard();
                 return true;
             }
+            return true;
         });
+    }
+
+    abstract static class ConvertRunnable<F, T> {
+        abstract T convert(F input);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    <F, T> T[] convertArrayType(F[] from, Class to, ConvertRunnable<F, T> convertRunnable) {
+        T toArray[] = (T[]) Array.newInstance(to, from.length);
+        for (int i = 0; i < toArray.length; i++) {
+            toArray[i] = convertRunnable.convert(from[i]);
+        }
+        return toArray;
+    }
+
+    Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            if (header.isAttachedToWindow()) header.showDropDown();
+            else post(this);
+        }
+    };
+
+    void setup_AutoCompletion() {
+        TextWatcher textWatcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            String dirName;
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String str = s.toString();
+                if (str.contains("/")) {
+                    int idx = str.lastIndexOf('/')+1;
+                    int length = str.length();
+                    if (idx == length) {
+                        dirName = str;
+                    } else if (idx == 0) {
+                        return;
+                    } else {
+                        String dirName_ = str.substring(0, idx);
+                        if (dirName == null || !dirName.contentEquals(dirName_)) {
+                            dirName = dirName_;
+                        }
+                    }
+
+                    File[] files = getDirectories(new File(dirName));
+                    if (files == null) return;
+                    sortAlphabeticallyIgnoreCase(files);
+
+                    String[] names = convertArrayType(files, String.class, new ConvertRunnable<File, String>() {
+                        @Override
+                        String convert(File input) {
+                            return input.getName();
+                        }
+                    });
+
+                    header.setAdapter(
+                            new ArrayAdapter<>(getContext(), android.R.layout.select_dialog_item, names)
+                    );
+                }
+                post(runnable);
+            }
+        };
+
+        header.setTokenizer(new CharacterTokenizer('/'));
+        header.addTextChangedListener(header.convertToTextWatcher(textWatcher));
+        header.setValidator(new AutoCompleteTextView.Validator() {
+            @Override
+            public boolean isValid(CharSequence text) {
+                return true;
+            }
+
+            @Override
+            public CharSequence fixText(CharSequence invalidText) {
+                return invalidText;
+            }
+        });
+        header.setThreshold(1);
+    }
+
+    public static class CharacterTokenizer implements MultiAutoCompleteTextView.Tokenizer {
+        private char character;
+
+        public CharacterTokenizer(char character) {
+            this.character = character;
+        }
+
+        public int findTokenStart(CharSequence text, int cursor) {
+            int i = cursor;
+
+            while (i > 0 && text.charAt(i - 1) != character) {
+                i--;
+            }
+            while (i < cursor && text.charAt(i) == ' ') {
+                i++;
+            }
+
+            return i;
+        }
+
+        public int findTokenEnd(CharSequence text, int cursor) {
+            int i = cursor;
+            int len = text.length();
+
+            while (i < len) {
+                if (text.charAt(i) == character) {
+                    return i;
+                } else {
+                    i++;
+                }
+            }
+
+            return len;
+        }
+
+        public CharSequence terminateToken(CharSequence text) {
+            int i = text.length();
+
+            while (i > 0 && text.charAt(i - 1) == ' ') {
+                i--;
+            }
+
+            if (i > 0 && text.charAt(i - 1) == character) {
+                return text;
+            } else {
+                String r = text + String.valueOf(character) + " ";
+                if (text instanceof Spanned) {
+                    SpannableString sp = new SpannableString(r);
+                    TextUtils.copySpansFrom((Spanned) text, 0, text.length(),
+                            Object.class, sp, 0);
+                    return sp;
+                } else {
+                    return r;
+                }
+            }
+        }
     }
 
     private static final int ROTATION_LEFT = 180;
@@ -131,7 +277,7 @@ public class FileView extends FrameLayout {
         }
     }
 
-    ConstraintLayout add(FileInfo parentFileInfo, FileInfo fileInfo) {
+    ConstraintLayout add(FileInfo fileInfo) {
         ConstraintLayout r = (ConstraintLayout) inflate(mContext, R.layout.fileview_row, null);
         ConstraintLayout row = r.findViewById(R.id.FileView_row);
         LinearLayout depth = row.findViewById(R.id.FileView_row_depth);
@@ -172,17 +318,49 @@ public class FileView extends FrameLayout {
         fileList.adapter.notifyDataSetChanged();
     }
 
-    private static final LinkOption noLinkOptions = null;
-
     public boolean enterDirectory(String root) {
         return enterDirectory(new File(root));
     }
 
+    private boolean exists(File root) {
+        return root != null && root.exists();
+    }
+
+    private boolean isReadable(File root) {
+        return exists(root) && root.canRead();
+    }
+
+    private boolean isDirectory(File root) {
+        return isReadable(root) && root.isDirectory();
+    }
+
+    private File[] keepIf(File[] files, Predicate<File> filter) {
+        if (files == null) return null;
+        ArrayList<File> directories = new ArrayList<>(Arrays.asList(files));
+        directories.removeIf(filter.negate());
+        return directories.toArray(new File[0]);
+    }
+
+    private File[] removeIf(File[] files, Predicate<File> filter) {
+        return keepIf(files, filter.negate());
+    }
+
+    private File[] getDirectories(File root) {
+        if (isDirectory(root)) {
+            return keepIf(root.listFiles(), File::isDirectory);
+        }
+        return null;
+    }
+
     private File[] getFiles(File root) {
-        if (root == null) return null;
-        if (!root.canRead()) return null;
-        if (!root.isDirectory()) return null;
-        return root.listFiles();
+        if (isDirectory(root)) {
+            return removeIf(root.listFiles(), File::isDirectory);
+        }
+        return null;
+    }
+
+    private File[] getFilesAndDirectories(File root) {
+        return isDirectory(root) ? root.listFiles() : null;
     }
 
     private void sortAlphabeticallyIgnoreCase(File[] files) {
@@ -202,12 +380,12 @@ public class FileView extends FrameLayout {
     }
 
     private boolean expandDirectory(FileInfo root) {
-        File[] files = getFiles(root.file);
+        File[] files = getFilesAndDirectories(root.file);
         if (files == null) return false;
         sortAlphabeticallyIgnoreCase(files);
         int index = indexOf(root.file);
         for (File file : files) {
-            add(root, new FileInfo(++index, root, file, root.depth+1));
+            add(new FileInfo(++index, root, file, root.depth+1));
         }
         update();
         return true;
@@ -235,13 +413,15 @@ public class FileView extends FrameLayout {
         return true;
     }
 
+    File cwd;
+
     private boolean enterDirectory(File root) {
-        File[] files = getFiles(root);
+        File[] files = getFilesAndDirectories(root);
         if (files == null) return false;
+        cwd = root;
         clear();
-        header.setText(root.getAbsolutePath());
-        FileInfo f = new FileInfo(0, null, root, 0);
-        add(null, f).callOnClick();
+        header.setText(cwd.getAbsolutePath());
+        add(new FileInfo(0, null, cwd, 0)).callOnClick();
         return true;
     }
 }
