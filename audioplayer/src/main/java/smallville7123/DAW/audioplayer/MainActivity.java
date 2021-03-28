@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.Manifest;
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
@@ -38,6 +39,8 @@ public class MainActivity extends Activity {
             null
     );
 
+    private FileView fileView;
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         permissionRequester.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -65,7 +68,7 @@ public class MainActivity extends Activity {
 
         setContentView(R.layout.activity_main);
 
-        FileView fileView = findViewById(R.id.fileView);
+        fileView = findViewById(R.id.fileView);
         fileView.enterDirectory("/");
     }
 }

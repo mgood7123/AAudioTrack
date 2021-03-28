@@ -37,16 +37,17 @@
         app:layout_constraintStart_toEndOf="@id/FileView_row_chevron"
         app:layout_constraintEnd_toStartOf="@id/FileView_row_text"
         />
-    <smallville7123.UI.MatchHeightTextView
+
+    <smallville7123.UI.SingleLineAutoSizeTextView
         android:id="@+id/FileView_row_text"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:fontFamily="serif-monospace"
-        android:maxLines="1"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@id/FileView_row_icon"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/FileView_row_icon"
+        app:layout_constraintTop_toTopOf="parent"
+        app:autoResizeMode="heightWithEllipsis"
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

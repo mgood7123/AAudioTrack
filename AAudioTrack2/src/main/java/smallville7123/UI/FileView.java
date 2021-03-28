@@ -1,5 +1,6 @@
 package smallville7123.UI;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
@@ -7,7 +8,11 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.Pair;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -54,7 +59,7 @@ public class FileView extends FrameLayout {
     LayoutUtils.TextViewSize textSize;
     int textColor;
     Drawable background;
-    MatchHeightTextView header;
+    SLACASET header;
     int chevronColor;
 
     private void init(Context context, AttributeSet attrs) {
@@ -88,6 +93,23 @@ public class FileView extends FrameLayout {
         if (isInEditMode()) {
             enterDirectory("/");
         }
+        setup_IME_ACTION_handler();
+    }
+
+    InputMethodManager inputMethodManager;
+
+    void setup_IME_ACTION_handler() {
+        header.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_GO) {
+                    FileView.this.enterDirectory(v.getText().toString());
+                    header.dismissSoftKeyboard();
+                    return true;
+                }
+                return true;
+            }
+        });
     }
 
     private static final int ROTATION_LEFT = 180;
