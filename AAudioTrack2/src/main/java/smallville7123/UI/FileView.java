@@ -184,55 +184,49 @@ public class FileView extends FrameLayout {
             }
         };
 
-        header.setTokenizer(new CharacterTokenizer('/'));
+        header.setTokenizer(new StringTokenizer('/'));
         header.addTextChangedListener(header.convertToTextWatcher(textWatcher));
-        header.setValidator(new AutoCompleteTextView.Validator() {
-            @Override
-            public boolean isValid(CharSequence text) {
-                return true;
-            }
-
-            @Override
-            public CharSequence fixText(CharSequence invalidText) {
-                return invalidText;
-            }
-        });
         header.setThreshold(1);
+        // setValidator causes EditView to hang
     }
 
-    public static class CharacterTokenizer implements MultiAutoCompleteTextView.Tokenizer {
-        private char character;
+    public static class StringTokenizer implements MultiAutoCompleteTextView.Tokenizer {
+        private String stringToSplitBy;
+        private String stringToAppendAfterCompletion;
 
-        public CharacterTokenizer(char character) {
-            this.character = character;
+        public StringTokenizer(char stringToSplitBy) {
+            this(String.valueOf(stringToSplitBy));
+        }
+
+        public StringTokenizer(char stringToSplitBy, char stringToAppendAfterCompletion) {
+            this(String.valueOf(stringToSplitBy), String.valueOf(stringToAppendAfterCompletion));
+        }
+
+        public StringTokenizer(String stringToSplitBy) {
+            this(stringToSplitBy, null);
+        }
+
+        public StringTokenizer(String stringToSplitBy, String stringToAppendAfterCompletion) {
+            this.stringToSplitBy = stringToSplitBy;
+            this.stringToAppendAfterCompletion = stringToAppendAfterCompletion;
+        }
+
+        public StringTokenizer(String stringToSplitBy, char stringToAppendAfterCompletion) {
+            this(stringToSplitBy, String.valueOf(stringToAppendAfterCompletion));
+        }
+
+        public StringTokenizer(char stringToSplitBy, String stringToAppendAfterCompletion) {
+            this(String.valueOf(stringToSplitBy), stringToAppendAfterCompletion);
         }
 
         public int findTokenStart(CharSequence text, int cursor) {
-            int i = cursor;
-
-            while (i > 0 && text.charAt(i - 1) != character) {
-                i--;
-            }
-            while (i < cursor && text.charAt(i) == ' ') {
-                i++;
-            }
-
-            return i;
+            int index = text.toString().lastIndexOf(stringToSplitBy, cursor);
+            return index == -1 ? index : index;
         }
 
         public int findTokenEnd(CharSequence text, int cursor) {
-            int i = cursor;
-            int len = text.length();
-
-            while (i < len) {
-                if (text.charAt(i) == character) {
-                    return i;
-                } else {
-                    i++;
-                }
-            }
-
-            return len;
+            int index = text.toString().indexOf(stringToSplitBy, cursor);
+            return index == -1 ? index : index;
         }
 
         public CharSequence terminateToken(CharSequence text) {
@@ -242,10 +236,10 @@ public class FileView extends FrameLayout {
                 i--;
             }
 
-            if (i > 0 && text.charAt(i - 1) == character) {
+            if (i > 0 && text.charAt(i - 1) == '/') {
                 return text;
             } else {
-                String r = text + String.valueOf(character) + " ";
+                String r = text + String.valueOf('/') + " ";
                 if (text instanceof Spanned) {
                     SpannableString sp = new SpannableString(r);
                     TextUtils.copySpansFrom((Spanned) text, 0, text.length(),

@@ -220,6 +220,12 @@ public class PACET extends AutoCompleteTextView {
     }
 
     @Override
+    public void clearFocus() {
+        dismissDropDown();
+        super.clearFocus();
+    }
+
+    @Override
     protected void onFocusChanged(boolean focused, int direction, Rect previouslyFocusedRect) {
         Log.d(TAG, "onFocusChanged() called with: focused = [" + focused + "], direction = [" + direction + "], previouslyFocusedRect = [" + previouslyFocusedRect + "]");
         super.onFocusChanged(focused, direction, previouslyFocusedRect);
