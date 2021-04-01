@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Predicate;
 
+import smallville7123.AndroidDAW.SDK.jni_cpp_api.JNI_CPP_API;
 import smallville7123.aaudiotrack2.R;
 
 import static android.widget.LinearLayout.VERTICAL;
@@ -139,14 +140,6 @@ public class FileView extends FrameLayout {
         }
     };
 
-    String dirname(String path) {
-        return "";
-    }
-
-    String basename(String path) {
-        return "";
-    }
-
     void setup_AutoCompletion() {
         TextWatcher textWatcher = new TextWatcher() {
             @Override
@@ -160,17 +153,8 @@ public class FileView extends FrameLayout {
             public void afterTextChanged(Editable s) {
                 String str = s.toString();
                 if (str.contains("/")) {
-                    int idx = str.lastIndexOf('/')+1;
-                    if (idx == 0) return;
-                    int length = str.length();
-                    if (idx == length) {
-                        dirName = str;
-                    } else {
-                        String dirName_ = str.substring(0, idx);
-                        if (dirName == null || !dirName.contentEquals(dirName_)) {
-                            dirName = dirName_;
-                        }
-                    }
+
+                    dirName = JNI_CPP_API.dirname(str);
 
                     File[] files = getDirectories(new File(dirName));
                     if (files == null) return;
