@@ -6,7 +6,7 @@
 #include <string>
 #include <unistd.h>
 #include "ardour/ardour.h"
-#include "other/JniHelpers.h"
+#include <AndroidDAW_SDK/JniHelpers/JniHelpers.h>
 
 using namespace ARDOUR;
 AudioEngine * engine = nullptr;

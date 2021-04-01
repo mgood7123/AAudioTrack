@@ -12,6 +12,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <AndroidDAW_SDK/plugin/TempoGrid.h>
+#include <AndroidDAW_SDK/JniHelpers/JniHelpers.h>
 
 //
 // plugins
@@ -21,7 +22,6 @@
 #include "../../smallville7123/plugins/Mixer.h"
 // channel rack plugin
 #include "../../smallville7123/plugins/ChannelRack.h"
-#include "../../other/JniHelpers.h"
 
 using namespace std;
 

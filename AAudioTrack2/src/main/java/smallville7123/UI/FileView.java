@@ -139,6 +139,14 @@ public class FileView extends FrameLayout {
         }
     };
 
+    String dirname(String path) {
+        return "";
+    }
+
+    String basename(String path) {
+        return "";
+    }
+
     void setup_AutoCompletion() {
         TextWatcher textWatcher = new TextWatcher() {
             @Override
@@ -153,11 +161,10 @@ public class FileView extends FrameLayout {
                 String str = s.toString();
                 if (str.contains("/")) {
                     int idx = str.lastIndexOf('/')+1;
+                    if (idx == 0) return;
                     int length = str.length();
                     if (idx == length) {
                         dirName = str;
-                    } else if (idx == 0) {
-                        return;
                     } else {
                         String dirName_ = str.substring(0, idx);
                         if (dirName == null || !dirName.contentEquals(dirName_)) {
@@ -184,72 +191,10 @@ public class FileView extends FrameLayout {
             }
         };
 
-        header.setTokenizer(new StringTokenizer('/'));
+        header.setTokenizer(new PACET.StringTokenizer('/', '/'));
         header.addTextChangedListener(header.convertToTextWatcher(textWatcher));
         header.setThreshold(1);
         // setValidator causes EditView to hang
-    }
-
-    public static class StringTokenizer implements MultiAutoCompleteTextView.Tokenizer {
-        private String stringToSplitBy;
-        private String stringToAppendAfterCompletion;
-
-        public StringTokenizer(char stringToSplitBy) {
-            this(String.valueOf(stringToSplitBy));
-        }
-
-        public StringTokenizer(char stringToSplitBy, char stringToAppendAfterCompletion) {
-            this(String.valueOf(stringToSplitBy), String.valueOf(stringToAppendAfterCompletion));
-        }
-
-        public StringTokenizer(String stringToSplitBy) {
-            this(stringToSplitBy, null);
-        }
-
-        public StringTokenizer(String stringToSplitBy, String stringToAppendAfterCompletion) {
-            this.stringToSplitBy = stringToSplitBy;
-            this.stringToAppendAfterCompletion = stringToAppendAfterCompletion;
-        }
-
-        public StringTokenizer(String stringToSplitBy, char stringToAppendAfterCompletion) {
-            this(stringToSplitBy, String.valueOf(stringToAppendAfterCompletion));
-        }
-
-        public StringTokenizer(char stringToSplitBy, String stringToAppendAfterCompletion) {
-            this(String.valueOf(stringToSplitBy), stringToAppendAfterCompletion);
-        }
-
-        public int findTokenStart(CharSequence text, int cursor) {
-            int index = text.toString().lastIndexOf(stringToSplitBy, cursor);
-            return index == -1 ? index : index;
-        }
-
-        public int findTokenEnd(CharSequence text, int cursor) {
-            int index = text.toString().indexOf(stringToSplitBy, cursor);
-            return index == -1 ? index : index;
-        }
-
-        public CharSequence terminateToken(CharSequence text) {
-            int i = text.length();
-
-            while (i > 0 && text.charAt(i - 1) == ' ') {
-                i--;
-            }
-
-            if (i > 0 && text.charAt(i - 1) == '/') {
-                return text;
-            } else {
-                String r = text + String.valueOf('/') + " ";
-                if (text instanceof Spanned) {
-                    SpannableString sp = new SpannableString(r);
-                    TextUtils.copySpansFrom((Spanned) text, 0, text.length(),
-                            Object.class, sp, 0);
-                    return sp;
-                } else {
-                    return r;
-                }
-            }
-        }
     }
 
     private static final int ROTATION_LEFT = 180;

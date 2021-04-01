@@ -1,9 +1,9 @@
-[submodule "AndroidDAW_SDK__Plugin/VstSystem/libOverview"]
-	path = AndroidDAW_SDK__Plugin/VstSystem/libOverview
-	url = http://github.com/mgood7123/libOverview
 [submodule "ContextMenu"]
 	path = ContextMenu
 	url = http://github.com/mgood7123/ContextMenu
 [submodule "AAudioTrack2/src/main/java/smallville7123/UI/ScrollBarView"]
 	path = AAudioTrack2/src/main/java/smallville7123/UI/ScrollBarView
 	url = http://github.com/mgood7123/Scroll-Bar
+[submodule "AndroidDAW_SDK"]
+	path = AndroidDAW_SDK
+	url = http://github.com/mgood7123/AndroidDAW_SDK
