@@ -13,6 +13,14 @@
         android:layout_width="match_parent"
         android:layout_height="80dp"
         >
+
+        <smallville7123.UI.ExpandableView
+            android:layout_width="80dp"
+            android:layout_height="match_parent"
+            app:headerLayout="@layout/fileview_filter_icon"
+            app:contentLayout="@layout/fileview_filter_content"
+            >
+        </smallville7123.UI.ExpandableView>
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"

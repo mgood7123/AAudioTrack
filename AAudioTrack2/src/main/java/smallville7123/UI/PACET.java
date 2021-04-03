@@ -37,6 +37,17 @@ public class PACET extends AutoCompleteTextView {
     private boolean inRefresh = false;
     private boolean isSettingPreview = false;
 
+    @Override
+    protected void onFocusChanged(boolean focused, int direction, Rect previouslyFocusedRect) {
+        Log.d(TAG, "onFocusChanged() called with: focused = [" + focused + "], direction = [" + direction + "], previouslyFocusedRect = [" + previouslyFocusedRect + "]");
+        super.onFocusChanged(focused, direction, previouslyFocusedRect);
+        inRefresh = true;
+        if (focused) setText(realText);
+        else needsRefresh = true;
+        mOnPreviewListener.onPreview(focused);
+        inRefresh = false;
+    }
+
     public class OnPreviewListener {
         /**
          * @param active if the preview is active or not
@@ -47,8 +58,13 @@ public class PACET extends AutoCompleteTextView {
 
         @CallSuper
         void refreshBegin() {
-            if (isFocused()) setText(realText);
-            else realText = getText().toString();
+            if (!isFocused()) {
+                realText = getText().toString();
+            } else {
+                // the IME can cause a layout sometimes
+                // which will erase what the user has typed
+//                setText(realText);
+            }
         }
 
         /**
@@ -225,17 +241,6 @@ public class PACET extends AutoCompleteTextView {
         super.clearFocus();
     }
 
-    @Override
-    protected void onFocusChanged(boolean focused, int direction, Rect previouslyFocusedRect) {
-        Log.d(TAG, "onFocusChanged() called with: focused = [" + focused + "], direction = [" + direction + "], previouslyFocusedRect = [" + previouslyFocusedRect + "]");
-        super.onFocusChanged(focused, direction, previouslyFocusedRect);
-        inRefresh = true;
-        if (focused) setText(realText);
-        else needsRefresh = true;
-        mOnPreviewListener.onPreview(focused);
-        inRefresh = false;
-    }
-
     boolean needsRefresh = false;
 
     /**
@@ -272,15 +277,15 @@ public class PACET extends AutoCompleteTextView {
         super.onLayout(changed, left, top, right, bottom);
     }
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    @Override
+    public void setText(CharSequence text, BufferType type) {
+        super.setText(text, type);
+    }
+
+    @Override
+    public void setText(CharSequence text, boolean filter) {
+        super.setText(text, filter);
+    }
 
     private MultiAutoCompleteTextView.Tokenizer mTokenizer;
 
@@ -308,6 +313,9 @@ public class PACET extends AutoCompleteTextView {
         if (enoughToFilter()) {
             int end = getSelectionEnd();
             int start = mTokenizer.findTokenStart(text, end);
+            if (start == -1) {
+                throw new RuntimeException("start cannot be -1");
+            }
 
             performFiltering(text, start, end, keyCode);
         } else {

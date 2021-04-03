@@ -153,9 +153,9 @@ namespace ARDOUR {
         if (tmpuc > aaudio->previousUnderrunCount) {
             aaudio->previousUnderrunCount = aaudio->underrunCount;
             aaudio->underrunCount = tmpuc;
-            // increasing the buffer size here has no effect
+            // increasing the buffer capacity here has no effect
             // the audio stream must be re-created in order to change
-            // the buffer size
+            // the buffer capacity
         }
         return AAUDIO_CALLBACK_RESULT_CONTINUE;
     }

@@ -6,23 +6,15 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.text.Editable;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.text.util.Rfc822Tokenizer;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.Pair;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListAdapter;
-import android.widget.MultiAutoCompleteTextView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -33,6 +25,7 @@ import java.io.File;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 import smallville7123.AndroidDAW.SDK.jni_cpp_api.JNI_CPP_API;
@@ -140,6 +133,142 @@ public class FileView extends FrameLayout {
         }
     };
 
+    enum Mode {
+        BIT_INVALID,
+            BIT_DENY,
+            BIT_ALLOW,
+    }
+
+    static Mode getModeBit(char bit) {
+        switch (bit) {
+            case '-':
+                return Mode.BIT_DENY;
+            case 'R':
+            case 'r':
+            case 'W':
+            case 'w':
+            case 'X':
+            case 'x':
+                return Mode.BIT_ALLOW;
+            default:
+                return Mode.BIT_INVALID;
+        }
+    }
+
+    /**
+     * transforms a mode string, or a File, into a ModeSpec <br><br>
+     *
+     * mode strings are any combination of the following: <br>
+     *
+     * <li>--- <br>
+     * <li>rwx <br>
+     * <li>RWX <br>
+     */
+    public static class ModeSpec {
+        final Mode read;
+        final Mode write;
+        final Mode execute;
+
+        /**
+         * transforms a mode string into a ModeSpec <br><br>
+         *
+         * mode strings are any combination of the following: <br>
+         *
+         * <li>--- <br>
+         * <li>rwx <br>
+         * <li>RWX <br>
+         */
+        ModeSpec(String mode) {
+            if (mode.length() != 3) {
+                throw new RuntimeException("length must be 3");
+            }
+            switch (mode.charAt(0)) {
+                case '-':
+                    read = Mode.BIT_DENY;
+                    break;
+                case 'R':
+                case 'r':
+                    read = Mode.BIT_ALLOW;
+                    break;
+                default:
+                    throw new RuntimeException(
+                            "invalid bit, the only bits that are accepted are " +
+                                    "-, R, r"
+                    );
+            }
+            switch (mode.charAt(1)) {
+                case '-':
+                    write = Mode.BIT_DENY;
+                    break;
+                case 'W':
+                case 'w':
+                    write = Mode.BIT_ALLOW;
+                    break;
+                default:
+                    throw new RuntimeException(
+                            "invalid bit, the only bits that are accepted are " +
+                                    "-, W, w"
+                    );
+            }
+            switch (mode.charAt(2)) {
+                case '-':
+                    execute = Mode.BIT_DENY;
+                    break;
+                case 'X':
+                case 'x':
+                    execute = Mode.BIT_ALLOW;
+                    break;
+                default:
+                    throw new RuntimeException(
+                            "invalid bit, the only bits that are accepted are " +
+                                    "-, X, x"
+                    );
+            }
+        }
+
+        /**
+         * obtains a mode spec from a file
+         */
+        ModeSpec(File file) {
+            read = file.canRead() ? Mode.BIT_ALLOW : Mode.BIT_DENY;
+            write = file.canWrite() ? Mode.BIT_ALLOW : Mode.BIT_DENY;
+            execute = file.canExecute() ? Mode.BIT_ALLOW : Mode.BIT_DENY;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof ModeSpec)) return false;
+            ModeSpec modeSpec = (ModeSpec) o;
+            return read == modeSpec.read &&
+                    write == modeSpec.write &&
+                    execute == modeSpec.execute;
+        }
+
+        public boolean equals(File file) {
+            Objects.requireNonNull(file);
+            return read == (file.canRead() ? Mode.BIT_ALLOW : Mode.BIT_DENY) &&
+                    write == (file.canWrite() ? Mode.BIT_ALLOW : Mode.BIT_DENY) &&
+                    execute == (file.canExecute() ? Mode.BIT_ALLOW : Mode.BIT_DENY);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(read, write, execute);
+        }
+    }
+
+    ModeSpec directoryFilter;
+    ModeSpec fileFilter;
+
+    public void setDirectoryFilter(ModeSpec modeSpec) {
+        directoryFilter = modeSpec;
+    }
+
+    public void setFileFilter(ModeSpec modeSpec) {
+        fileFilter = modeSpec;
+    }
+
     void setup_AutoCompletion() {
         TextWatcher textWatcher = new TextWatcher() {
             @Override
@@ -147,30 +276,37 @@ public class FileView extends FrameLayout {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
-            String dirName;
-
             @Override
             public void afterTextChanged(Editable s) {
-                String str = s.toString();
-                if (str.contains("/")) {
-
-                    dirName = JNI_CPP_API.dirname(str);
-
-                    File[] files = getDirectories(new File(dirName));
-                    if (files == null) return;
-                    sortAlphabeticallyIgnoreCase(files);
-
-                    String[] names = convertArrayType(files, String.class, new ConvertRunnable<File, String>() {
-                        @Override
-                        String convert(File input) {
-                            return input.getName();
-                        }
-                    });
-
-                    header.setAdapter(
-                            new ArrayAdapter<>(getContext(), android.R.layout.select_dialog_item, names)
-                    );
+                String path = s.toString();
+                String abs = cwd.getAbsolutePath();
+                String dirname = JNI_CPP_API.Extras.resolvePath(abs, path);
+                File[] files = getDirectories(new File(dirname));
+                if (files == null) return;
+                sortAlphabeticallyIgnoreCase(files);
+                files = keepIf(files, (File file) -> {
+                    if (file.isDirectory()) {
+                        if (directoryFilter == null) return true;
+                        return directoryFilter.equals(file);
+                    } else {
+                        if (fileFilter == null) return true;
+                        return fileFilter.equals(file);
+                    }
+                });
+                if (path.charAt(path.length()-1) != '/') {
+                    String basename = JNI_CPP_API.basename(path);
+                    files = keepIf(files, (File file) -> JNI_CPP_API.basename(file.getPath()).startsWith(basename));
                 }
+                String[] names = convertArrayType(files, String.class, new ConvertRunnable<File, String>() {
+                    @Override
+                    String convert(File input) {
+                        return input.getName();
+                    }
+                });
+
+                header.setAdapter(
+                        new ArrayAdapter<>(getContext(), android.R.layout.select_dialog_item, names)
+                );
                 post(runnable);
             }
         };

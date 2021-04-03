@@ -1,0 +1,6 @@
+<resources>
+    <declare-styleable name="ExpandableView">
+        <attr name="headerLayout" format="reference" />
+        <attr name="contentLayout" format="reference" />
+    </declare-styleable>
+</resources>

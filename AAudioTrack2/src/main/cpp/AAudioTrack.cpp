@@ -274,7 +274,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_smallville7123_aaudiotrack2_AAudioTrack2_setTrack(JNIEnv *env, jobject thiz, jlong nativeChannel, jstring track) {
     if (!engine_exists()) return;
-    const char * path_ = JniHelpers::Strings::newJniStringUTF(env, track);
+    char * path_ = JniHelpers::Strings::newJniStringUTF(env, track);
     engine->load(makeVoidPtr(nativeChannel), path_);
     JniHelpers::Strings::deleteJniStringUTF(&path_);
 }

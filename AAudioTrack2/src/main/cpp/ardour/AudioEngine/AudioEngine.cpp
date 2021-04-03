@@ -105,7 +105,7 @@ namespace ARDOUR {
         jniEnv->DeleteLocalRef(javaString);
 
         // obtain memory
-        const char * str = JniHelpers::Strings::newJniStringUTF(jniEnv, static_cast<jstring>(result));
+        char * str = JniHelpers::Strings::newJniStringUTF(jniEnv, static_cast<jstring>(result));
 
         // free memory
         jniEnv->DeleteLocalRef(result);
