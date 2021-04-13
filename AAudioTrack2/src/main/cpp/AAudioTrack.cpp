@@ -276,7 +276,7 @@ Java_smallville7123_aaudiotrack2_AAudioTrack2_setTrack(JNIEnv *env, jobject thiz
     if (!engine_exists()) return;
     char * path_ = JniHelpers::Strings::newJniStringUTF(env, track);
     engine->load(makeVoidPtr(nativeChannel), path_);
-    JniHelpers::Strings::deleteJniStringUTF(&path_);
+    JniHelpers::Strings::deleteJniStringUTF(path_);
 }
 
 extern "C"

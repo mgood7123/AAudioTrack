@@ -115,7 +115,7 @@ namespace ARDOUR {
         std::string res = std::string(str);
 
         // free memory
-        JniHelpers::Strings::deleteJniStringUTF(&str);
+        JniHelpers::Strings::deleteJniStringUTF(str);
 
         return res;
     }
