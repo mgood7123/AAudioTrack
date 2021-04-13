@@ -28,7 +28,7 @@
             android:paddingHorizontal="20dp"
             >
 
-            <smallville7123.UI.MultiAutoCompleteTextView
+            <smallville7123.UI.SLACASET
                 android:id="@+id/FileView_header_EditText"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -37,8 +37,7 @@
                 android:paddingHorizontal="20dp"
                 android:text="/rooterkll"
                 android:textColor="@color/FL_GREY"
-                android:textSize="50sp"
-                android:singleLine="true"
+                app:autoResizeMode="heightWithEllipsis"
                 />
         </FrameLayout>
     </LinearLayout>

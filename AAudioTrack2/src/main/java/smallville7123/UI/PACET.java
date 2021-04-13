@@ -28,7 +28,7 @@ import static android.view.KeyEvent.KEYCODE_BACK;
  * an EditText that auto adjusts text size to fit on a single line within the view.
  */
 @SuppressLint("AppCompatCustomView")
-public class PACET extends AutoCompleteTextView {
+public class PACET extends FocusAutoCompleteTextView {
 
     private static final String TAG = "PACET";
 
@@ -42,8 +42,9 @@ public class PACET extends AutoCompleteTextView {
         Log.d(TAG, "onFocusChanged() called with: focused = [" + focused + "], direction = [" + direction + "], previouslyFocusedRect = [" + previouslyFocusedRect + "]");
         super.onFocusChanged(focused, direction, previouslyFocusedRect);
         inRefresh = true;
-        if (focused) setText(realText);
-        else needsRefresh = true;
+        if (focused) {
+            setText(realText);
+        } else needsRefresh = true;
         mOnPreviewListener.onPreview(focused);
         inRefresh = false;
     }
@@ -110,22 +111,28 @@ public class PACET extends AutoCompleteTextView {
 
     // Default constructor override
     public PACET(Context context) {
-        this(context, null);
+        super(context);
+        init(context, null);
     }
 
     // Default constructor when inflating from XML file
     public PACET(Context context, AttributeSet attrs) {
-        this(context, attrs, R.attr.autoCompleteTextViewStyle);
+        super(context, attrs);
+        init(context, attrs);
     }
 
     // Default constructor override
     public PACET(Context context, AttributeSet attrs, int defStyle) {
-        this(context, attrs, defStyle, 0);
+        super(context, attrs, defStyle);
+        init(context, attrs);
     }
 
     public PACET(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
-        inputMethodManager = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+        init(context, attrs);
+    }
+
+    void init(Context context, AttributeSet attrs) {
     }
 
     /**
@@ -221,26 +228,6 @@ public class PACET extends AutoCompleteTextView {
         super.addTextChangedListener(watcher);
     }
 
-    InputMethodManager inputMethodManager;
-
-    // clear focus on keyboard back
-    @Override
-    public boolean onKeyPreIme(int keyCode, KeyEvent event) {
-        if (keyCode == KEYCODE_BACK) clearFocus();
-        return super.onKeyPreIme(keyCode, event);
-    }
-
-    public void dismissSoftKeyboard() {
-        inputMethodManager.hideSoftInputFromWindow(getWindowToken(), 0);
-        clearFocus();
-    }
-
-    @Override
-    public void clearFocus() {
-        dismissDropDown();
-        super.clearFocus();
-    }
-
     boolean needsRefresh = false;
 
     /**
@@ -313,9 +300,6 @@ public class PACET extends AutoCompleteTextView {
         if (enoughToFilter()) {
             int end = getSelectionEnd();
             int start = mTokenizer.findTokenStart(text, end);
-            if (start == -1) {
-                throw new RuntimeException("start cannot be -1");
-            }
 
             performFiltering(text, start, end, keyCode);
         } else {
@@ -337,7 +321,9 @@ public class PACET extends AutoCompleteTextView {
      */
     @Override
     public boolean enoughToFilter() {
-        if (mTokenizer == null) return super.enoughToFilter();
+        if (mTokenizer == null) {
+            return super.enoughToFilter();
+        }
 
         Editable text = getText();
 

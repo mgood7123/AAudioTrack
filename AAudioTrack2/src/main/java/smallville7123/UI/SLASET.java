@@ -183,22 +183,28 @@ public class SLASET extends PreviewEditText {
 
     // Default constructor override
     public SLASET(Context context) {
-        this(context, null);
+        super(context);
+        init(context, null);
     }
 
     // Default constructor when inflating from XML file
     public SLASET(Context context, AttributeSet attrs) {
-        this(context, attrs, R.attr.editTextStyle);
+        super(context, attrs);
+        init(context, attrs);
     }
 
     // Default constructor override
     public SLASET(Context context, AttributeSet attrs, int defStyle) {
-        this(context, attrs, defStyle, 0);
+        super(context, attrs, defStyle);
+        init(context, attrs);
     }
 
     public SLASET(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+        init(context, attrs);
+    }
 
+    void init(Context context, AttributeSet attrs) {
         // set to single line
         super.setSingleLine(true);
 

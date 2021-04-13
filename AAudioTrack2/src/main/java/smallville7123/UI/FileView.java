@@ -69,7 +69,7 @@ public class FileView extends FrameLayout {
     LayoutUtils.TextViewSize textSize;
     int textColor;
     Drawable background;
-    MultiAutoCompleteTextView header;
+    SLACASET header;
     int chevronColor;
 
     private void init(Context context, AttributeSet attrs) {
