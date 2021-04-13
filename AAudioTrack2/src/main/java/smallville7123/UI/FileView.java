@@ -6,15 +6,21 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.text.Editable;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.Pair;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.MultiAutoCompleteTextView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -63,7 +69,7 @@ public class FileView extends FrameLayout {
     LayoutUtils.TextViewSize textSize;
     int textColor;
     Drawable background;
-    SLACASET header;
+    MultiAutoCompleteTextView header;
     int chevronColor;
 
     private void init(Context context, AttributeSet attrs) {
@@ -92,8 +98,10 @@ public class FileView extends FrameLayout {
         fileList.setColumns(1);
         fileList.setRows(20);
         header = findViewById(R.id.FileView_header_EditText);
+        header.setImeOptions(EditorInfo.IME_ACTION_GO);
         FrameLayout fl = findViewById(R.id.FileView_container);
         fl.addView(fileList);
+        inputMethodManager = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
         setup_IME_ACTION_handler();
         setup_AutoCompletion();
         if (isInEditMode()) {
@@ -101,11 +109,18 @@ public class FileView extends FrameLayout {
         }
     }
 
+    InputMethodManager inputMethodManager;
+
+    public void dismissSoftKeyboard() {
+        inputMethodManager.hideSoftInputFromWindow(getWindowToken(), 0);
+        clearFocus();
+    }
+
     void setup_IME_ACTION_handler() {
         header.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_GO) {
                 enterDirectory(v.getText().toString());
-                header.dismissSoftKeyboard();
+                dismissSoftKeyboard();
                 return true;
             }
             return true;
@@ -278,11 +293,27 @@ public class FileView extends FrameLayout {
 
             @Override
             public void afterTextChanged(Editable s) {
+                Log.d(TAG, "afterTextChanged: start");
                 String path = s.toString();
                 String abs = cwd.getAbsolutePath();
-                String dirname = JNI_CPP_API.Extras.resolvePath(abs, path);
+                Log.i(TAG, "abs = [" + abs + "]");
+                Log.i(TAG, "path = [" + path + "]");
+                int len = path.length();
+                Log.i(TAG, "len = [" + len + "]");
+                if (len == 0) {
+                    path = abs + "/";
+                    Log.i(TAG, "modified path = [" + path + "]");
+                    len = path.length();
+                    Log.i(TAG, "modified len = [" + len + "]");
+                }
+                String dirname = JNI_CPP_API.Extras.resolveDirname(abs, path);
+                Log.i(TAG, "dirname = [" + dirname + "]");
                 File[] files = getDirectories(new File(dirname));
-                if (files == null) return;
+                if (files == null) {
+                    Log.i(TAG, "files = [" + files + "]");
+                    Log.d(TAG, "afterTextChanged: end");
+                    return;
+                }
                 sortAlphabeticallyIgnoreCase(files);
                 files = keepIf(files, (File file) -> {
                     if (file.isDirectory()) {
@@ -293,8 +324,9 @@ public class FileView extends FrameLayout {
                         return fileFilter.equals(file);
                     }
                 });
-                if (path.charAt(path.length()-1) != '/') {
+                if (path.charAt(len-1) != '/') {
                     String basename = JNI_CPP_API.basename(path);
+                    Log.i(TAG, "basename = [" + basename + "]");
                     files = keepIf(files, (File file) -> JNI_CPP_API.basename(file.getPath()).startsWith(basename));
                 }
                 String[] names = convertArrayType(files, String.class, new ConvertRunnable<File, String>() {
@@ -307,14 +339,71 @@ public class FileView extends FrameLayout {
                 header.setAdapter(
                         new ArrayAdapter<>(getContext(), android.R.layout.select_dialog_item, names)
                 );
+                Log.d(TAG, "afterTextChanged: end");
                 post(runnable);
             }
         };
 
-        header.setTokenizer(new PACET.StringTokenizer('/', '/'));
-        header.addTextChangedListener(header.convertToTextWatcher(textWatcher));
+        header.setTokenizer(new StringTokenizer('/', '/'));
+        header.addTextChangedListener(textWatcher);
         header.setThreshold(1);
         // setValidator causes EditView to hang
+    }
+
+    public static class StringTokenizer implements MultiAutoCompleteTextView.Tokenizer {
+        private String stringToSplitBy;
+        private String stringToAppendAfterCompletion;
+
+        public StringTokenizer(char stringToSplitBy) {
+            this(String.valueOf(stringToSplitBy));
+        }
+
+        public StringTokenizer(char stringToSplitBy, char stringToAppendAfterCompletion) {
+            this(String.valueOf(stringToSplitBy), String.valueOf(stringToAppendAfterCompletion));
+        }
+
+        public StringTokenizer(String stringToSplitBy) {
+            this(stringToSplitBy, null);
+        }
+
+        public StringTokenizer(String stringToSplitBy, String stringToAppendAfterCompletion) {
+            this.stringToSplitBy = stringToSplitBy;
+            this.stringToAppendAfterCompletion = stringToAppendAfterCompletion;
+        }
+
+        public StringTokenizer(String stringToSplitBy, char stringToAppendAfterCompletion) {
+            this(stringToSplitBy, String.valueOf(stringToAppendAfterCompletion));
+        }
+
+        public StringTokenizer(char stringToSplitBy, String stringToAppendAfterCompletion) {
+            this(String.valueOf(stringToSplitBy), stringToAppendAfterCompletion);
+        }
+
+        public int findTokenStart(CharSequence text, int cursor) {
+            int index = text.toString().lastIndexOf(stringToSplitBy, cursor);
+            index = index == -1 ? 0 : index+1;
+            Log.i(TAG, "start index = [" + index + "]");
+            return index;
+        }
+
+        public int findTokenEnd(CharSequence text, int cursor) {
+            int index = text.toString().indexOf(stringToSplitBy, cursor);
+            index = index == -1 ? 0 : index;
+            Log.i(TAG, "end index = [" + index + "]");
+            return index;
+        }
+
+        public CharSequence terminateToken(CharSequence text) {
+            String r = text + stringToAppendAfterCompletion;
+            if (text instanceof Spanned) {
+                SpannableString sp = new SpannableString(r);
+                TextUtils.copySpansFrom((Spanned) text, 0, text.length(),
+                        Object.class, sp, 0);
+                return sp;
+            } else {
+                return r;
+            }
+        }
     }
 
     private static final int ROTATION_LEFT = 180;
