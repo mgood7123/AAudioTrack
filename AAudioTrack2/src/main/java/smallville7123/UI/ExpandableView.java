@@ -58,6 +58,7 @@ public class ExpandableView extends FrameLayout {
         int headerLayoutHeight = MATCH_PARENT;
         int contentLayoutWidth = MATCH_PARENT;
         int contentLayoutHeight = MATCH_PARENT;
+        boolean shouldExpand = false;
 
         if (attrs != null) {
             // Load attributes
@@ -71,19 +72,20 @@ public class ExpandableView extends FrameLayout {
             contentLayoutWidth = a.getDimensionPixelSize(R.styleable.ExpandableView_content_layout_width, MATCH_PARENT);
             contentLayoutHeight = a.getDimensionPixelSize(R.styleable.ExpandableView_content_layout_height, MATCH_PARENT);
 
-            boolean shouldExpand = a.getBoolean(R.styleable.ExpandableView_expanded, false);
+            shouldExpand = a.getBoolean(R.styleable.ExpandableView_expanded, false);
             replaceHeaderWhenExpanded = a.getBoolean(R.styleable.ExpandableView_replaceHeaderWhenExpanded, false);
             a.recycle();
 
             if (headerId != 0) inflate(context, headerId, header);
             if (contentId != 0) inflate(context, contentId, content);
-            if (shouldExpand) expand(false);
         } else {
             expanded = false;
             replaceHeaderWhenExpanded = false;
         }
         header.setLayoutParams(new FrameLayout.LayoutParams(headerLayoutWidth, headerLayoutHeight));
         content.setLayoutParams(new FrameLayout.LayoutParams(contentLayoutWidth, contentLayoutHeight));
+
+        if (shouldExpand) post(() -> expand(false));
     }
 
 
