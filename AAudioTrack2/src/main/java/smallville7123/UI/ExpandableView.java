@@ -17,8 +17,8 @@ public class ExpandableView extends FrameLayout {
     private static final String TAG = "ExpandableView";
     Runnable onHeaderClicked;
     Runnable onContentClicked;
-    boolean expanded = false;
-    boolean replaceHeaderWhenExpanded = false;
+    boolean expanded;
+    boolean replaceHeaderWhenExpanded;
     private FrameLayout header;
     private FrameLayout content;
 
@@ -41,9 +41,6 @@ public class ExpandableView extends FrameLayout {
         header = new FrameLayout(context, attrs, defStyleAttr, defStyleRes);
         content = new FrameLayout(context, attrs, defStyleAttr, defStyleRes);
 
-        header.setLayoutParams(new MarginLayoutParams(MATCH_PARENT, MATCH_PARENT));
-        content.setLayoutParams(new MarginLayoutParams(MATCH_PARENT, MATCH_PARENT));
-
         addView(header);
         addView(content);
 
@@ -57,15 +54,36 @@ public class ExpandableView extends FrameLayout {
             if (onContentClicked != null) onContentClicked.run();
         });
 
-        // Load attributes
-        final TypedArray a = getContext().obtainStyledAttributes(
-                attrs, R.styleable.ExpandableView, defStyleAttr, defStyleRes);
-        int headerId = a.getResourceId(R.styleable.ExpandableView_headerLayout, 0);
-        int contentId = a.getResourceId(R.styleable.ExpandableView_contentLayout, 0);
-        a.recycle();
+        int headerLayoutWidth = MATCH_PARENT;
+        int headerLayoutHeight = MATCH_PARENT;
+        int contentLayoutWidth = MATCH_PARENT;
+        int contentLayoutHeight = MATCH_PARENT;
 
-        if (headerId != 0) setHeader(inflate(context, headerId, null));
-        if (contentId != 0) setContent(inflate(context, contentId, null));
+        if (attrs != null) {
+            // Load attributes
+            final TypedArray a = getContext().obtainStyledAttributes(
+                    attrs, R.styleable.ExpandableView, defStyleAttr, defStyleRes);
+            int headerId = a.getResourceId(R.styleable.ExpandableView_headerLayout, 0);
+            int contentId = a.getResourceId(R.styleable.ExpandableView_contentLayout, 0);
+
+            headerLayoutWidth = a.getDimensionPixelSize(R.styleable.ExpandableView_header_layout_width, MATCH_PARENT);
+            headerLayoutHeight = a.getDimensionPixelSize(R.styleable.ExpandableView_header_layout_height, MATCH_PARENT);
+            contentLayoutWidth = a.getDimensionPixelSize(R.styleable.ExpandableView_content_layout_width, MATCH_PARENT);
+            contentLayoutHeight = a.getDimensionPixelSize(R.styleable.ExpandableView_content_layout_height, MATCH_PARENT);
+
+            boolean shouldExpand = a.getBoolean(R.styleable.ExpandableView_expanded, false);
+            replaceHeaderWhenExpanded = a.getBoolean(R.styleable.ExpandableView_replaceHeaderWhenExpanded, false);
+            a.recycle();
+
+            if (headerId != 0) inflate(context, headerId, header);
+            if (contentId != 0) inflate(context, contentId, content);
+            if (shouldExpand) expand(false);
+        } else {
+            expanded = false;
+            replaceHeaderWhenExpanded = false;
+        }
+        header.setLayoutParams(new FrameLayout.LayoutParams(headerLayoutWidth, headerLayoutHeight));
+        content.setLayoutParams(new FrameLayout.LayoutParams(contentLayoutWidth, contentLayoutHeight));
     }
 
 
@@ -103,7 +121,7 @@ public class ExpandableView extends FrameLayout {
                 header.setVisibility(GONE);
                 content.setVisibility(VISIBLE);
             } else {
-                MarginLayoutParams layoutParams = (MarginLayoutParams) content.getLayoutParams();
+                FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) content.getLayoutParams();
                 layoutParams.topMargin = header.getBottom();
                 content.setLayoutParams(layoutParams);
                 content.setVisibility(VISIBLE);
@@ -121,7 +139,7 @@ public class ExpandableView extends FrameLayout {
                 content.setVisibility(GONE);
             } else {
                 content.setVisibility(GONE);
-                MarginLayoutParams layoutParams = (MarginLayoutParams) content.getLayoutParams();
+                FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) content.getLayoutParams();
                 layoutParams.topMargin = 0;
                 content.setLayoutParams(layoutParams);
             }

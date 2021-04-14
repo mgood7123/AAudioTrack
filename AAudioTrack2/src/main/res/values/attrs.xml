@@ -35,6 +35,10 @@
         <enum name="height" value="1" />
         <!-- resizes text to height only, adding an ellipsis "..." if the text is too long. -->
         <enum name="heightWithEllipsis" value="2" />
+        <!-- disables text resize, adds an ellipsis "..." if the text is too long. -->
+        <enum name="ellipsis" value="3" />
+        <!-- disables text resize. -->
+        <enum name="none" value="4" />
     </attr>
 
     <declare-styleable name="SingleLineAutoSizeTextView">
@@ -42,10 +46,6 @@
     </declare-styleable>
 
     <declare-styleable name="SingleLineAutoSizeEditText">
-        <attr name="autoResizeMode" />
-    </declare-styleable>
-
-    <declare-styleable name="example">
         <attr name="autoResizeMode" />
     </declare-styleable>
 </resources>

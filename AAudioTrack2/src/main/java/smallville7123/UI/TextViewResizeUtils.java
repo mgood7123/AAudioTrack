@@ -31,13 +31,21 @@ public class TextViewResizeUtils extends TextViewPreviewUtils {
             case 2:
                 resizeMode = ResizeMode.heightWithEllipsis;
                 break;
+            case 3:
+                resizeMode = ResizeMode.ellipsis;
+                break;
+            case 4:
+                resizeMode = ResizeMode.none;
+                break;
         }
     }
 
     enum ResizeMode {
         width,
         height,
-        heightWithEllipsis
+        heightWithEllipsis,
+        ellipsis,
+        none
     }
 
     ResizeMode resizeMode;
@@ -55,6 +63,7 @@ public class TextViewResizeUtils extends TextViewPreviewUtils {
 
     final public OnPreviewListener SLASETListener = new OnPreviewListener() {
         boolean isEllipsis = false;
+        boolean isEllipsisWithHeight = false;
         int w = 0;
         int h = 0;
 
@@ -62,12 +71,18 @@ public class TextViewResizeUtils extends TextViewPreviewUtils {
         void onPreview(boolean active) {
             if (active) {
                 if (resizeMode == ResizeMode.heightWithEllipsis) {
-                    isEllipsis = true;
+                    isEllipsisWithHeight = true;
                     resizeMode = ResizeMode.height;
+                } else if (resizeMode == ResizeMode.ellipsis) {
+                    isEllipsis = true;
+                    resizeMode = ResizeMode.none;
                 }
             } else {
-                if (isEllipsis) {
+                if (isEllipsisWithHeight) {
                     resizeMode = ResizeMode.heightWithEllipsis;
+                    isEllipsisWithHeight = false;
+                } else if (isEllipsis) {
+                    resizeMode = ResizeMode.ellipsis;
                     isEllipsis = false;
                 }
             }
@@ -87,6 +102,8 @@ public class TextViewResizeUtils extends TextViewPreviewUtils {
 
             // Store the current text size
             float oldTextSize = textPaint.getTextSize();
+
+            boolean measureElipsis = false;
 
             switch (resizeMode) {
                 case width:
@@ -135,7 +152,7 @@ public class TextViewResizeUtils extends TextViewPreviewUtils {
 
                     textPaint.setTextSize(oldTextSize);
                     setTextSize(TypedValue.COMPLEX_UNIT_PX, textDataMain.textSize);
-                    return realText;
+                    break;
                 case heightWithEllipsis:
                     // resize to height, add ellipsis
 
@@ -157,6 +174,11 @@ public class TextViewResizeUtils extends TextViewPreviewUtils {
                             // exit early
                             onlyRoomForEllipsis = true;
                             newEllipsis = newEllipsis.substring(0, newEllipsis.length() - 1);
+                            if (newEllipsis.length() == 0) {
+                                // the ellipsis is unable to fit
+                                noSpace = true;
+                                break;
+                            }
                         } else {
                             // the ellipsis was unable to fit
                             noSpace = true;
@@ -191,9 +213,11 @@ public class TextViewResizeUtils extends TextViewPreviewUtils {
                     textPaint.setTextSize(oldTextSize);
                     ResizeData textDataMain__ = new ResizeData();
 
+                    String result;
                     while (true) {
                         // see if text and ellipsis will fit
-                        textDataMain__.process(w, h, realText + mEllipsis, textPaint, false);
+                        result = realText + mEllipsis;
+                        textDataMain__.process(w, h, result, textPaint, false);
                         if (textDataMain__.resizable) {
                             // the text + ellipsis itself fits, exit loop
                             if (textDataMain__.textWidth <= w) break;
@@ -205,7 +229,58 @@ public class TextViewResizeUtils extends TextViewPreviewUtils {
                     textPaint.setTextSize(oldTextSize);
                     setTextSize(TypedValue.COMPLEX_UNIT_PX, textDataMain__.textSize);
 
-                    return realText + mEllipsis;
+                    return result;
+                case ellipsis:
+                    // if only the ellipse fits, then exit early
+                    boolean onlyRoomForEllipsis_ = false;
+                    // if the ellipse cannot fit, then exit early
+                    boolean noSpace_ = false;
+
+                    String newEllipsis_ = mEllipsis;
+                    while (true) {
+                        // if the ellipsis itself fits, exit loop
+                        if ((int) textPaint.measureText(newEllipsis_) <= w) break;
+
+                        // either the ellipsis fits partially or there is no room for it to fit,
+                        // exit early
+                        onlyRoomForEllipsis_ = true;
+                        newEllipsis_ = newEllipsis_.substring(0, newEllipsis_.length() - 1);
+                        if (newEllipsis_.length() == 0) {
+                            // the ellipsis is unable to fit
+                            noSpace_ = true;
+                            break;
+                        }
+                    }
+
+                    if (noSpace_) return "";
+
+                    if (onlyRoomForEllipsis_) {
+                        return newEllipsis_;
+                    }
+
+                    // there is at least room for ellipsis
+
+                    // see if the text by itself will fit first
+                    if ((int) textPaint.measureText(realText) <= w) {
+                        // the text itself fits, return it
+                        return realText;
+                    }
+
+                    // text does not fit
+                    String result_;
+                    while (true) {
+                        // see if text and ellipsis will fit
+                        result_ = realText + mEllipsis;
+
+                        // if the text + ellipsis itself fits, exit loop
+                        if ((int) textPaint.measureText(result_) <= w) break;
+
+                        // the text + ellipsis does not fit, trim text and try again
+                        realText = realText.substring(0, realText.length() - 1);
+                    }
+                    return result_;
+                case none:
+                    return realText;
             }
             return realText;
         }
