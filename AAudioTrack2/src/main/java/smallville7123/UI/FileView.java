@@ -6,9 +6,6 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.text.Editable;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -20,7 +17,6 @@ import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.MultiAutoCompleteTextView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -28,6 +24,7 @@ import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -295,7 +292,7 @@ public class FileView extends FrameLayout {
             public void afterTextChanged(Editable s) {
                 Log.d(TAG, "afterTextChanged: start");
                 String path = s.toString();
-                String abs = cwd.getAbsolutePath();
+                String abs = cwdFile.getAbsolutePath();
                 Log.i(TAG, "abs = [" + abs + "]");
                 Log.i(TAG, "path = [" + path + "]");
                 int len = path.length();
@@ -348,62 +345,6 @@ public class FileView extends FrameLayout {
         header.addTextChangedListener(textWatcher);
         header.setThreshold(1);
         // setValidator causes EditView to hang
-    }
-
-    public static class StringTokenizer implements MultiAutoCompleteTextView.Tokenizer {
-        private String stringToSplitBy;
-        private String stringToAppendAfterCompletion;
-
-        public StringTokenizer(char stringToSplitBy) {
-            this(String.valueOf(stringToSplitBy));
-        }
-
-        public StringTokenizer(char stringToSplitBy, char stringToAppendAfterCompletion) {
-            this(String.valueOf(stringToSplitBy), String.valueOf(stringToAppendAfterCompletion));
-        }
-
-        public StringTokenizer(String stringToSplitBy) {
-            this(stringToSplitBy, null);
-        }
-
-        public StringTokenizer(String stringToSplitBy, String stringToAppendAfterCompletion) {
-            this.stringToSplitBy = stringToSplitBy;
-            this.stringToAppendAfterCompletion = stringToAppendAfterCompletion;
-        }
-
-        public StringTokenizer(String stringToSplitBy, char stringToAppendAfterCompletion) {
-            this(stringToSplitBy, String.valueOf(stringToAppendAfterCompletion));
-        }
-
-        public StringTokenizer(char stringToSplitBy, String stringToAppendAfterCompletion) {
-            this(String.valueOf(stringToSplitBy), stringToAppendAfterCompletion);
-        }
-
-        public int findTokenStart(CharSequence text, int cursor) {
-            int index = text.toString().lastIndexOf(stringToSplitBy, cursor);
-            index = index == -1 ? 0 : index+1;
-            Log.i(TAG, "start index = [" + index + "]");
-            return index;
-        }
-
-        public int findTokenEnd(CharSequence text, int cursor) {
-            int index = text.toString().indexOf(stringToSplitBy, cursor);
-            index = index == -1 ? 0 : index;
-            Log.i(TAG, "end index = [" + index + "]");
-            return index;
-        }
-
-        public CharSequence terminateToken(CharSequence text) {
-            String r = text + stringToAppendAfterCompletion;
-            if (text instanceof Spanned) {
-                SpannableString sp = new SpannableString(r);
-                TextUtils.copySpansFrom((Spanned) text, 0, text.length(),
-                        Object.class, sp, 0);
-                return sp;
-            } else {
-                return r;
-            }
-        }
     }
 
     private static final int ROTATION_LEFT = 180;
@@ -464,10 +405,6 @@ public class FileView extends FrameLayout {
 
     void update() {
         fileList.adapter.notifyDataSetChanged();
-    }
-
-    public boolean enterDirectory(String root) {
-        return enterDirectory(new File(root));
     }
 
     private boolean exists(File root) {
@@ -561,15 +498,40 @@ public class FileView extends FrameLayout {
         return true;
     }
 
-    File cwd;
+    String cwdString;
+    File cwdFile;
 
-    private boolean enterDirectory(File root) {
-        File[] files = getFilesAndDirectories(root);
-        if (files == null) return false;
-        cwd = root;
+    public boolean enterDirectory(String root) {
+        return enterDirectory(root, new File(root));
+    }
+
+    public boolean enterDirectory(File root) {
+        return enterDirectory(root.getAbsolutePath(), root);
+    }
+
+    public boolean enterDirectory(String rootS, File rootF) {
+        try {
+            rootS = rootF.getCanonicalPath();
+            rootF = new File(rootS);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        if (rootS.charAt(rootS.length()-1) != '/') {
+            rootS += '/';
+            rootF = new File(rootS);
+        }
+
+        File[] files = getFilesAndDirectories(rootF);
+        if (files == null) {
+            header.setText(cwdString);
+            return false;
+        }
         clear();
-        header.setText(cwd.getAbsolutePath());
-        add(new FileInfo(0, null, cwd, 0)).callOnClick();
+        cwdString = rootS;
+        cwdFile = rootF;
+        header.setText(cwdString);
+        add(new FileInfo(0, null, rootF, 0)).callOnClick();
         return true;
     }
 }

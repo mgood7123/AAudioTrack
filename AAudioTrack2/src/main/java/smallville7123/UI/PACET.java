@@ -4,24 +4,12 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Rect;
 import android.text.Editable;
-import android.text.SpannableString;
-import android.text.Spanned;
 import android.text.TextUtils;
-import android.text.TextWatcher;
 import android.text.method.QwertyKeyListener;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.KeyEvent;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.AutoCompleteTextView;
 import android.widget.Filter;
 import android.widget.MultiAutoCompleteTextView;
-
-import androidx.annotation.CallSuper;
-
-import smallville7123.aaudiotrack2.R;
-
-import static android.view.KeyEvent.KEYCODE_BACK;
 
 /**
  * PACET - Preview Auto Complete EditText
@@ -32,81 +20,17 @@ public class PACET extends FocusAutoCompleteTextView {
 
     private static final String TAG = "PACET";
 
-    private String preview = "";
-    private String realText = "";
-    private boolean inRefresh = false;
-    private boolean isSettingPreview = false;
+    TextViewPreviewUtils textViewPreviewUtils;
 
     @Override
     protected void onFocusChanged(boolean focused, int direction, Rect previouslyFocusedRect) {
         Log.d(TAG, "onFocusChanged() called with: focused = [" + focused + "], direction = [" + direction + "], previouslyFocusedRect = [" + previouslyFocusedRect + "]");
         super.onFocusChanged(focused, direction, previouslyFocusedRect);
-        inRefresh = true;
-        if (focused) {
-            setText(realText);
-        } else needsRefresh = true;
-        mOnPreviewListener.onPreview(focused);
-        inRefresh = false;
+        textViewPreviewUtils.onFocusChanged(focused, direction, previouslyFocusedRect);
     }
 
-    public class OnPreviewListener {
-        /**
-         * @param active if the preview is active or not
-         */
-        void onPreview(boolean active) {
-            // do nothing
-        }
-
-        @CallSuper
-        void refreshBegin() {
-            if (!isFocused()) {
-                realText = getText().toString();
-            } else {
-                // the IME can cause a layout sometimes
-                // which will erase what the user has typed
-//                setText(realText);
-            }
-        }
-
-        /**
-         * process your preview string here
-         * @param realText a copy of the current real text
-         * @param preview a copy of the current preview text
-         * @return a string to become the preview
-         */
-        String refreshProcess(String realText, String preview) {
-            return "A";
-        }
-
-        @CallSuper
-        void refreshEnd() {
-            if (!isFocused()) {
-                isSettingPreview = true;
-                setText(preview);
-                isSettingPreview = false;
-            }
-            needsRefresh = false;
-        }
-
-        public void onLayout(boolean changed, int left, int top, int right, int bottom) {
-            // do nothing
-        }
-    }
-
-    private OnPreviewListener mOnPreviewListener = new OnPreviewListener();
-
-    public void setOnPreviewListener(OnPreviewListener mOnPreviewListener) {
-        this.mOnPreviewListener = mOnPreviewListener;
-    }
-
-    public void refresh() {
-        inRefresh = true;
-        mOnPreviewListener.refreshBegin();
-        String r = new String(realText);
-        String p = new String(preview);
-        preview = mOnPreviewListener.refreshProcess(r, p);
-        mOnPreviewListener.refreshEnd();
-        inRefresh = false;
+    public void setOnPreviewListener(TextViewPreviewUtils.OnPreviewListener mOnPreviewListener) {
+        textViewPreviewUtils.setOnPreviewListener(mOnPreviewListener);
     }
 
     // Default constructor override
@@ -133,91 +57,41 @@ public class PACET extends FocusAutoCompleteTextView {
     }
 
     void init(Context context, AttributeSet attrs) {
+        textViewPreviewUtils = new TextViewPreviewUtils(this);
     }
 
     /**
-     * a version of TextWatcher that gets called when the main text changes
-     */
-    private abstract class TextWatcher implements android.text.TextWatcher {
-        final boolean shouldCall() {
-            return !isSettingPreview;
-        }
-    }
-
-    /**
-     * a version of TextWatcher that gets called when the preview text changes
-     */
-    private abstract class PreviewTextWatcher implements android.text.TextWatcher {
-        final boolean shouldCall() {
-            return isSettingPreview;
-        }
-    }
-
-    /**
-     * converts a {@link android.text.TextWatcher} into a {@link PACET.TextWatcher}
+     * converts a {@link android.text.TextWatcher} into a {@link TextViewPreviewUtils.TextWatcher}
      * @param textWatcher the {@link android.text.TextWatcher} to convert
-     * @return a new {@link PACET.TextWatcher}
+     * @return a new {@link TextViewPreviewUtils.TextWatcher}
      */
-    public PACET.TextWatcher convertToTextWatcher(android.text.TextWatcher textWatcher) {
-        return new PACET.TextWatcher() {
-            final android.text.TextWatcher textWatcher_ = textWatcher;
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                if (shouldCall()) textWatcher_.beforeTextChanged(s, start, count, after);
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (shouldCall()) textWatcher_.onTextChanged(s, start, before, count);
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                if (shouldCall()) textWatcher_.afterTextChanged(s);
-            }
-        };
+    public TextViewPreviewUtils.TextWatcher convertToTextWatcher(android.text.TextWatcher textWatcher) {
+        return textViewPreviewUtils.convertToTextWatcher(textWatcher);
     }
+
 
     /**
-     * converts a {@link android.text.TextWatcher} into a {@link PACET.PreviewTextWatcher}
+     * converts a {@link android.text.TextWatcher} into a {@link TextViewPreviewUtils.PreviewTextWatcher}
      * @param textWatcher the {@link android.text.TextWatcher} to convert
-     * @return a new {@link PACET.PreviewTextWatcher}
+     * @return a new {@link TextViewPreviewUtils.PreviewTextWatcher}
      */
-    public PACET.PreviewTextWatcher convertToPreviewTextWatcher(android.text.TextWatcher textWatcher) {
-        return new PACET.PreviewTextWatcher() {
-            final android.text.TextWatcher textWatcher_ = textWatcher;
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                if (shouldCall()) textWatcher_.beforeTextChanged(s, start, count, after);
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (shouldCall()) textWatcher_.onTextChanged(s, start, before, count);
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                if (shouldCall()) textWatcher_.afterTextChanged(s);
-            }
-        };
+    public TextViewPreviewUtils.PreviewTextWatcher convertToPreviewTextWatcher(android.text.TextWatcher textWatcher) {
+        return textViewPreviewUtils.convertToPreviewTextWatcher(textWatcher);
     }
 
-    public void addTextChangedListener(PACET.TextWatcher watcher) {
+    public void addTextChangedListener(TextViewPreviewUtils.TextWatcher watcher) {
         super.addTextChangedListener(watcher);
     }
 
-    public void addTextChangedListener(PACET.PreviewTextWatcher watcher) {
+    public void addTextChangedListener(TextViewPreviewUtils.PreviewTextWatcher watcher) {
         super.addTextChangedListener(watcher);
     }
 
     /**
      * This method is deprecated. <br><br>
      * Please call
-     * {@link #addTextChangedListener(PACET.TextWatcher)} or
-     * {@link #addTextChangedListener(PACET.PreviewTextWatcher)} instead
+     * {@link #addTextChangedListener(TextViewPreviewUtils.TextWatcher)} or
+     * {@link #addTextChangedListener(TextViewPreviewUtils.PreviewTextWatcher)} instead
      *
      * @see #convertToTextWatcher(android.text.TextWatcher)
      * @see #convertToPreviewTextWatcher(android.text.TextWatcher)
@@ -228,14 +102,14 @@ public class PACET extends FocusAutoCompleteTextView {
         super.addTextChangedListener(watcher);
     }
 
-    boolean needsRefresh = false;
-
     /**
      * When text changes, set the force resize flag to true and reset the text size.
      */
     @Override
     protected void onTextChanged(final CharSequence text, final int start, final int before, final int after) {
-        needsRefresh = true;
+        if (textViewPreviewUtils != null) {
+            textViewPreviewUtils.onTextChanged(text, start, before, after);
+        }
         super.onTextChanged(text, start, before, after);
     }
 
@@ -244,9 +118,7 @@ public class PACET extends FocusAutoCompleteTextView {
      */
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        if (w != oldw || h != oldh) {
-            needsRefresh = true;
-        }
+        textViewPreviewUtils.onSizeChanged(w, h, oldw, oldh);
         super.onSizeChanged(w, h, oldw, oldh);
     }
 
@@ -255,12 +127,7 @@ public class PACET extends FocusAutoCompleteTextView {
      */
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        if(changed || needsRefresh) {
-            inRefresh = true;
-            mOnPreviewListener.onLayout(changed, left, top, right, bottom);
-            refresh();
-            inRefresh = false;
-        }
+        textViewPreviewUtils.onLayout(changed, left, top, right, bottom);
         super.onLayout(changed, left, top, right, bottom);
     }
 
