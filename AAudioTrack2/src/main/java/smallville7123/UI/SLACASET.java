@@ -81,14 +81,6 @@ public class SLACASET extends PACET {
         return textViewResizeUtils.getResizeMode();
     }
 
-    // retain cursor position
-    @Override
-    public void setText(CharSequence text, BufferType type) {
-        int position = getSelectionStart();
-        super.setText(text, type);
-        setSelection(Math.min(text.length(), position));
-    }
-
     // no-op these to prevent accidental wrapping
 
     @Override

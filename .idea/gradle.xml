@@ -27,6 +27,7 @@
             <option value="$PROJECT_DIR$/AndroidDAW_SDK/VstSystem/libOverview" />
             <option value="$PROJECT_DIR$/ContextMenu" />
             <option value="$PROJECT_DIR$/audioplayer" />
+            <option value="$PROJECT_DIR$/fileview" />
             <option value="$PROJECT_DIR$/simplesinewave" />
           </set>
         </option>

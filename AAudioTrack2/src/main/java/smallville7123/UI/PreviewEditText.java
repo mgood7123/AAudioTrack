@@ -140,4 +140,14 @@ public class PreviewEditText extends EditText {
         super.onFocusChanged(focused, direction, previouslyFocusedRect);
         textViewPreviewUtils.onFocusChanged(focused, direction, previouslyFocusedRect);
     }
+
+    /**
+     * retains cursor position
+     */
+    @Override
+    public void setText(CharSequence text, BufferType type) {
+        int position = getSelectionStart();
+        super.setText(text, type);
+        setSelection(Math.min(text.length(), position));
+    }
 }

@@ -38,6 +38,7 @@ import static android.widget.LinearLayout.VERTICAL;
 
 public class FileView extends FrameLayout {
     private static final String TAG = "FileView";
+    JNI_CPP_API jniCppApi = JNI_CPP_API.getInstance();
 
     public FileView(@NonNull Context context) {
         super(context);
@@ -303,7 +304,7 @@ public class FileView extends FrameLayout {
                     len = path.length();
                     Log.i(TAG, "modified len = [" + len + "]");
                 }
-                String dirname = JNI_CPP_API.Extras.resolveDirname(abs, path);
+                String dirname = jniCppApi.Extras.resolveDirname(abs, path);
                 Log.i(TAG, "dirname = [" + dirname + "]");
                 File[] files = getDirectories(new File(dirname));
                 if (files == null) {
@@ -322,9 +323,9 @@ public class FileView extends FrameLayout {
                     }
                 });
                 if (path.charAt(len-1) != '/') {
-                    String basename = JNI_CPP_API.basename(path);
+                    String basename = jniCppApi.basename(path);
                     Log.i(TAG, "basename = [" + basename + "]");
-                    files = keepIf(files, (File file) -> JNI_CPP_API.basename(file.getPath()).startsWith(basename));
+                    files = keepIf(files, (File file) -> jniCppApi.basename(file.getPath()).startsWith(basename));
                 }
                 String[] names = convertArrayType(files, String.class, new ConvertRunnable<File, String>() {
                     @Override
