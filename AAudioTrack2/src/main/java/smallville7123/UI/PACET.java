@@ -131,16 +131,6 @@ public class PACET extends FocusAutoCompleteTextView {
         super.onLayout(changed, left, top, right, bottom);
     }
 
-    @Override
-    public void setText(CharSequence text, BufferType type) {
-        super.setText(text, type);
-    }
-
-    @Override
-    public void setText(CharSequence text, boolean filter) {
-        super.setText(text, filter);
-    }
-
     private MultiAutoCompleteTextView.Tokenizer mTokenizer;
 
     /**
