@@ -88,24 +88,6 @@ public class ExpandableView extends FrameLayout {
         if (shouldExpand) post(() -> expand(false));
     }
 
-
-    public void setOnHeaderClicked(Runnable onHeaderClicked) {
-        this.onHeaderClicked = onHeaderClicked;
-    }
-
-    public void setOnContentClicked(Runnable onContentClicked) {
-        this.onContentClicked = onContentClicked;
-    }
-
-
-    public void toggleExpandedState(boolean animate) {
-        if (expanded) {
-            internalCollapse(animate);
-        } else {
-            internalExpand(animate);
-        }
-    }
-
     public void expand(boolean animate) {
         if (!expanded) internalExpand(animate);
     }
@@ -145,6 +127,24 @@ public class ExpandableView extends FrameLayout {
                 layoutParams.topMargin = 0;
                 content.setLayoutParams(layoutParams);
             }
+        }
+    }
+
+
+    public void setOnHeaderClicked(Runnable onHeaderClicked) {
+        this.onHeaderClicked = onHeaderClicked;
+    }
+
+    public void setOnContentClicked(Runnable onContentClicked) {
+        this.onContentClicked = onContentClicked;
+    }
+
+
+    public void toggleExpandedState(boolean animate) {
+        if (expanded) {
+            internalCollapse(animate);
+        } else {
+            internalExpand(animate);
         }
     }
 
