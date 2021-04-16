@@ -4,15 +4,19 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import smallville7123.aaudiotrack2.R;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
-public class ExpandableView extends FrameLayout {
+public class ExpandableView extends LinearLayout {
 
     private static final String TAG = "ExpandableView";
     Runnable onHeaderClicked;
@@ -35,16 +39,48 @@ public class ExpandableView extends FrameLayout {
         this(context, attrs, defStyleAttr, 0);
     }
 
+    boolean shouldExpand;
+
     public ExpandableView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+        if (attrs != null) {
+            final TypedArray a = getTypedArray(attrs, defStyleAttr, defStyleRes);
+            shouldExpand = a.getBoolean(R.styleable.ExpandableView_expanded, false);
+            replaceHeaderWhenExpanded = a.getBoolean(R.styleable.ExpandableView_replaceHeaderWhenExpanded, false);
+            a.recycle();
+        } else {
+            shouldExpand = false;
+            replaceHeaderWhenExpanded = false;
+        }
+        internalCollapse(false);
+        setOnClickListeners();
 
         header = new FrameLayout(context, attrs, defStyleAttr, defStyleRes);
         content = new FrameLayout(context, attrs, defStyleAttr, defStyleRes);
 
-        addView(header);
-        addView(content);
+        addView(header, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+        addView(content, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
 
-        internalCollapse(false);
+        if (shouldExpand) {
+            internalExpand(false);
+        }
+    }
+
+    @Override
+    public void addView(View child, int index, ViewGroup.LayoutParams params) {
+        if (getChildCount() == 2) {
+            // adding header
+            header.addView(child, index, params);
+        } else if (getChildCount() == 3) {
+            // adding content
+            content.addView(child, index, params);
+        } else {
+            // adding internal
+            super.addView(child, index, params);
+        }
+    }
+
+    private void setOnClickListeners() {
         header.setOnClickListener(v -> {
             toggleExpandedState(false);
             if (onHeaderClicked != null) onHeaderClicked.run();
@@ -53,39 +89,13 @@ public class ExpandableView extends FrameLayout {
         content.setOnClickListener(v -> {
             if (onContentClicked != null) onContentClicked.run();
         });
+    }
 
-        int headerLayoutWidth = MATCH_PARENT;
-        int headerLayoutHeight = MATCH_PARENT;
-        int contentLayoutWidth = MATCH_PARENT;
-        int contentLayoutHeight = MATCH_PARENT;
-        boolean shouldExpand = false;
-
-        if (attrs != null) {
-            // Load attributes
-            final TypedArray a = getContext().obtainStyledAttributes(
-                    attrs, R.styleable.ExpandableView, defStyleAttr, defStyleRes);
-            int headerId = a.getResourceId(R.styleable.ExpandableView_headerLayout, 0);
-            int contentId = a.getResourceId(R.styleable.ExpandableView_contentLayout, 0);
-
-            headerLayoutWidth = a.getDimensionPixelSize(R.styleable.ExpandableView_header_layout_width, MATCH_PARENT);
-            headerLayoutHeight = a.getDimensionPixelSize(R.styleable.ExpandableView_header_layout_height, MATCH_PARENT);
-            contentLayoutWidth = a.getDimensionPixelSize(R.styleable.ExpandableView_content_layout_width, MATCH_PARENT);
-            contentLayoutHeight = a.getDimensionPixelSize(R.styleable.ExpandableView_content_layout_height, MATCH_PARENT);
-
-            shouldExpand = a.getBoolean(R.styleable.ExpandableView_expanded, false);
-            replaceHeaderWhenExpanded = a.getBoolean(R.styleable.ExpandableView_replaceHeaderWhenExpanded, false);
-            a.recycle();
-
-            if (headerId != 0) inflate(context, headerId, header);
-            if (contentId != 0) inflate(context, contentId, content);
-        } else {
-            expanded = false;
-            replaceHeaderWhenExpanded = false;
-        }
-        header.setLayoutParams(new FrameLayout.LayoutParams(headerLayoutWidth, headerLayoutHeight));
-        content.setLayoutParams(new FrameLayout.LayoutParams(contentLayoutWidth, contentLayoutHeight));
-
-        if (shouldExpand) post(() -> expand(false));
+    @NonNull
+    private TypedArray getTypedArray(@NonNull AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+        final TypedArray a = getContext().obtainStyledAttributes(
+                attrs, R.styleable.ExpandableView, defStyleAttr, defStyleRes);
+        return a;
     }
 
     public void expand(boolean animate) {
@@ -101,15 +111,8 @@ public class ExpandableView extends FrameLayout {
         if (animate) {
 
         } else {
-            if (replaceHeaderWhenExpanded) {
-                header.setVisibility(GONE);
-                content.setVisibility(VISIBLE);
-            } else {
-                FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) content.getLayoutParams();
-                layoutParams.topMargin = header.getBottom();
-                content.setLayoutParams(layoutParams);
-                content.setVisibility(VISIBLE);
-            }
+            if (replaceHeaderWhenExpanded) header.setVisibility(GONE);
+            content.setVisibility(VISIBLE);
         }
     }
 
@@ -118,16 +121,14 @@ public class ExpandableView extends FrameLayout {
         if (animate) {
 
         } else {
-            if (replaceHeaderWhenExpanded) {
-                header.setVisibility(VISIBLE);
-                content.setVisibility(GONE);
-            } else {
-                content.setVisibility(GONE);
-                FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) content.getLayoutParams();
-                layoutParams.topMargin = 0;
-                content.setLayoutParams(layoutParams);
-            }
+            if (replaceHeaderWhenExpanded) header.setVisibility(VISIBLE);
+            content.setVisibility(GONE);
         }
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
     }
 
 

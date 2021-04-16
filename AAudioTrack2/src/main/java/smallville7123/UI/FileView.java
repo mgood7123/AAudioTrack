@@ -14,6 +14,8 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -73,6 +75,19 @@ public class FileView extends FrameLayout {
     private void init(Context context, AttributeSet attrs) {
         mContext = context;
         mAttrs = attrs;
+        inputMethodManager = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+
+        setup_Attrs(context, attrs);
+        setup_Content(context, attrs);
+        setup_IME_ACTION_handler();
+        setup_AutoCompletion();
+        setup_Filtering();
+        if (isInEditMode()) {
+            enterDirectory("/");
+        }
+    }
+
+    void setup_Attrs(Context context, AttributeSet attrs) {
         if (attrs != null) {
             TypedArray attributes = context.getTheme().obtainStyledAttributes(attrs, R.styleable.FileView, 0, 0);
             textSize = LayoutUtils.getTextSizeAttributesSuitableForTextView(attributes, R.styleable.FileView_android_textSize, 30f);
@@ -89,6 +104,9 @@ public class FileView extends FrameLayout {
             textSize = LayoutUtils.new_TextViewSize(30f);
             background = new ColorDrawable(Color.DKGRAY);
         }
+    }
+
+    void setup_Content(Context context, AttributeSet attrs) {
         setBackground(background);
         inflate(context, R.layout.fileview_content, this);
         fileList = new GridView(context, attrs);
@@ -99,12 +117,206 @@ public class FileView extends FrameLayout {
         header.setImeOptions(EditorInfo.IME_ACTION_GO);
         FrameLayout fl = findViewById(R.id.FileView_container);
         fl.addView(fileList);
-        inputMethodManager = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-        setup_IME_ACTION_handler();
-        setup_AutoCompletion();
-        if (isInEditMode()) {
-            enterDirectory("/");
+    }
+
+    void setChecks(
+            View view,
+            CompoundButton.OnCheckedChangeListener read,
+            CompoundButton.OnCheckedChangeListener write,
+            CompoundButton.OnCheckedChangeListener execute
+    ) {
+        ((CheckBox) view.findViewById(R.id.checkBoxRead))
+                .setOnCheckedChangeListener(read);
+        ((CheckBox) view.findViewById(R.id.checkBoxWrite))
+                .setOnCheckedChangeListener(write);
+        ((CheckBox) view.findViewById(R.id.checkBoxExecute))
+                .setOnCheckedChangeListener(execute);
+    }
+
+    void setCheckWithModeSpec(View view, ModeSpec spec) {
+        ((CheckBox) view.findViewById(R.id.checkBoxRead)).setChecked(spec.read == Mode.BIT_ALLOW);
+        ((CheckBox) view.findViewById(R.id.checkBoxWrite)).setChecked(spec.write == Mode.BIT_ALLOW);
+        ((CheckBox) view.findViewById(R.id.checkBoxExecute)).setChecked(spec.execute == Mode.BIT_ALLOW);
+    }
+
+    ModeSpec directoryFilter;
+    ModeSpec fileFilter;
+
+    public void applyDirectoryFilter(ModeSpec modeSpec) {
+        directoryFilter = modeSpec;
+    }
+
+    public void applyFileFilter(ModeSpec modeSpec) {
+        fileFilter = modeSpec;
+    }
+
+    /*
+        Allow Read  true  && Deny Read  false  -> BIT_ALLOW
+        Allow Read  false && Deny Read  true   -> BIT_DENY
+        Allow Read  true  && Deny Read  true   -> BIT_ANY
+        Allow Read  false && Deny Read  false  -> ?
+     */
+
+    ModeSpec directoryFilterAllow;
+    ModeSpec directoryFilterDeny;
+    ModeSpec fileFilterAllow;
+    ModeSpec fileFilterDeny;
+
+    void setRead(ModeSpec modeSpec, boolean value) {
+        modeSpec.read = value ? Mode.BIT_ALLOW : Mode.BIT_DENY;
+    }
+
+    void setWrite(ModeSpec modeSpec, boolean value) {
+        modeSpec.write = value ? Mode.BIT_ALLOW : Mode.BIT_DENY;
+    }
+
+    void setExecute(ModeSpec modeSpec, boolean value) {
+        modeSpec.execute = value ? Mode.BIT_ALLOW : Mode.BIT_DENY;
+    }
+
+    public void applyFilter(ModeSpec toApplyTo, ModeSpec allow, ModeSpec deny) {
+        if (allow.read == Mode.BIT_ALLOW && deny.read == Mode.BIT_DENY) {
+            toApplyTo.read = Mode.BIT_ALLOW;
+        } else if (allow.read == Mode.BIT_DENY && deny.read == Mode.BIT_ALLOW) {
+            toApplyTo.read = Mode.BIT_DENY;
+        } else if (allow.read == Mode.BIT_ALLOW && deny.read == Mode.BIT_ALLOW) {
+            toApplyTo.read = Mode.BIT_ANY;
+        } else if (allow.read == Mode.BIT_DENY && deny.read == Mode.BIT_DENY) {
+            // should this be valid?
+            toApplyTo.read = Mode.BIT_ANY;
         }
+
+        if (allow.write == Mode.BIT_ALLOW && deny.write == Mode.BIT_DENY) {
+            toApplyTo.write = Mode.BIT_ALLOW;
+        } else if (allow.write == Mode.BIT_DENY && deny.write == Mode.BIT_ALLOW) {
+            toApplyTo.write = Mode.BIT_DENY;
+        } else if (allow.write == Mode.BIT_ALLOW && deny.write == Mode.BIT_ALLOW) {
+            toApplyTo.write = Mode.BIT_ANY;
+        } else if (allow.write == Mode.BIT_DENY && deny.write == Mode.BIT_DENY) {
+            // should this be valid?
+            toApplyTo.write = Mode.BIT_ANY;
+        }
+
+        if (allow.execute == Mode.BIT_ALLOW && deny.execute == Mode.BIT_DENY) {
+            toApplyTo.execute = Mode.BIT_ALLOW;
+        } else if (allow.execute == Mode.BIT_DENY && deny.execute == Mode.BIT_ALLOW) {
+            toApplyTo.execute = Mode.BIT_DENY;
+        } else if (allow.execute == Mode.BIT_ALLOW && deny.execute == Mode.BIT_ALLOW) {
+            toApplyTo.execute = Mode.BIT_ANY;
+        } else if (allow.execute == Mode.BIT_DENY && deny.execute == Mode.BIT_DENY) {
+            // should this be valid?
+            toApplyTo.execute = Mode.BIT_ANY;
+        }
+    }
+
+    public void applyDirectoryFilter() {
+        applyFilter(directoryFilter, directoryFilterAllow, directoryFilterDeny);
+        dps.setText(directoryFilter.toPermissionString());
+        updateList(originalData);
+    }
+
+    public void applyFileFilter() {
+        applyFilter(fileFilter, fileFilterAllow, fileFilterDeny);
+        fps.setText(fileFilter.toPermissionString());
+        updateList(originalData);
+    }
+
+    public void applyDirectoryAndFileFilters() {
+        applyFilter(directoryFilter, directoryFilterAllow, directoryFilterDeny);
+        dps.setText(directoryFilter.toPermissionString());
+        applyFilter(fileFilter, fileFilterAllow, fileFilterDeny);
+        fps.setText(fileFilter.toPermissionString());
+        updateList(originalData);
+    }
+
+    TextView dps;
+    TextView fps;
+
+    void setup_Filtering() {
+        directoryFilterAllow = new ModeSpec("rwx");
+        directoryFilterDeny = new ModeSpec("rwx");
+        fileFilterAllow = new ModeSpec("rwx");
+        fileFilterDeny = new ModeSpec("rwx");
+        directoryFilter = new ModeSpec("***");
+        fileFilter = new ModeSpec("***");
+
+        View allowedDirectories = findViewById(R.id.allowedDirectories);
+        View deniedDirectories = findViewById(R.id.deniedDirectories);
+        View allowedFiles = findViewById(R.id.allowedFiles);
+        View deniedFiles = findViewById(R.id.deniedFiles);
+
+        setCheckWithModeSpec(allowedDirectories, directoryFilterAllow);
+        setCheckWithModeSpec(deniedDirectories, directoryFilterDeny);
+        setCheckWithModeSpec(allowedFiles, fileFilterAllow);
+        setCheckWithModeSpec(deniedFiles, fileFilterDeny);
+
+        dps = findViewById(R.id.directoryPermissionsString);
+        fps = findViewById(R.id.filePermissionsString);
+
+        applyDirectoryAndFileFilters();
+
+
+        setChecks(
+                findViewById(R.id.allowedDirectories),
+                (buttonView, isChecked) -> {
+                    setRead(directoryFilterAllow, isChecked);
+                    applyDirectoryFilter();
+                },
+                (buttonView, isChecked) -> {
+                    setWrite(directoryFilterAllow, isChecked);
+                    applyDirectoryFilter();
+                },
+                (buttonView, isChecked) -> {
+                    setExecute(directoryFilterAllow, isChecked);
+                    applyDirectoryFilter();
+                }
+        );
+        setChecks(
+                findViewById(R.id.deniedDirectories),
+                (buttonView, isChecked) -> {
+                    setRead(directoryFilterDeny, isChecked);
+                    applyDirectoryFilter();
+                },
+                (buttonView, isChecked) -> {
+                    setWrite(directoryFilterDeny, isChecked);
+                    applyDirectoryFilter();
+                },
+                (buttonView, isChecked) -> {
+                    setExecute(directoryFilterDeny, isChecked);
+                    applyDirectoryFilter();
+                }
+        );
+
+        setChecks(
+                findViewById(R.id.allowedFiles),
+                (buttonView, isChecked) -> {
+                    setRead(fileFilterAllow, isChecked);
+                    applyFileFilter();
+                },
+                (buttonView, isChecked) -> {
+                    setWrite(fileFilterAllow, isChecked);
+                    applyFileFilter();
+                },
+                (buttonView, isChecked) -> {
+                    setExecute(fileFilterAllow, isChecked);
+                    applyFileFilter();
+                }
+        );
+        setChecks(
+                findViewById(R.id.deniedFiles),
+                (buttonView, isChecked) -> {
+                    setRead(fileFilterDeny, isChecked);
+                    applyFileFilter();
+                },
+                (buttonView, isChecked) -> {
+                    setWrite(fileFilterDeny, isChecked);
+                    applyFileFilter();
+                },
+                (buttonView, isChecked) -> {
+                    setExecute(fileFilterDeny, isChecked);
+                    applyFileFilter();
+                }
+        );
     }
 
     InputMethodManager inputMethodManager;
@@ -147,13 +359,16 @@ public class FileView extends FrameLayout {
     };
 
     enum Mode {
-        BIT_INVALID,
-            BIT_DENY,
-            BIT_ALLOW,
+        BIT_ANY,
+        BIT_DENY,
+        BIT_ALLOW,
+        BIT_INVALID
     }
 
     static Mode getModeBit(char bit) {
         switch (bit) {
+            case '*':
+                return Mode.BIT_ANY;
             case '-':
                 return Mode.BIT_DENY;
             case 'R':
@@ -174,13 +389,14 @@ public class FileView extends FrameLayout {
      * mode strings are any combination of the following: <br>
      *
      * <li>--- <br>
+     * <li>*** <br>
      * <li>rwx <br>
      * <li>RWX <br>
      */
     public static class ModeSpec {
-        final Mode read;
-        final Mode write;
-        final Mode execute;
+        Mode read;
+        Mode write;
+        Mode execute;
 
         /**
          * transforms a mode string into a ModeSpec <br><br>
@@ -188,6 +404,7 @@ public class FileView extends FrameLayout {
          * mode strings are any combination of the following: <br>
          *
          * <li>--- <br>
+         * <li>*** <br>
          * <li>rwx <br>
          * <li>RWX <br>
          */
@@ -196,6 +413,9 @@ public class FileView extends FrameLayout {
                 throw new RuntimeException("length must be 3");
             }
             switch (mode.charAt(0)) {
+                case '*':
+                    read = Mode.BIT_ANY;
+                    break;
                 case '-':
                     read = Mode.BIT_DENY;
                     break;
@@ -210,6 +430,9 @@ public class FileView extends FrameLayout {
                     );
             }
             switch (mode.charAt(1)) {
+                case '*':
+                    write = Mode.BIT_ANY;
+                    break;
                 case '-':
                     write = Mode.BIT_DENY;
                     break;
@@ -224,6 +447,9 @@ public class FileView extends FrameLayout {
                     );
             }
             switch (mode.charAt(2)) {
+                case '*':
+                    execute = Mode.BIT_ANY;
+                    break;
                 case '-':
                     execute = Mode.BIT_DENY;
                     break;
@@ -260,26 +486,37 @@ public class FileView extends FrameLayout {
 
         public boolean equals(File file) {
             Objects.requireNonNull(file);
-            return read == (file.canRead() ? Mode.BIT_ALLOW : Mode.BIT_DENY) &&
-                    write == (file.canWrite() ? Mode.BIT_ALLOW : Mode.BIT_DENY) &&
-                    execute == (file.canExecute() ? Mode.BIT_ALLOW : Mode.BIT_DENY);
+            return (read == Mode.BIT_ANY || read == (file.canRead() ? Mode.BIT_ALLOW : Mode.BIT_DENY)) &&
+                    (write == Mode.BIT_ANY || write == (file.canWrite() ? Mode.BIT_ALLOW : Mode.BIT_DENY)) &&
+                    (execute == Mode.BIT_ANY || execute == (file.canExecute() ? Mode.BIT_ALLOW : Mode.BIT_DENY));
         }
 
         @Override
         public int hashCode() {
             return Objects.hash(read, write, execute);
         }
-    }
 
-    ModeSpec directoryFilter;
-    ModeSpec fileFilter;
+        public static String toPermissionString(File file) {
+            Objects.requireNonNull(file);
+            return (file.canRead() ? "r" : "-") +
+                    (file.canWrite() ? "w" : "-") +
+                    (file.canExecute() ? "x" : "-");
+        }
 
-    public void setDirectoryFilter(ModeSpec modeSpec) {
-        directoryFilter = modeSpec;
-    }
+        public String toPermissionString() {
+            return (read == Mode.BIT_ANY ? "*" : read == Mode.BIT_ALLOW ? "r" : read == Mode.BIT_DENY ? "-" : "<INVALID>") +
+                   (write == Mode.BIT_ANY ? "*" : write == Mode.BIT_ALLOW ? "w" : write == Mode.BIT_DENY ? "-" : "<INVALID>") +
+                   (execute == Mode.BIT_ANY ? "*" : execute == Mode.BIT_ALLOW ? "x" : execute == Mode.BIT_DENY ? "-" : "<INVALID>");
+        }
 
-    public void setFileFilter(ModeSpec modeSpec) {
-        fileFilter = modeSpec;
+        @Override
+        public String toString() {
+            return "ModeSpec{" +
+                    "read=" + read +
+                    ", write=" + write +
+                    ", execute=" + execute +
+                    '}';
+        }
     }
 
     void setup_AutoCompletion() {
@@ -343,7 +580,7 @@ public class FileView extends FrameLayout {
         };
 
         header.setTokenizer(new StringTokenizer('/', '/'));
-        header.addTextChangedListener(textWatcher);
+        header.addTextChangedListener(header.convertToTextWatcher(textWatcher));
         header.setThreshold(1);
         // setValidator causes EditView to hang
     }
@@ -375,7 +612,8 @@ public class FileView extends FrameLayout {
             inflate(mContext, R.layout.fileview_depth_content, depth);
         }
         ImageView chevron = row.findViewById(R.id.FileView_row_chevron);
-        if (fileInfo.file.isDirectory()) {
+        boolean isDir = fileInfo.file.isDirectory();
+        if (isDir) {
             chevron.setColorFilter(chevronColor);
             row.setOnClickListener(unused -> {
                 Boolean expanded = (Boolean) row.getTag();
@@ -394,18 +632,43 @@ public class FileView extends FrameLayout {
         }
         TextView textView = row.findViewById(R.id.FileView_row_text);
         String name = fileInfo.file.getName();
-        textView.setText(name.isEmpty() ? fileInfo.file.getAbsolutePath() : name);
+        String text = (name.isEmpty() ? fileInfo.file.getAbsolutePath() : name);
+        textView.setText(text);
         textView.setTextColor(textColor);
-        fileList.data.add(fileInfo.index, new Pair<>(r, fileInfo));
+        originalData.add(fileInfo.index, new Pair<>(r, fileInfo));
+        updateList(originalData);
         return row;
     }
 
     void clear() {
-        fileList.data.clear();
+        originalData.clear();
+        updateList(originalData);
     }
 
     void update() {
         fileList.adapter.notifyDataSetChanged();
+    }
+
+    ArrayList<Pair<View, Object>> originalData = new ArrayList<>();
+
+    ArrayList<Pair<View, Object>> applyFiltersToList(ArrayList<Pair<View, Object>> mData) {
+        ArrayList<Pair<View, Object>> data = new ArrayList<>(mData);
+        data.removeIf((Pair<View, Object> file) -> {
+            FileInfo fileInfo = (FileInfo) file.second;
+            if (fileInfo.file.isDirectory()) {
+                if (directoryFilter == null) return false;
+                return !directoryFilter.equals(fileInfo.file);
+            } else {
+                if (fileFilter == null) return false;
+                return !fileFilter.equals(fileInfo.file);
+            }
+        });
+        return data;
+    }
+
+    void updateList(ArrayList<Pair<View, Object>> data) {
+        fileList.data = applyFiltersToList(data);
+        update();
     }
 
     private boolean exists(File root) {
@@ -445,7 +708,7 @@ public class FileView extends FrameLayout {
         return null;
     }
 
-    private File[] getFilesAndDirectories(File root) {
+    private File[] getDirectoriesAndFiles(File root) {
         return isDirectory(root) ? root.listFiles() : null;
     }
 
@@ -456,7 +719,7 @@ public class FileView extends FrameLayout {
 
     int indexOf(File file) {
         String abs = file.getAbsolutePath();
-        ArrayList<Pair<View, Object>> data = fileList.data;
+        ArrayList<Pair<View, Object>> data = originalData;
         for (int i = 0, dataSize = data.size(); i < dataSize; i++) {
             Pair<View, Object> datum = data.get(i);
             String abs_ = ((FileInfo) datum.second).file.getAbsolutePath();
@@ -466,19 +729,18 @@ public class FileView extends FrameLayout {
     }
 
     private boolean expandDirectory(FileInfo root) {
-        File[] files = getFilesAndDirectories(root.file);
+        File[] files = getDirectoriesAndFiles(root.file);
         if (files == null) return false;
         sortAlphabeticallyIgnoreCase(files);
         int index = indexOf(root.file);
         for (File file : files) {
             add(new FileInfo(++index, root, file, root.depth+1));
         }
-        update();
         return true;
     }
 
     private boolean collapseDirectory(FileInfo root) {
-        fileList.data.removeIf(viewObjectPair -> {
+        originalData.removeIf(viewObjectPair -> {
             FileInfo current = ((FileInfo) viewObjectPair.second);
             while (current != null) {
                 FileInfo parent = current.parent;
@@ -495,7 +757,7 @@ public class FileView extends FrameLayout {
             }
             return false;
         });
-        update();
+        updateList(originalData);
         return true;
     }
 
@@ -523,7 +785,7 @@ public class FileView extends FrameLayout {
             rootF = new File(rootS);
         }
 
-        File[] files = getFilesAndDirectories(rootF);
+        File[] files = getDirectoriesAndFiles(rootF);
         if (files == null) {
             header.setText(cwdString);
             return false;

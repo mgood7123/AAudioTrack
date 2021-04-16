@@ -72,11 +72,13 @@ public class SequencerView extends FrameLayout {
     Context mContext;
     AttributeSet mAttrs;
     int channels;
-    float channelHeight;
+    int channelHeight;
+    static int nullChannelHeight = -99;
     boolean fitChannelsToView;
     int nativeNoteResolution;
     int UINoteResolution;
-    float noteWidth;
+    int noteWidth;
+    static int nullNoteWidth = -99;
     boolean fitNotesToView;
     WindowsContextMenu channelContextMenu;
 
@@ -106,20 +108,20 @@ public class SequencerView extends FrameLayout {
         if (attrs != null) {
             TypedArray attributes = context.getTheme().obtainStyledAttributes(attrs, R.styleable.sequencer, 0, 0);
             channels = attributes.getInteger(R.styleable.sequencer_channels, 4);
-            channelHeight = attributes.getDimension(R.styleable.sequencer_channelHeight, Float.NaN);
+            channelHeight = attributes.getLayoutDimension(R.styleable.sequencer_channelHeight, nullChannelHeight);
             fitChannelsToView = attributes.getBoolean(R.styleable.sequencer_fitChannelsToView, true);
             nativeNoteResolution = attributes.getInteger(R.styleable.sequencer_nativeNotes, 8);
             UINoteResolution = attributes.getInteger(R.styleable.sequencer_viewNotes, 4);
-            noteWidth = attributes.getDimension(R.styleable.sequencer_noteWidth, Float.NaN);
+            noteWidth = attributes.getLayoutDimension(R.styleable.sequencer_noteWidth, nullNoteWidth);
             fitNotesToView = attributes.getBoolean(R.styleable.sequencer_fitNotesToView, true);
             attributes.recycle();
         } else {
             channels = 4;
-            channelHeight = Float.NaN;
+            channelHeight = nullChannelHeight;
             fitChannelsToView = true;
             nativeNoteResolution = 8;
             UINoteResolution = 4;
-            noteWidth = Float.NaN;
+            noteWidth = nullNoteWidth;
             fitNotesToView = true;
         }
         channelGrid = new GridView(context, attrs);
@@ -210,11 +212,11 @@ public class SequencerView extends FrameLayout {
 
             row.addView(pattern.noteGrid, new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 1f));
 
-            if (fitChannelsToView || channelHeight == Float.NaN) {
+            if (fitChannelsToView || channelHeight == nullChannelHeight) {
                 channelGrid.autoSizeRow = true;
             } else {
                 channelGrid.autoSizeRow = false;
-                channelGrid.rowSize = (int) channelHeight;
+                channelGrid.rowSize = channelHeight;
             }
             channelGrid.data.add(new Pair(row, null));
             channelGrid.adapter.notifyDataSetChanged();
@@ -277,11 +279,11 @@ public class SequencerView extends FrameLayout {
                         setNoteData();
                     });
                     compoundButtons.add(note);
-                    if (fitNotesToView || noteWidth == Float.NaN) {
+                    if (fitNotesToView || noteWidth == nullNoteWidth) {
                         noteGrid.autoSizeColumn = true;
                     } else {
                         noteGrid.autoSizeColumn = false;
-                        noteGrid.columnSize = (int) noteWidth;
+                        noteGrid.columnSize = noteWidth;
                     }
                     noteGrid.data.add(new Pair(note, null));
                     maxLength++;
