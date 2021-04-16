@@ -31,7 +31,7 @@
             android:background="@drawable/rounded_background"
             android:fontFamily="serif-monospace"
             android:paddingHorizontal="4dp"
-            android:text="/rooterkll"
+            android:text="@string/FileViewPlaceHolder"
             android:textColor="@color/FL_GREY"
             android:textSize="30sp"
             app:autoResizeMode="ellipsis"
@@ -58,6 +58,8 @@
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
+        app:expanded="false"
+        app:replaceHeaderWhenExpanded="false"
         android:orientation="vertical"
         >
         <include
@@ -71,4 +73,5 @@
             android:layout_width="wrap_content"
             />
     </smallville7123.UI.ExpandableView>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

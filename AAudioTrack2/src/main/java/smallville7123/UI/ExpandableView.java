@@ -13,9 +13,6 @@ import androidx.annotation.Nullable;
 
 import smallville7123.aaudiotrack2.R;
 
-import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
-import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
-
 public class ExpandableView extends LinearLayout {
 
     private static final String TAG = "ExpandableView";
@@ -52,43 +49,33 @@ public class ExpandableView extends LinearLayout {
             shouldExpand = false;
             replaceHeaderWhenExpanded = false;
         }
-        internalCollapse(false);
-        setOnClickListeners();
-
-        header = new FrameLayout(context, attrs, defStyleAttr, defStyleRes);
-        content = new FrameLayout(context, attrs, defStyleAttr, defStyleRes);
-
-        addView(header, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
-        addView(content, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
-
-        if (shouldExpand) {
-            internalExpand(false);
-        }
     }
 
     @Override
     public void addView(View child, int index, ViewGroup.LayoutParams params) {
-        if (getChildCount() == 2) {
-            // adding header
-            header.addView(child, index, params);
-        } else if (getChildCount() == 3) {
-            // adding content
-            content.addView(child, index, params);
-        } else {
-            // adding internal
-            super.addView(child, index, params);
+        int childCount = getChildCount();
+        switch (childCount) {
+            case 0:
+                setHeader(child, params);
+                break;
+            case 1:
+                setContent(child, params);
+                break;
+            default:
+                throw new RuntimeException("This view cannot have more than 2 views");
         }
     }
 
-    private void setOnClickListeners() {
-        header.setOnClickListener(v -> {
-            toggleExpandedState(false);
-            if (onHeaderClicked != null) onHeaderClicked.run();
-        });
+    boolean hasView(View view) {
+        return view != null && indexOfChild(view) != -1;
+    }
 
-        content.setOnClickListener(v -> {
-            if (onContentClicked != null) onContentClicked.run();
-        });
+    public boolean hasHeader() {
+        return hasView(header);
+    }
+
+    public boolean hasContent() {
+        return hasView(content);
     }
 
     @NonNull
@@ -99,38 +86,26 @@ public class ExpandableView extends LinearLayout {
     }
 
     public void expand(boolean animate) {
-        if (!expanded) internalExpand(animate);
-    }
-
-    public void collapse(boolean animate) {
-        if (expanded) internalCollapse(animate);
-    }
-
-    public void internalExpand(boolean animate) {
+        if (content == null || expanded) return;
         expanded = true;
         if (animate) {
 
         } else {
-            if (replaceHeaderWhenExpanded) header.setVisibility(GONE);
+            header.setVisibility(replaceHeaderWhenExpanded ? GONE : VISIBLE);
             content.setVisibility(VISIBLE);
         }
     }
 
-    void internalCollapse(boolean animate) {
+    void collapse(boolean animate) {
+        if (content == null || !expanded) return;
         expanded = false;
         if (animate) {
 
         } else {
-            if (replaceHeaderWhenExpanded) header.setVisibility(VISIBLE);
+            header.setVisibility(VISIBLE);
             content.setVisibility(GONE);
         }
     }
-
-    @Override
-    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
-    }
-
 
     public void setOnHeaderClicked(Runnable onHeaderClicked) {
         this.onHeaderClicked = onHeaderClicked;
@@ -143,28 +118,53 @@ public class ExpandableView extends LinearLayout {
 
     public void toggleExpandedState(boolean animate) {
         if (expanded) {
-            internalCollapse(animate);
+            collapse(animate);
         } else {
-            internalExpand(animate);
+            expand(animate);
         }
     }
 
-    public void setHeader(View view) {
-        header.removeAllViewsInLayout();
-        header.addView(view, 0, new FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+    public void setHeader(View view, ViewGroup.LayoutParams params) {
+        if (header != null) {
+            header.removeViewAt(0);
+            super.removeView(header);
+        }
+        header = new FrameLayout(getContext());
+        header.setOnClickListener(this::headerOnClick);
+        header.addView(view, -1, params);
+        super.addView(header, 0, params);
     }
 
-    public void setContent(View view) {
-        content.removeAllViewsInLayout();
-        content.addView(view, 0, new FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+    public void setContent(View view, ViewGroup.LayoutParams params) {
+        if (content != null) {
+            content.removeViewAt(0);
+            super.removeView(content);
+        }
+        content = new FrameLayout(getContext());
+        if (!expanded) content.setVisibility(GONE);
+        content.setOnClickListener(this::contentOnClick);
+        content.addView(view, -1, params);
+        super.addView(content, 1, params);
+        if (shouldExpand) expand(false);
     }
 
-    public FrameLayout getHeader() {
-        return header;
+    /**
+     * Returns the view at the specified position in the group.
+     *
+     * @param index the position at which to get the view from
+     * @return the view at the specified position or null if the position
+     *         does not exist within the group
+     */
+    private  <T extends View> T getChild(ViewGroup viewGroup, int index) {
+        return (T) viewGroup.getChildAt(0);
     }
 
-    public FrameLayout getContent() {
-        return content;
+    public <T extends View> T getHeader() {
+        return getChild(header, 0);
+    }
+
+    public <T extends View> T getContent() {
+        return getChild(content, 0);
     }
 
     public void setHeaderTag(Object object) {
@@ -197,5 +197,14 @@ public class ExpandableView extends LinearLayout {
 
     public Object getContentTag(int key) {
         return content.getTag(key);
+    }
+
+    private void contentOnClick(View v) {
+        if (onContentClicked != null) onContentClicked.run();
+    }
+
+    private void headerOnClick(View v) {
+        toggleExpandedState(false);
+        if (onHeaderClicked != null) onHeaderClicked.run();
     }
 }
