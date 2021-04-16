@@ -6,7 +6,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 
-import smallville7123.UI.FileView;
+import smallville7123.AndroidDAW.SDK.UI.FileView;
 import smallville7123.aaudiotrack2.PermissionRequester;
 
 public class MainActivity extends Activity {

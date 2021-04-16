@@ -15,6 +15,9 @@ import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 
+import smallville7123.AndroidDAW.SDK.UI.GridView;
+import smallville7123.AndroidDAW.SDK.UI.LayoutUtils;
+import smallville7123.AndroidDAW.SDK.UI.WindowsContextMenu;
 import smallville7123.UI.Style.Android.ToggleRadioButton;
 import smallville7123.aaudiotrack2.AAudioTrack2;
 import smallville7123.aaudiotrack2.PatternGroup;
@@ -204,7 +207,7 @@ public class SequencerView extends FrameLayout {
                         );
                     });
                 }
-            }, Constants.wrapContent);
+            }, LayoutUtils.getWrapContent());
             row.addView(
                     newChannelButton(label),
                     new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, 3f)

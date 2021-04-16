@@ -10,9 +10,9 @@ import androidx.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import smallville7123.UI.ScrollBarView.CanvasDrawer;
-import smallville7123.UI.ScrollBarView.CanvasView;
-import smallville7123.UI.ScrollBarView.Scroller;
+import smallville7123.AndroidDAW.SDK.UI.ScrollBar.CanvasDrawer;
+import smallville7123.AndroidDAW.SDK.UI.ScrollBar.CanvasView;
+import smallville7123.AndroidDAW.SDK.UI.ScrollBar.Scroller;
 
 /**
  * FL pattern view appears to map by key (midi number):

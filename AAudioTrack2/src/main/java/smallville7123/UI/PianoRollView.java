@@ -6,9 +6,9 @@ import android.util.AttributeSet;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import smallville7123.UI.ScrollBarView.CanvasDrawer;
-import smallville7123.UI.ScrollBarView.CanvasView;
-import smallville7123.UI.ScrollBarView.Scroller;
+import smallville7123.AndroidDAW.SDK.UI.ScrollBar.CanvasDrawer;
+import smallville7123.AndroidDAW.SDK.UI.ScrollBar.CanvasView;
+import smallville7123.AndroidDAW.SDK.UI.ScrollBar.Scroller;
 
 public class PianoRollView extends CanvasView {
     public PianoRollView(@NonNull Context context) {

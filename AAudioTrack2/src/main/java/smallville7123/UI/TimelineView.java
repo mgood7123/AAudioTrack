@@ -8,8 +8,8 @@ import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 
-import smallville7123.UI.ScrollBarView.CanvasDrawer;
-import smallville7123.UI.ScrollBarView.CanvasView;
+import smallville7123.AndroidDAW.SDK.UI.ScrollBar.CanvasDrawer;
+import smallville7123.AndroidDAW.SDK.UI.ScrollBar.CanvasView;
 
 public class TimelineView extends CanvasView {
     public TimelineView(@NonNull Context context) {

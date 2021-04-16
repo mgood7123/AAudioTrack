@@ -68,7 +68,7 @@
                 android:layout_weight="1"
                 android:orientation="vertical"
                 >
-                <smallville7123.UI.UpdatingImageProgressBar
+                <smallville7123.AndroidDAW.SDK.UI.UpdatingImageProgressBar
                     android:id="@+id/CPU_LOAD"
                     android:layout_width="30dp"
                     android:layout_height="120dp"
@@ -137,7 +137,7 @@
         </smallville7123.vstmanager.core.Views.WindowView>
     </smallville7123.vstmanager.core.Views.VstView>
 
-    <smallville7123.UI.UpdatingTextView
+    <smallville7123.AndroidDAW.SDK.UI.UpdatingTextView
         android:id="@+id/INFO"
         android:layout_width="match_parent"
         android:layout_height="120dp"

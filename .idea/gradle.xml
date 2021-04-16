@@ -20,6 +20,7 @@
             <option value="$PROJECT_DIR$/AndroidDAW_SDK/Midi" />
             <option value="$PROJECT_DIR$/AndroidDAW_SDK/Plugin" />
             <option value="$PROJECT_DIR$/AndroidDAW_SDK/RingBuffer" />
+            <option value="$PROJECT_DIR$/AndroidDAW_SDK/UI" />
             <option value="$PROJECT_DIR$/AndroidDAW_SDK/VstSystem" />
             <option value="$PROJECT_DIR$/AndroidDAW_SDK/VstSystem/Taggable" />
             <option value="$PROJECT_DIR$/AndroidDAW_SDK/VstSystem/VstCore" />

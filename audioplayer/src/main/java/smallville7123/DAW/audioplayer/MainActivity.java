@@ -1,19 +1,14 @@
 package smallville7123.DAW.audioplayer;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.Manifest;
 import android.app.Activity;
 import android.os.Bundle;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.FrameLayout;
 
-import smallville7123.UI.FileView;
+import androidx.annotation.NonNull;
+
+import smallville7123.AndroidDAW.SDK.UI.FileView;
 import smallville7123.aaudiotrack2.AAudioTrack2;
 import smallville7123.aaudiotrack2.PermissionRequester;
-import smallville7123.vstmanager.VstManager;
 
 public class MainActivity extends Activity {
     AAudioTrack2 audioPlayer = new AAudioTrack2();

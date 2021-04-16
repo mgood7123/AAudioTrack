@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <smallville7123.UI.FileView
+    <smallville7123.AndroidDAW.SDK.UI.FileView
         android:id="@+id/fileView"
         android:textSize="80sp"
         android:layout_width="0dp"
