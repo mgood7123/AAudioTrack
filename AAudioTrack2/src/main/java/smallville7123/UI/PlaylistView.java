@@ -33,11 +33,6 @@ import static android.widget.LinearLayout.HORIZONTAL;
 import static android.widget.LinearLayout.VERTICAL;
 import static smallville7123.AndroidDAW.SDK.UI.ScrollBar.ScrollBarView.FAIL;
 import static smallville7123.AndroidDAW.SDK.UI.ScrollBar.ScrollBarView.SUCCESS;
-import static smallville7123.AndroidDAW.SDK.UI.ScrollBar.ScrollBarView.defaultGetScrollX;
-import static smallville7123.AndroidDAW.SDK.UI.ScrollBar.ScrollBarView.defaultGetScrollY;
-import static smallville7123.AndroidDAW.SDK.UI.ScrollBar.ScrollBarView.defaultHowToScrollTheView;
-import static smallville7123.AndroidDAW.SDK.UI.ScrollBar.ScrollBarView.defaultSetScrollX;
-import static smallville7123.AndroidDAW.SDK.UI.ScrollBar.ScrollBarView.defaultSetScrollY;
 
 @SuppressLint("AppCompatCustomView")
 public class PlaylistView extends FrameLayout {
@@ -173,11 +168,12 @@ public class PlaylistView extends FrameLayout {
                     }
                     return FAIL;
                 },
-                defaultHowToScrollTheView,
-                defaultSetScrollX,
-                defaultSetScrollY,
-                defaultGetScrollX,
-                defaultGetScrollY
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
         );
 
         verticalScrollBar.registerView(
@@ -196,11 +192,12 @@ public class PlaylistView extends FrameLayout {
                     }
                     return FAIL;
                 },
-                defaultHowToScrollTheView,
-                defaultSetScrollX,
-                defaultSetScrollY,
-                defaultGetScrollX,
-                defaultGetScrollY
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
         );
 
         scrollBarContainerTop = new LinearLayout(context, attrs);
