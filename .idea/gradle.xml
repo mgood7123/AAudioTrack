@@ -29,6 +29,7 @@
             <option value="$PROJECT_DIR$/ContextMenu" />
             <option value="$PROJECT_DIR$/audioplayer" />
             <option value="$PROJECT_DIR$/fileview" />
+            <option value="$PROJECT_DIR$/flexible" />
             <option value="$PROJECT_DIR$/simplesinewave" />
           </set>
         </option>
